@@ -10,7 +10,7 @@
 #else
 	internal
 #endif
-	partial class MidiEvent
+	partial class MidiEvent : ICloneable
 	{
 		/// <summary>
 		/// Creates an event at the specified position with the specified MIDI message
@@ -30,5 +30,17 @@
 		/// Indicates the MIDI message associated with this event
 		/// </summary>
 		public MidiMessage Message { get; private set; }
+		/// <summary>
+		/// Creates a deep copy of the MIDI event
+		/// </summary>
+		/// <returns>A new, equivelent MIDI event</returns>
+		public MidiEvent Clone()
+		{
+			return new MidiEvent(Position, Message.Clone());
+		}
+		object ICloneable.Clone()
+		{
+			return Clone();
+		}
 	}
 }

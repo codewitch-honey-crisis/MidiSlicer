@@ -13,8 +13,8 @@
 #else
 	internal
 #endif
-	sealed partial class MidiFile
-	{
+	sealed partial class MidiFile : ICloneable
+ 	{
 		/// <summary>
 		/// Constructs a MIDI file of the specified type with the specified timebase
 		/// </summary>
@@ -207,6 +207,21 @@
 			foreach(var trk in Tracks)
 				result.Tracks.Add(trk.Stretch(diff,adjustTempo));
 			return result;
+		}
+		/// <summary>
+		/// Creates a deep copy of the MIDI file
+		/// </summary>
+		/// <returns>A new MIDI file that is equivelent to this MIDI file</returns>
+		public MidiFile Clone()
+		{
+			var result = new MidiFile(Type, TimeBase);
+			for(int ic=Tracks.Count,i=0;i<ic;++i)
+				result.Tracks.Add(Tracks[i].Clone());
+			return result;
+		}
+		object ICloneable.Clone()
+		{
+			return Clone();
 		}
 		/// <summary>
 		/// Reads a MIDI file from the specified stream

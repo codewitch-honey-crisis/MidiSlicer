@@ -1,6 +1,7 @@
 ﻿namespace M
 {
-	using System.Text;
+    using System;
+    using System.Text;
 
 	/// <summary>
 	/// Represents a MIDI message
@@ -10,7 +11,7 @@
 #else
 	internal
 #endif
-	partial class MidiMessage
+	partial class MidiMessage : ICloneable
 	{
 		/// <summary>
 		/// Creates a MIDI message with the specified status byte
@@ -25,6 +26,26 @@
 		/// Indicates the length of the message payload
 		/// </summary>
 		public virtual int PayloadLength { get { return 0; } }
+		/// <summary>
+		/// When overloaded in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected virtual MidiMessage CloneImpl()
+		{
+			return new MidiMessage(Status);
+		}
+		/// <summary>
+		/// Creates a deep copy of the message
+		/// </summary>
+		/// <returns>A message that is equivelent to the specified message</returns>
+		public MidiMessage Clone()
+		{
+			return CloneImpl();
+		}
+		object ICloneable.Clone()
+		{
+			return Clone();
+		}
 	}
 
 	/// <summary>
@@ -52,6 +73,14 @@
 		/// Indicates the payload length for this MIDI message
 		/// </summary>
 		public override int PayloadLength => 1;
+		/// <summary>
+		/// When overloaded in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageByte(Status, Data1);
+		}
 	}
 	/// <summary>
 	/// Represents a MIDI message a payload word (2 bytes)
@@ -97,6 +126,14 @@
 			get {
 				return unchecked((short)(Data1 + (Data2 << 7)));
 			}
+		}
+		/// <summary>
+		/// When overloaded in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageWord(Status, Data1,Data2);
 		}
 	}
 	/// <summary>
@@ -144,6 +181,14 @@
 				return Encoding.ASCII.GetString(Data);
 			}
 		}
+		/// <summary>
+		/// When overloaded in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMeta(Status, Data1, Data);
+		}
 	}
 	/// <summary>
 	/// Represents a MIDI system exclusive message with an arbitrary length payload
@@ -173,6 +218,13 @@
 		/// Indicates the payload data, as bytes
 		/// </summary>
 		public byte[] Data { get; private set; }
-	
+		/// <summary>
+		/// When overloaded in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageSysex(Status, Data);
+		}
 	}
 }

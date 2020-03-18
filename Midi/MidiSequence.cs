@@ -13,7 +13,7 @@
 #else
 	internal
 #endif
-	sealed partial class MidiSequence
+	sealed partial class MidiSequence : ICloneable
 	{
 		/// <summary>
 		/// Creates a new MIDI sequence
@@ -708,6 +708,21 @@
 			{
 				MidiUtility.CloseOutputDevice(handle);
 			}
+		}
+		/// <summary>
+		/// Creates a deep copy of the sequence
+		/// </summary>
+		/// <returns></returns>
+		public MidiSequence Clone()
+		{
+			var result = new MidiSequence();
+			for(int ic=Events.Count,i=0;i<ic;++i)
+				result.Events.Add(Events[i].Clone());
+			return result;
+		}
+		object ICloneable.Clone()
+		{
+			return Clone();
 		}
 		private static uint _Swap(uint x) { return ((x & 0x000000ff) << 24) + ((x & 0x0000ff00) << 8) + ((x & 0x00ff0000) >> 8) + ((x & 0xff000000) >> 24); }
 		
