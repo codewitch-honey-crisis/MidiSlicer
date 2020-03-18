@@ -23,11 +23,15 @@
 		/// </summary>
 		public byte Status { get; private set; }
 		/// <summary>
+		/// Indicates the channel of the MIDI message
+		/// </summary>
+		public byte Channel { get { return unchecked((byte)(Status & 0xF)); } }
+		/// <summary>
 		/// Indicates the length of the message payload
 		/// </summary>
 		public virtual int PayloadLength { get { return 0; } }
 		/// <summary>
-		/// When overloaded in a derived class, implements Clone()
+		/// When overridden in a derived class, implements Clone()
 		/// </summary>
 		/// <returns>The cloned MIDI message</returns>
 		protected virtual MidiMessage CloneImpl()
@@ -74,7 +78,7 @@
 		/// </summary>
 		public override int PayloadLength => 1;
 		/// <summary>
-		/// When overloaded in a derived class, implements Clone()
+		/// When overridden in a derived class, implements Clone()
 		/// </summary>
 		/// <returns>The cloned MIDI message</returns>
 		protected override MidiMessage CloneImpl()
@@ -109,7 +113,7 @@
 			status,
 			unchecked((byte)(data&0x7F)))
 		{
-			Data2= unchecked((byte)((data >> 7) & 0x7F));
+			Data2= unchecked((byte)((data / 256) & 0x7F));
 		}
 		/// <summary>
 		/// Indicates the payload length for this MIDI message
@@ -124,11 +128,11 @@
 		/// </summary>
 		public short Data {
 			get {
-				return unchecked((short)(Data1 + (Data2 << 7)));
+				return unchecked((short)(Data1 +Data2 * 256));
 			}
 		}
 		/// <summary>
-		/// When overloaded in a derived class, implements Clone()
+		/// When overridden in a derived class, implements Clone()
 		/// </summary>
 		/// <returns>The cloned MIDI message</returns>
 		protected override MidiMessage CloneImpl()
@@ -182,7 +186,7 @@
 			}
 		}
 		/// <summary>
-		/// When overloaded in a derived class, implements Clone()
+		/// When overridden in a derived class, implements Clone()
 		/// </summary>
 		/// <returns>The cloned MIDI message</returns>
 		protected override MidiMessage CloneImpl()
@@ -219,12 +223,310 @@
 		/// </summary>
 		public byte[] Data { get; private set; }
 		/// <summary>
-		/// When overloaded in a derived class, implements Clone()
+		/// When overridden in a derived class, implements Clone()
 		/// </summary>
 		/// <returns>The cloned MIDI message</returns>
 		protected override MidiMessage CloneImpl()
 		{
 			return new MidiMessageSysex(Status, Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI note on message
+	/// </summary>
+#if MIDILIB
+	public
+#else
+	internal
+#endif
+	partial class MidiMessageNoteOn : MidiMessageWord
+	{
+		/// <summary>
+		/// Creates a new MIDI note on message
+		/// </summary>
+		/// <param name="noteId">The MIDI note id (0-127)</param>
+		/// <param name="velocity">The MIDI velocity (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessageNoteOn(byte noteId,byte velocity, byte channel) : base(unchecked((byte)(0x90|channel)),noteId,velocity)
+		{
+
+		}
+		/// <summary>
+		/// Indicates the MIDI note id to play
+		/// </summary>
+		public byte NoteId {
+			get {
+				return Data1;
+			}
+		}
+		/// <summary>
+		/// Indicates the velocity of the note to play
+		/// </summary>
+		public byte Velocity {
+			get {
+				return Data2;
+			}
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageNoteOn(NoteId, Velocity, Channel);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI note off message
+	/// </summary>
+#if MIDILIB
+	public
+#else
+	internal
+#endif
+	partial class MidiMessageNoteOff : MidiMessageWord
+	{
+		/// <summary>
+		/// Creates a new MIDI note off message
+		/// </summary>
+		/// <param name="noteId">The MIDI note id (0-127)</param>
+		/// <param name="velocity">The MIDI velocity (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		/// <remarks><paramref name="velocity"/> is not used</remarks>
+		public MidiMessageNoteOff(byte noteId, byte velocity, byte channel) : base(unchecked((byte)(0x80 | channel)), noteId, velocity)
+		{
+
+		}
+		/// <summary>
+		/// Indicates the MIDI note id to turn off
+		/// </summary>
+		public byte NoteId {
+			get {
+				return Data1;
+			}
+		}
+		/// <summary>
+		/// Indicates the velocity of the note to turn off
+		/// </summary>
+		/// <remarks>This value is not used</remarks>
+		public byte Velocity {
+			get {
+				return Data2;
+			}
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageNoteOff(NoteId, Velocity, Channel);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI key pressure/aftertouch message
+	/// </summary>
+#if MIDILIB
+	public
+#else
+	internal
+#endif
+	partial class MidiMessageKeyPressure : MidiMessageWord
+	{
+		/// <summary>
+		/// Creates a new MIDI key pressure/aftertouch message
+		/// </summary>
+		/// <param name="noteId">The MIDI note id (0-127)</param>
+		/// <param name="pressure">The MIDI pressure (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessageKeyPressure(byte noteId, byte pressure, byte channel) : base(unchecked((byte)(0xA0 | channel)), noteId, pressure)
+		{
+
+		}
+		/// <summary>
+		/// Indicates the assocated MIDI note id
+		/// </summary>
+		public byte NoteId {
+			get {
+				return Data1;
+			}
+		}
+		/// <summary>
+		/// Indicates the pressure of the note (aftertouch)
+		/// </summary>
+		public byte Pressure {
+			get {
+				return Data2;
+			}
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageKeyPressure(NoteId, Pressure, Channel);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI continuous controller message
+	/// </summary>
+#if MIDILIB
+	public
+#else
+	internal
+#endif
+	partial class MidiMessageCC : MidiMessageWord
+	{
+		/// <summary>
+		/// Creates a new MIDI continuous controller message
+		/// </summary>
+		/// <param name="controlId">The MIDI controller id (0-127)</param>
+		/// <param name="value">The MIDI value (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessageCC(byte controlId, byte value, byte channel) : base(unchecked((byte)(0xB0 | channel)), controlId, value)
+		{
+
+		}
+		/// <summary>
+		/// Indicates the assocated MIDI controller id
+		/// </summary>
+		public byte ControlId {
+			get {
+				return Data1;
+			}
+		}
+		/// <summary>
+		/// Indicates the value of the controller
+		/// </summary>
+		public byte Value {
+			get {
+				return Data2;
+			}
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageCC(ControlId, Value, Channel);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI key pressure/aftertouch message
+	/// </summary>
+#if MIDILIB
+	public
+#else
+	internal
+#endif
+	partial class MidiMessagePatchChange : MidiMessageByte
+	{
+		/// <summary>
+		/// Creates a new MIDI key pressure/aftertouch message
+		/// </summary>
+		/// <param name="patchId">The MIDI patch Id (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessagePatchChange(byte patchId, byte channel) : base(unchecked((byte)(0xC0 | channel)), patchId)
+		{
+
+		}
+		/// <summary>
+		/// Indicates the assocated MIDI patch id
+		/// </summary>
+		public byte PatchId {
+			get {
+				return Data1;
+			}
+		}
+		
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessagePatchChange(PatchId, Channel);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI key pressure/aftertouch message
+	/// </summary>
+#if MIDILIB
+	public
+#else
+	internal
+#endif
+	partial class MidiMessageChannelPressure : MidiMessageByte
+	{
+		/// <summary>
+		/// Creates a new MIDI key pressure/aftertouch message
+		/// </summary>
+		/// <param name="pressure">The MIDI pressure (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessageChannelPressure(byte pressure, byte channel) : base(unchecked((byte)(0xD0 | channel)), pressure)
+		{
+
+		}
+		/// <summary>
+		/// Indicates the pressure of the channel (aftertouch)
+		/// </summary>
+		/// <remarks>Indicates the single greatest pressure/aftertouch off all pressed notes</remarks>
+		public byte Pressure {
+			get {
+				return Data1;
+			}
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageChannelPressure(Pressure, Channel);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI channel pitch/pitch wheel message
+	/// </summary>
+#if MIDILIB
+	public
+#else
+	internal
+#endif
+	partial class MidiMessageChannelPitch : MidiMessageWord
+	{
+		/// <summary>
+		/// Creates a new MIDI channel pitch message
+		/// </summary>
+		/// <param name="pitch">The MIDI pressure (0-16383)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessageChannelPitch(short pitch, byte channel) : base(unchecked((byte)(0xE0 | channel)), BitConverter.IsLittleEndian?MidiUtility.Swap(pitch):pitch)
+		{
+
+		}
+		internal MidiMessageChannelPitch(byte pitch1,byte pitch2, byte channel) : base(unchecked((byte)(0xE0 | channel)), pitch1,pitch2)
+		{
+
+		}
+		/// <summary>
+		/// Indicates the pitch of the channel (pitch wheel position)
+		/// </summary>
+		public short Pitch {
+			get {
+				if (BitConverter.IsLittleEndian)
+					return MidiUtility.Swap(Data);
+				return Data;
+			}
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageChannelPitch(Data1,Data2, Channel);
 		}
 	}
 }

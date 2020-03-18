@@ -192,17 +192,32 @@
 				switch (rs & 0xF0)
 				{
 					case 0x80:
-					case 0x90:
-					case 0xA0:
-					case 0xB0:
-					case 0xE0:
 						if (i == -1) throw new EndOfStreamException();
-						m = new MidiMessageWord(st, b, (byte)stream.ReadByte());
+						m = new MidiMessageNoteOff(b, (byte)stream.ReadByte(), unchecked((byte)(st & 0x0F)));
+						break;
+					case 0x90:
+						if (i == -1) throw new EndOfStreamException();
+						m = new MidiMessageNoteOn(b, (byte)stream.ReadByte(), unchecked((byte)(st & 0x0F)));
+						break;
+					case 0xA0:
+						if (i == -1) throw new EndOfStreamException();
+						m = new MidiMessageKeyPressure(b, (byte)stream.ReadByte(),  unchecked((byte)(st & 0x0F)));
+						break;
+					case 0xB0:
+						if (i == -1) throw new EndOfStreamException();
+						m = new MidiMessageCC(b, (byte)stream.ReadByte(), unchecked((byte)(st & 0x0F)));
 						break;
 					case 0xC0:
+						if (i == -1) throw new EndOfStreamException();
+						m = new MidiMessagePatchChange(b,unchecked((byte)(st & 0x0F)));
+						break;
 					case 0xD0:
 						if (i == -1) throw new EndOfStreamException();
-						m = new MidiMessageByte(st, b);
+						m = new MidiMessageChannelPressure(b, unchecked((byte)(st & 0x0F)));
+						break;
+					case 0xE0:
+						if (i == -1) throw new EndOfStreamException();
+						m = new MidiMessageChannelPitch(b, (byte)stream.ReadByte(), unchecked((byte)(st & 0x0F)));
 						break;
 					case 0xF0:
 						switch (rs & 0xF)

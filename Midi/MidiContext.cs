@@ -59,7 +59,7 @@
 			{
 				case 0xC0:
 					var mb = message as MidiMessageByte;
-					Channels[cn].Program = mb.Data1;
+					Channels[cn].Patch = mb.Data1;
 					break;
 				case 0xD0:
 					mb = message as MidiMessageByte;
@@ -149,9 +149,9 @@
 			/// </summary>
 			public short PitchWheel { get; internal set; }
 			/// <summary>
-			/// Indicates the current MIDI program for the channel
+			/// Indicates the current MIDI patch for the channel
 			/// </summary>
-			public byte Program { get; internal set; }
+			public byte Patch { get; internal set; }
 
 			internal Channel()
 			{
@@ -163,7 +163,7 @@
 				for (int i = 0; i < 128; ++i) KeyPressure[i] = 0xFF;
 				ChannelPressure = 0xFF;
 				PitchWheel = -1;
-				Program = 0xFF;
+				Patch = 0xFF;
 			}
 		}
 	}
