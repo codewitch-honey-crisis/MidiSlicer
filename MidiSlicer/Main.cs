@@ -166,7 +166,6 @@ namespace MidiSlicer
 							break;
 					}
 				}
-				System.Diagnostics.Debug.WriteLine("Tempo: " + trk2.Tempo);
 				trk = trk2;
 			} else {
 				if (trk.Length != len || 0 != ofs)
@@ -262,8 +261,57 @@ namespace MidiSlicer
 					ofs += _file.FirstNoteOn;
 					break;
 			}
-			if (trk.Length != len || 0 != ofs)
-				trk = trk.GetRange(ofs, Math.Min(len,_file.Length));
+			switch (StartCombo.SelectedIndex)
+			{
+				case 1:
+					ofs += _file.FirstDownBeat;
+					break;
+				case 2:
+					ofs += _file.FirstNoteOn;
+					break;
+			}
+			if (0 != ofs && CopyTimingPatchCheckBox.Checked)
+			{
+				var end = trk.FirstNoteOn;
+				if (0 == end)
+					end = trk.Length;
+				var trk2 = trk.GetRange(ofs, len);
+				var ins = 0;
+				for (int ic = trk.Events.Count, i = 0; i < ic; ++i)
+				{
+					var ev = trk.Events[i];
+					if (ev.Position >= end)
+						break;
+					var m = ev.Message;
+					switch (m.Status)
+					{
+						case 0xFF:
+							var mm = m as MidiMessageMeta;
+							switch (mm.Data1)
+							{
+								case 0x51:
+								case 0x54:
+									trk2.Events.Insert(ins, ev.Clone());
+									++ins;
+									break;
+							}
+							break;
+						default:
+							if (0xC0 == (ev.Message.Status & 0xF0))
+							{
+								trk2.Events.Insert(ins, ev.Clone());
+								++ins;
+							}
+							break;
+					}
+				}
+				trk = trk2;
+			}
+			else
+			{
+				if (trk.Length != len || 0 != ofs)
+					trk = trk.GetRange(ofs, len);
+			}
 			if (1m != StretchUpDown.Value)
 				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 			return trk;
