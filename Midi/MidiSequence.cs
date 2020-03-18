@@ -710,9 +710,7 @@
 			var mt = MidiUtility.TempoToMicroTempo(120d);
 			var ticksusec = mt / (double)timeBase;
 			var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
-			var events = AbsoluteEvents;
 			var tickStart = MidiUtility.PreciseUtcNowTicks;
-			var tickOld = tickStart;
 			var tickCurrent = tickStart;
 			var handle = MidiUtility.OpenOutputDevice(deviceIndex);
 			try
@@ -727,9 +725,7 @@
 					var done = false;
 					while (!done && tickCurrent <= end)
 					{
-						tickOld = tickCurrent;
 						tickCurrent = MidiUtility.PreciseUtcNowTicks;
-						var oe = (long)((tickOld - tickStart) / tickspertick);
 						var ce = (long)((tickCurrent - tickStart) / tickspertick);
 						while (!done && e.Current.Position <= ce)
 						{
@@ -744,6 +740,7 @@
 										mt = (mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
 									ticksusec = mt / (double)ppq;
 									tickspertick = ticksusec / (tpm / 1000) * 100;
+									end = (long)(Length * tickspertick + tickStart);
 								}
 								else if (0x2F == mbs.Data1)
 									done = true;

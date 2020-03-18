@@ -53,7 +53,7 @@ namespace MidiSlicer
 				LengthUpDown.Enabled = false;
 				StretchUpDown.Enabled = false;
 				MergeTracksCheckBox.Enabled = false;
-				AdustTempoCheckBox.Enabled = false;
+				AdjustTempoCheckBox.Enabled = false;
 				SaveAsButton.Enabled = false;
 			}
 			else
@@ -79,7 +79,7 @@ namespace MidiSlicer
 				LengthUpDown.Enabled = true;
 				StretchUpDown.Enabled = true;
 				MergeTracksCheckBox.Enabled = true;
-				AdustTempoCheckBox.Enabled = true;
+				AdjustTempoCheckBox.Enabled = true;
 				SaveAsButton.Enabled = true;
 				StretchUpDown.Value = 1;
 				UnitsCombo.SelectedIndex = 0;
@@ -119,7 +119,7 @@ namespace MidiSlicer
 			if(trk.Length!=len || 0!=ofs)
 				trk = trk.GetRange(ofs, len);
 			if (1m != StretchUpDown.Value)
-				trk = trk.Stretch((double)StretchUpDown.Value, AdustTempoCheckBox.Checked);
+				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 
 			if (null != _previewThread)
 			{
@@ -202,7 +202,7 @@ namespace MidiSlicer
 			if (trk.Length != len || 0 != ofs)
 				trk = trk.GetRange(ofs, len);
 			if (1m != StretchUpDown.Value)
-				trk = trk.Stretch((double)StretchUpDown.Value, AdustTempoCheckBox.Checked);
+				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 			return trk;
 		}
 	}

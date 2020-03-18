@@ -46,7 +46,7 @@
 			this.MergeTracksCheckBox = new System.Windows.Forms.CheckBox();
 			this.StretchLabel = new System.Windows.Forms.Label();
 			this.StretchUpDown = new System.Windows.Forms.NumericUpDown();
-			this.AdustTempoCheckBox = new System.Windows.Forms.CheckBox();
+			this.AdjustTempoCheckBox = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
@@ -245,23 +245,23 @@
             0,
             0});
 			// 
-			// AdustTempoCheckBox
+			// AdjustTempoCheckBox
 			// 
-			this.AdustTempoCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.AdustTempoCheckBox.AutoSize = true;
-			this.AdustTempoCheckBox.Location = new System.Drawing.Point(202, 105);
-			this.AdustTempoCheckBox.Name = "AdustTempoCheckBox";
-			this.AdustTempoCheckBox.Size = new System.Drawing.Size(89, 17);
-			this.AdustTempoCheckBox.TabIndex = 20;
-			this.AdustTempoCheckBox.Text = "Adust Tempo";
-			this.AdustTempoCheckBox.UseVisualStyleBackColor = true;
+			this.AdjustTempoCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.AdjustTempoCheckBox.AutoSize = true;
+			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(200, 105);
+			this.AdjustTempoCheckBox.Name = "AdjustTempoCheckBox";
+			this.AdjustTempoCheckBox.Size = new System.Drawing.Size(91, 17);
+			this.AdjustTempoCheckBox.TabIndex = 20;
+			this.AdjustTempoCheckBox.Text = "Adjust Tempo";
+			this.AdjustTempoCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(320, 150);
-			this.Controls.Add(this.AdustTempoCheckBox);
+			this.Controls.Add(this.AdjustTempoCheckBox);
 			this.Controls.Add(this.StretchUpDown);
 			this.Controls.Add(this.MergeTracksCheckBox);
 			this.Controls.Add(this.SaveAsButton);
@@ -309,6 +309,6 @@
 		private System.Windows.Forms.CheckBox MergeTracksCheckBox;
 		private System.Windows.Forms.Label StretchLabel;
 		private System.Windows.Forms.NumericUpDown StretchUpDown;
-		private System.Windows.Forms.CheckBox AdustTempoCheckBox;
+		private System.Windows.Forms.CheckBox AdjustTempoCheckBox;
 	}
 }
