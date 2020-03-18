@@ -110,6 +110,17 @@ namespace MidiSlicer
 
 		private void PreviewButton_Click(object sender, EventArgs e)
 		{
+			if("Stop"==PreviewButton.Text)
+			{
+				if (null != _previewThread)
+				{
+					_previewThread.Abort();
+					_previewThread.Join();
+					_previewThread = null;
+				}
+				PreviewButton.Text = "Preview";
+				return;
+			}
 			var trks = new List<MidiSequence>(_file.Tracks.Count);
 			for (int ic = TrackList.Items.Count, i = 0; i < ic; ++i)
 				if (TrackList.CheckedItems.Contains(TrackList.Items[i]))
@@ -180,8 +191,8 @@ namespace MidiSlicer
 				_previewThread.Join();
 				_previewThread = null;
 			}
-
-			_previewThread = new Thread(() => { trk.Preview(); });
+			PreviewButton.Text = "Stop";
+			_previewThread = new Thread(() => { trk.Preview(_file.TimeBase,0,true); });
 			_previewThread.Start();
 		}
 		protected override void OnClosing(CancelEventArgs e)

@@ -719,50 +719,56 @@
 		/// </summary>
 		/// <param name="timeBase">The timebase to use, in pulses/ticks per quarter note</param>
 		/// <param name="deviceIndex">The MIDI device to output to</param>
-		public void Preview(short timeBase = 480, int deviceIndex = 0)
+		/// <param name="loop">Indicates whether to loop playback or not</param>
+		public void Preview(short timeBase = 480, int deviceIndex = 0,bool loop=false)
 		{
+			var handle = MidiUtility.OpenOutputDevice(deviceIndex);
 			var ppq = timeBase;
 			var mt = MidiUtility.TempoToMicroTempo(120d);
-			var ticksusec = mt / (double)timeBase;
-			var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
-			var tickStart = MidiUtility.PreciseUtcNowTicks;
-			var tickCurrent = tickStart;
-			var handle = MidiUtility.OpenOutputDevice(deviceIndex);
+
 			try
 			{
-				var end = (long)(Length * tickspertick + tickStart);
-				var tpm = TimeSpan.TicksPerMillisecond;
-
-				using (var e = AbsoluteEvents.GetEnumerator())
+				while (loop)
 				{
-					if (!e.MoveNext())
-						return;
-					var done = false;
-					while (!done && tickCurrent <= end)
+					var ticksusec = mt / (double)timeBase;
+					var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+					var tickStart = MidiUtility.PreciseUtcNowTicks;
+					var tickCurrent = tickStart;
+
+					var end = (long)(Length * tickspertick + tickStart);
+					var tpm = TimeSpan.TicksPerMillisecond;
+
+					using (var e = AbsoluteEvents.GetEnumerator())
 					{
-						tickCurrent = MidiUtility.PreciseUtcNowTicks;
-						var ce = (long)((tickCurrent - tickStart) / tickspertick);
-						while (!done && e.Current.Position <= ce)
+						if (!e.MoveNext())
+							return;
+						var done = false;
+						while (!done && tickCurrent <= end)
 						{
-							if (0xFF == e.Current.Message.Status)
+							tickCurrent = MidiUtility.PreciseUtcNowTicks;
+							var ce = (long)((tickCurrent - tickStart) / tickspertick);
+							while (!done && e.Current.Position <= ce)
 							{
-								var mbs = e.Current.Message as MidiMessageMeta;
-								if (0x51 == mbs.Data1)
+								if (0xFF == e.Current.Message.Status)
 								{
-									if (BitConverter.IsLittleEndian)
-										mt = (mbs.Data[0] << 16) | (mbs.Data[1] << 8) | mbs.Data[2];
-									else
-										mt = (mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
-									ticksusec = mt / (double)ppq;
-									tickspertick = ticksusec / (tpm / 1000) * 100;
-									end = (long)(Length * tickspertick + tickStart);
+									var mbs = e.Current.Message as MidiMessageMeta;
+									if (0x51 == mbs.Data1)
+									{
+										if (BitConverter.IsLittleEndian)
+											mt = (mbs.Data[0] << 16) | (mbs.Data[1] << 8) | mbs.Data[2];
+										else
+											mt = (mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
+										ticksusec = mt / (double)ppq;
+										tickspertick = ticksusec / (tpm / 1000) * 100;
+										end = (long)(Length * tickspertick + tickStart);
+									}
+									else if (0x2F == mbs.Data1)
+										done = true;
 								}
-								else if (0x2F == mbs.Data1)
+								MidiUtility.Send(handle, e.Current.Message);
+								if (!e.MoveNext())
 									done = true;
 							}
-							MidiUtility.Send(handle, e.Current.Message);
-							if (!e.MoveNext())
-								done = true;
 						}
 					}
 				}
