@@ -78,7 +78,7 @@
 			}
 		}
 		/// <summary>
-		/// Gets all of the MicroTempos of the MIDI file
+		/// Indicates all of the MicroTempos of the MIDI file
 		/// </summary>
 		/// <remarks>This is derived from Track #0's microtempos</remarks>
 		public IEnumerable<KeyValuePair<int,int>> MicroTempos {
@@ -97,13 +97,35 @@
 			}
 		}
 		/// <summary>
-		/// Gets all of the Tempos of the MIDI file
+		/// Indicates all of the Tempos of the MIDI file
 		/// </summary>
 		/// <remarks>This is derived from Track #0's tempos</remarks>
 		public IEnumerable<KeyValuePair<int,double>> Tempos {
 			get {
 				foreach(var mt in MicroTempos)
 					yield return new KeyValuePair<int, double>(mt.Key, MidiUtility.MicroTempoToTempo(mt.Value));
+			}
+		}
+		/// <summary>
+		/// Indicates the time signature of the MIDI file
+		/// </summary>
+		/// <remarks>This is derived from Track #0's time signature</remarks>
+		public MidiTimeSignature TimeSignature {
+			get {
+				if (0 == Tracks.Count)
+					return MidiTimeSignature.Default;
+				return Tracks[0].TimeSignature;
+			}
+		}
+		/// <summary>
+		/// Indicates all the time signatures of the MIDI file
+		/// </summary>
+		/// <remarks>This is derived from Track #0's time signatures</remarks>
+		public IEnumerable<KeyValuePair<int,MidiTimeSignature>> TimeSignatures {
+			get {
+				if (0 == Tracks.Count)
+					return new KeyValuePair<int, MidiTimeSignature>[0];
+				return Tracks[0].TimeSignatures;
 			}
 		}
 		/// <summary>

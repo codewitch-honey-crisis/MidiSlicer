@@ -511,6 +511,57 @@
 			}
 		}
 		/// <summary>
+		/// Indicates the time signature of the MIDI sequence
+		/// </summary>
+		public MidiTimeSignature TimeSignature {
+			get {
+				foreach (var e in AbsoluteEvents)
+				{
+					switch (e.Message.Status & 0xF0)
+					{
+						case 0x80:
+						case 0x90:
+							return MidiTimeSignature.Default;
+					}
+					if (e.Message.Status == 0xFF)
+					{
+						var mm = e.Message as MidiMessageMeta;
+						if (0x58 == mm.Data1)
+						{
+							var num = mm.Data[0];
+							var den = mm.Data[1];
+							var met = mm.Data[2];
+							var q32 = mm.Data[3];
+							return new MidiTimeSignature(num, (short)Math.Pow(den, 2), met, q32);
+						}
+					}
+				}
+				return MidiTimeSignature.Default;
+			}
+		}
+		/// <summary>
+		/// Indicates all of the TimeSignatures in the sequence
+		/// </summary>
+		public IEnumerable<KeyValuePair<int, MidiTimeSignature>> TimeSignatures {
+			get {
+				foreach (var e in AbsoluteEvents)
+				{
+					if (e.Message.Status == 0xFF)
+					{
+						var mm = e.Message as MidiMessageMeta;
+						if (0x58 == mm.Data1)
+						{
+							var num = mm.Data[0];
+							var den = mm.Data[1];
+							var met = mm.Data[2];
+							var q32 = mm.Data[3];
+							yield return new KeyValuePair<int, MidiTimeSignature>(e.Position, new MidiTimeSignature(num, (short)Math.Pow(den, 2), met, q32));
+						}
+					}
+				}
+			}
+		}
+		/// <summary>
 		/// Indicates the length of the MIDI sequence
 		/// </summary>
 		public int Length {

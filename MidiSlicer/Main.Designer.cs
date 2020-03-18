@@ -69,9 +69,9 @@
 			this.TracksLabel.AutoSize = true;
 			this.TracksLabel.Location = new System.Drawing.Point(1, 30);
 			this.TracksLabel.Name = "TracksLabel";
-			this.TracksLabel.Size = new System.Drawing.Size(40, 13);
+			this.TracksLabel.Size = new System.Drawing.Size(225, 13);
 			this.TracksLabel.TabIndex = 1;
-			this.TracksLabel.Text = "Tracks";
+			this.TracksLabel.Text = "Tracks:    Tempo {0}     Time signature {1}/{2}";
 			// 
 			// MidiFileBox
 			// 

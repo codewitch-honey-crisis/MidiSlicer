@@ -12,11 +12,14 @@ namespace MidiSlicer
 	{
 		MidiFile _file;
 		Thread _previewThread;
+		string _tracksLabelFormat;
 		public Main()
 		{
 			InitializeComponent();
+			_tracksLabelFormat = TracksLabel.Text;
 			UnitsCombo.SelectedIndex = 0;
 			_UpdateMidiFile();
+
 		}
 
 		private void BrowseButton_Click(object sender, EventArgs e)
@@ -40,6 +43,7 @@ namespace MidiSlicer
 			TrackList.Items.Clear();
 			if (!exists)
 			{
+				TracksLabel.Text = "";
 				MidiFileBox.ForeColor = Color.Red;
 				_file = null;
 				TrackList.Enabled = false;
@@ -66,6 +70,8 @@ namespace MidiSlicer
 					TrackList.Items.Add(s, true);
 					++i;
 				}
+				var sig = _file.TimeSignature;
+				TracksLabel.Text = string.Format(_tracksLabelFormat, _file.Tempo,sig.Numerator,sig.Denominator);
 				TrackList.Enabled = true;
 				PreviewButton.Enabled = true;
 				UnitsCombo.Enabled = true;
