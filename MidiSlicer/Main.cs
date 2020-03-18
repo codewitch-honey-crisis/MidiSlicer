@@ -18,6 +18,7 @@ namespace MidiSlicer
 			InitializeComponent();
 			_tracksLabelFormat = TracksLabel.Text;
 			UnitsCombo.SelectedIndex = 0;
+			StartCombo.SelectedIndex = 0;
 			_UpdateMidiFile();
 
 		}
@@ -49,10 +50,12 @@ namespace MidiSlicer
 				TrackList.Enabled = false;
 				PreviewButton.Enabled = false;
 				UnitsCombo.Enabled = false;
+				StartCombo.Enabled = false;
 				OffsetUpDown.Enabled = false;
 				LengthUpDown.Enabled = false;
 				StretchUpDown.Enabled = false;
 				MergeTracksCheckBox.Enabled = false;
+				CopyTimingPatchCheckBox.Enabled = false;
 				AdjustTempoCheckBox.Enabled = false;
 				SaveAsButton.Enabled = false;
 			}
@@ -75,14 +78,17 @@ namespace MidiSlicer
 				TrackList.Enabled = true;
 				PreviewButton.Enabled = true;
 				UnitsCombo.Enabled = true;
+				StartCombo.Enabled = true;
 				OffsetUpDown.Enabled = true;
 				LengthUpDown.Enabled = true;
 				StretchUpDown.Enabled = true;
 				MergeTracksCheckBox.Enabled = true;
+				CopyTimingPatchCheckBox.Enabled = true;
 				AdjustTempoCheckBox.Enabled = true;
 				SaveAsButton.Enabled = true;
 				StretchUpDown.Value = 1;
 				UnitsCombo.SelectedIndex = 0;
+				StartCombo.SelectedIndex = 0;
 				if (0 == UnitsCombo.SelectedIndex) // beats
 				{
 					LengthUpDown.Maximum = Math.Ceiling(_file.Length / (decimal)_file.TimeBase);
@@ -116,8 +122,56 @@ namespace MidiSlicer
 				len = (int)Math.Min(Math.Ceiling(len * (decimal)_file.TimeBase), _file.Length);
 				ofs = (int)Math.Min(Math.Ceiling(ofs * (decimal)_file.TimeBase), _file.Length);
 			}
-			if(trk.Length!=len || 0!=ofs)
-				trk = trk.GetRange(ofs, len);
+			switch(StartCombo.SelectedIndex)
+			{
+				case 1:
+					ofs += _file.FirstDownBeat;
+					break;
+				case 2:
+					ofs += _file.FirstNoteOn;
+					break;
+			}
+			if (0 != ofs && CopyTimingPatchCheckBox.Checked)
+			{
+				var end = trk.FirstNoteOn;
+				if (0 == end)
+					end = trk.Length;
+				var trk2= trk.GetRange(ofs, len);
+				var ins = 0;
+				for(int ic = trk.Events.Count,i=0;i<ic;++i)
+				{
+					var ev = trk.Events[i];
+					if (ev.Position >= end)
+						break;
+					var m = ev.Message;
+					switch(m.Status)
+					{
+						case 0xFF:
+							var mm = m as MidiMessageMeta;
+							switch(mm.Data1) 
+							{
+								case 0x51:
+								case 0x54:
+									trk2.Events.Insert(ins, ev.Clone());
+									++ins;
+									break;
+							}
+							break;
+						default:
+							if (0xC0 == (ev.Message.Status & 0xF0))
+							{
+								trk2.Events.Insert(ins, ev.Clone());
+								++ins;
+							}
+							break;
+					}
+				}
+				System.Diagnostics.Debug.WriteLine("Tempo: " + trk2.Tempo);
+				trk = trk2;
+			} else {
+				if (trk.Length != len || 0 != ofs)
+					trk = trk.GetRange(ofs, len);
+			}
 			if (1m != StretchUpDown.Value)
 				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 
@@ -199,8 +253,17 @@ namespace MidiSlicer
 				len = (int)Math.Min(Math.Ceiling(len * (decimal)_file.TimeBase), _file.Length);
 				ofs = (int)Math.Min(Math.Ceiling(ofs * (decimal)_file.TimeBase), _file.Length);
 			}
+			switch (StartCombo.SelectedIndex)
+			{
+				case 1:
+					ofs += _file.FirstDownBeat;
+					break;
+				case 2:
+					ofs += _file.FirstNoteOn;
+					break;
+			}
 			if (trk.Length != len || 0 != ofs)
-				trk = trk.GetRange(ofs, len);
+				trk = trk.GetRange(ofs, Math.Min(len,_file.Length));
 			if (1m != StretchUpDown.Value)
 				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 			return trk;

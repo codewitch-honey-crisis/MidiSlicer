@@ -47,6 +47,9 @@
 			this.StretchLabel = new System.Windows.Forms.Label();
 			this.StretchUpDown = new System.Windows.Forms.NumericUpDown();
 			this.AdjustTempoCheckBox = new System.Windows.Forms.CheckBox();
+			this.StartLabel = new System.Windows.Forms.Label();
+			this.StartCombo = new System.Windows.Forms.ComboBox();
+			this.CopyTimingPatchCheckBox = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
@@ -61,7 +64,7 @@
 			this.TrackList.FormattingEnabled = true;
 			this.TrackList.Location = new System.Drawing.Point(1, 52);
 			this.TrackList.Name = "TrackList";
-			this.TrackList.Size = new System.Drawing.Size(79, 94);
+			this.TrackList.Size = new System.Drawing.Size(79, 109);
 			this.TrackList.TabIndex = 0;
 			// 
 			// TracksLabel
@@ -106,7 +109,7 @@
 			// PreviewButton
 			// 
 			this.PreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.PreviewButton.Location = new System.Drawing.Point(237, 125);
+			this.PreviewButton.Location = new System.Drawing.Point(237, 154);
 			this.PreviewButton.Name = "PreviewButton";
 			this.PreviewButton.Size = new System.Drawing.Size(75, 23);
 			this.PreviewButton.TabIndex = 5;
@@ -141,7 +144,7 @@
 			// OffsetUpDown
 			// 
 			this.OffsetUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.OffsetUpDown.Location = new System.Drawing.Point(121, 79);
+			this.OffsetUpDown.Location = new System.Drawing.Point(121, 105);
 			this.OffsetUpDown.Maximum = new decimal(new int[] {
             0,
             0,
@@ -155,7 +158,7 @@
 			// 
 			this.OffsetLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.OffsetLabel.AutoSize = true;
-			this.OffsetLabel.Location = new System.Drawing.Point(86, 82);
+			this.OffsetLabel.Location = new System.Drawing.Point(86, 108);
 			this.OffsetLabel.Name = "OffsetLabel";
 			this.OffsetLabel.Size = new System.Drawing.Size(35, 13);
 			this.OffsetLabel.TabIndex = 11;
@@ -165,7 +168,7 @@
 			// 
 			this.LengthLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.LengthLabel.AutoSize = true;
-			this.LengthLabel.Location = new System.Drawing.Point(197, 82);
+			this.LengthLabel.Location = new System.Drawing.Point(197, 108);
 			this.LengthLabel.Name = "LengthLabel";
 			this.LengthLabel.Size = new System.Drawing.Size(40, 13);
 			this.LengthLabel.TabIndex = 13;
@@ -174,7 +177,7 @@
 			// LengthUpDown
 			// 
 			this.LengthUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.LengthUpDown.Location = new System.Drawing.Point(237, 79);
+			this.LengthUpDown.Location = new System.Drawing.Point(237, 105);
 			this.LengthUpDown.Maximum = new decimal(new int[] {
             0,
             0,
@@ -187,7 +190,7 @@
 			// SaveAsButton
 			// 
 			this.SaveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveAsButton.Location = new System.Drawing.Point(156, 125);
+			this.SaveAsButton.Location = new System.Drawing.Point(156, 154);
 			this.SaveAsButton.Name = "SaveAsButton";
 			this.SaveAsButton.Size = new System.Drawing.Size(75, 23);
 			this.SaveAsButton.TabIndex = 14;
@@ -210,7 +213,7 @@
 			// 
 			this.StretchLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.StretchLabel.AutoSize = true;
-			this.StretchLabel.Location = new System.Drawing.Point(81, 106);
+			this.StretchLabel.Location = new System.Drawing.Point(81, 132);
 			this.StretchLabel.Name = "StretchLabel";
 			this.StretchLabel.Size = new System.Drawing.Size(41, 13);
 			this.StretchLabel.TabIndex = 19;
@@ -225,7 +228,7 @@
             0,
             0,
             65536});
-			this.StretchUpDown.Location = new System.Drawing.Point(121, 103);
+			this.StretchUpDown.Location = new System.Drawing.Point(121, 129);
 			this.StretchUpDown.Maximum = new decimal(new int[] {
             10,
             0,
@@ -249,18 +252,58 @@
 			// 
 			this.AdjustTempoCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.AdjustTempoCheckBox.AutoSize = true;
-			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(200, 105);
+			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(200, 131);
 			this.AdjustTempoCheckBox.Name = "AdjustTempoCheckBox";
 			this.AdjustTempoCheckBox.Size = new System.Drawing.Size(91, 17);
 			this.AdjustTempoCheckBox.TabIndex = 20;
 			this.AdjustTempoCheckBox.Text = "Adjust Tempo";
 			this.AdjustTempoCheckBox.UseVisualStyleBackColor = true;
 			// 
+			// StartLabel
+			// 
+			this.StartLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.StartLabel.AutoSize = true;
+			this.StartLabel.Location = new System.Drawing.Point(86, 81);
+			this.StartLabel.Name = "StartLabel";
+			this.StartLabel.Size = new System.Drawing.Size(29, 13);
+			this.StartLabel.TabIndex = 22;
+			this.StartLabel.Text = "Start";
+			// 
+			// StartCombo
+			// 
+			this.StartCombo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.StartCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.StartCombo.FormattingEnabled = true;
+			this.StartCombo.Items.AddRange(new object[] {
+            "Beginning",
+            "First Downbeat",
+            "First Note"});
+			this.StartCombo.Location = new System.Drawing.Point(121, 78);
+			this.StartCombo.Name = "StartCombo";
+			this.StartCombo.Size = new System.Drawing.Size(75, 21);
+			this.StartCombo.TabIndex = 21;
+			// 
+			// CopyTimingPatchCheckBox
+			// 
+			this.CopyTimingPatchCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.CopyTimingPatchCheckBox.AutoSize = true;
+			this.CopyTimingPatchCheckBox.Checked = true;
+			this.CopyTimingPatchCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.CopyTimingPatchCheckBox.Location = new System.Drawing.Point(202, 77);
+			this.CopyTimingPatchCheckBox.Name = "CopyTimingPatchCheckBox";
+			this.CopyTimingPatchCheckBox.Size = new System.Drawing.Size(117, 17);
+			this.CopyTimingPatchCheckBox.TabIndex = 23;
+			this.CopyTimingPatchCheckBox.Text = "Copy Timing/Patch";
+			this.CopyTimingPatchCheckBox.UseVisualStyleBackColor = true;
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(320, 150);
+			this.ClientSize = new System.Drawing.Size(320, 179);
+			this.Controls.Add(this.CopyTimingPatchCheckBox);
+			this.Controls.Add(this.StartLabel);
+			this.Controls.Add(this.StartCombo);
 			this.Controls.Add(this.AdjustTempoCheckBox);
 			this.Controls.Add(this.StretchUpDown);
 			this.Controls.Add(this.MergeTracksCheckBox);
@@ -278,7 +321,7 @@
 			this.Controls.Add(this.TracksLabel);
 			this.Controls.Add(this.TrackList);
 			this.Controls.Add(this.StretchLabel);
-			this.MinimumSize = new System.Drawing.Size(336, 189);
+			this.MinimumSize = new System.Drawing.Size(336, 218);
 			this.Name = "Main";
 			this.Text = "Midi Slicer";
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).EndInit();
@@ -310,5 +353,8 @@
 		private System.Windows.Forms.Label StretchLabel;
 		private System.Windows.Forms.NumericUpDown StretchUpDown;
 		private System.Windows.Forms.CheckBox AdjustTempoCheckBox;
+		private System.Windows.Forms.Label StartLabel;
+		private System.Windows.Forms.ComboBox StartCombo;
+		private System.Windows.Forms.CheckBox CopyTimingPatchCheckBox;
 	}
 }
