@@ -130,6 +130,28 @@
 			}
 		}
 		/// <summary>
+		/// Indicates the key signature of the MIDI file
+		/// </summary>
+		/// <remarks>This is derived from Track #0's key signature</remarks>
+		public MidiKeySignature KeySignature {
+			get {
+				if (0 == Tracks.Count)
+					return MidiKeySignature.Default;
+				return Tracks[0].KeySignature;
+			}
+		}
+		/// <summary>
+		/// Indicates all the key signatures of the MIDI file
+		/// </summary>
+		/// <remarks>This is derived from Track #0's key signatures</remarks>
+		public IEnumerable<KeyValuePair<int, MidiKeySignature>> KeySignatures {
+			get {
+				if (0 == Tracks.Count)
+					return new KeyValuePair<int, MidiKeySignature>[0];
+				return Tracks[0].KeySignatures;
+			}
+		}
+		/// <summary>
 		/// Indicates the type of the MIDI file
 		/// </summary>
 		/// <remarks>This can be 0, 1 or 2</remarks>

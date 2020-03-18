@@ -577,6 +577,49 @@
 			}
 		}
 		/// <summary>
+		/// Indicates the key signature of the MIDI sequence
+		/// </summary>
+		public MidiKeySignature KeySignature {
+			get {
+				foreach (var e in AbsoluteEvents)
+				{
+					switch (e.Message.Status & 0xF0)
+					{
+						case 0x80:
+						case 0x90:
+							return MidiKeySignature.Default;
+					}
+					if (e.Message.Status == 0xFF)
+					{
+						var mm = e.Message as MidiMessageMeta;
+						if (0x59 == mm.Data1)
+						{
+							return new MidiKeySignature(unchecked((sbyte)mm.Data[0]), 0 != mm.Data[1]);
+						}
+					}
+				}
+				return MidiKeySignature.Default;
+			}
+		}
+		/// <summary>
+		/// Indicates all of the MIDI key signatures in the sequence
+		/// </summary>
+		public IEnumerable<KeyValuePair<int, MidiKeySignature>> KeySignatures {
+			get {
+				foreach (var e in AbsoluteEvents)
+				{
+					if (e.Message.Status == 0xFF)
+					{
+						var mm = e.Message as MidiMessageMeta;
+						if (0x59 == mm.Data1)
+						{
+							yield return new KeyValuePair<int, MidiKeySignature>(e.Position, new MidiKeySignature(unchecked((sbyte)mm.Data[0]), 0 != mm.Data[1]));							
+						}
+					}
+				}
+			}
+		}
+		/// <summary>
 		/// Indicates the length of the MIDI sequence
 		/// </summary>
 		public int Length {
@@ -594,7 +637,6 @@
 					}
 				}
 				return l + 1;
-
 			}
 		}
 		/// <summary>
