@@ -241,6 +241,16 @@
 			return result;
 		}
 		/// <summary>
+		/// Reads a MIDI file from the specified file
+		/// </summary>
+		/// <param name="filename">The filename</param>
+		/// <returns>A new instance representing the MIDI file</returns>
+		public static MidiFile ReadFrom(string filename)
+		{
+			using (var stream = File.OpenRead(filename))
+				return ReadFrom(stream);
+		}
+		/// <summary>
 		/// Writes the MIDI file to the specified stream
 		/// </summary>
 		/// <param name="stream">The stream to write to</param>
@@ -285,6 +295,15 @@
 				tstm.CopyTo(stream); 
 				tstm.Close();
 			}
+		}
+		/// <summary>
+		/// Writes the MIDI file to the specified file
+		/// </summary>
+		/// <param name="filename">The filename to write</param>
+		public void WriteTo(string filename)
+		{
+			using (var stream = File.OpenWrite(filename))
+				WriteTo(stream);
 		}
 		private static bool _TryReadChunk(Stream stream,out KeyValuePair<string, byte[]> chunk)
 		{
