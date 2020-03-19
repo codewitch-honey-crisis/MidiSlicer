@@ -57,6 +57,7 @@ namespace MidiSlicer
 				MergeTracksCheckBox.Enabled = false;
 				CopyTimingPatchCheckBox.Enabled = false;
 				AdjustTempoCheckBox.Enabled = false;
+				ResampleUpDown.Enabled = false;
 				SaveAsButton.Enabled = false;
 			}
 			else
@@ -85,10 +86,12 @@ namespace MidiSlicer
 				MergeTracksCheckBox.Enabled = true;
 				CopyTimingPatchCheckBox.Enabled = true;
 				AdjustTempoCheckBox.Enabled = true;
+				ResampleUpDown.Enabled = true;
 				SaveAsButton.Enabled = true;
 				StretchUpDown.Value = 1;
 				UnitsCombo.SelectedIndex = 0;
 				StartCombo.SelectedIndex = 0;
+				ResampleUpDown.Value = _file.TimeBase;
 				if (0 == UnitsCombo.SelectedIndex) // beats
 				{
 					LengthUpDown.Maximum = Math.Ceiling(_file.Length / (decimal)_file.TimeBase);
@@ -121,25 +124,28 @@ namespace MidiSlicer
 				PreviewButton.Text = "Preview";
 				return;
 			}
-			var trks = new List<MidiSequence>(_file.Tracks.Count);
+			var f = _file;
+			if (ResampleUpDown.Value != _file.TimeBase)
+				f = _file.Resample(unchecked((short)ResampleUpDown.Value));
+			var trks = new List<MidiSequence>(f.Tracks.Count);
 			for (int ic = TrackList.Items.Count, i = 0; i < ic; ++i)
 				if (TrackList.CheckedItems.Contains(TrackList.Items[i]))
-					trks.Add(_file.Tracks[i]);
+					trks.Add(f.Tracks[i]);
 			var trk = MidiSequence.Merge(trks);
 			var ofs = (int)OffsetUpDown.Value;
 			var len = (int)LengthUpDown.Value;
 			if (0 == UnitsCombo.SelectedIndex) // beats
 			{
-				len = (int)Math.Min(Math.Ceiling(len * (decimal)_file.TimeBase), _file.Length);
-				ofs = (int)Math.Min(Math.Ceiling(ofs * (decimal)_file.TimeBase), _file.Length);
+				len = (int)Math.Min(Math.Ceiling(len * (decimal)f.TimeBase), f.Length);
+				ofs = (int)Math.Min(Math.Ceiling(ofs * (decimal)f.TimeBase), f.Length);
 			}
 			switch(StartCombo.SelectedIndex)
 			{
 				case 1:
-					ofs += _file.FirstDownBeat;
+					ofs += f.FirstDownBeat;
 					break;
 				case 2:
-					ofs += _file.FirstNoteOn;
+					ofs += f.FirstNoteOn;
 					break;
 			}
 			if (0 != ofs && CopyTimingPatchCheckBox.Checked)
@@ -192,7 +198,7 @@ namespace MidiSlicer
 				_previewThread = null;
 			}
 			PreviewButton.Text = "Stop";
-			_previewThread = new Thread(() => { trk.Preview(_file.TimeBase,0,true); });
+			_previewThread = new Thread(() => { trk.Preview(f.TimeBase,0,true); });
 			_previewThread.Start();
 		}
 		protected override void OnClosing(CancelEventArgs e)
@@ -230,12 +236,17 @@ namespace MidiSlicer
 			var res = SaveMidiFile.ShowDialog(this);
 			if (DialogResult.OK == res)
 			{
-				var trks = new List<MidiSequence>(_file.Tracks.Count);
+				var f = _file;
+				if (ResampleUpDown.Value != _file.TimeBase)
+				{
+					f = f.Resample(unchecked((short)ResampleUpDown.Value));
+				}
+				var trks = new List<MidiSequence>(f.Tracks.Count);
 				for (int ic = TrackList.Items.Count, i = 0; i < ic; ++i)
 					if (TrackList.CheckedItems.Contains(TrackList.Items[i]))
-						trks.Add(_file.Tracks[i]);
+						trks.Add(f.Tracks[i]);
 
-				var mf = new MidiFile(1,_file.TimeBase);
+				var mf = new MidiFile(1,f.TimeBase);
 				if (!MergeTracksCheckBox.Checked)
 				{
 					foreach (var tr in trks)

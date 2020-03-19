@@ -50,9 +50,12 @@
 			this.StartLabel = new System.Windows.Forms.Label();
 			this.StartCombo = new System.Windows.Forms.ComboBox();
 			this.CopyTimingPatchCheckBox = new System.Windows.Forms.CheckBox();
+			this.ResampleLabel = new System.Windows.Forms.Label();
+			this.ResampleUpDown = new System.Windows.Forms.NumericUpDown();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// TrackList
@@ -64,7 +67,7 @@
 			this.TrackList.FormattingEnabled = true;
 			this.TrackList.Location = new System.Drawing.Point(1, 52);
 			this.TrackList.Name = "TrackList";
-			this.TrackList.Size = new System.Drawing.Size(79, 109);
+			this.TrackList.Size = new System.Drawing.Size(79, 139);
 			this.TrackList.TabIndex = 0;
 			// 
 			// TracksLabel
@@ -109,7 +112,7 @@
 			// PreviewButton
 			// 
 			this.PreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.PreviewButton.Location = new System.Drawing.Point(237, 154);
+			this.PreviewButton.Location = new System.Drawing.Point(237, 184);
 			this.PreviewButton.Name = "PreviewButton";
 			this.PreviewButton.Size = new System.Drawing.Size(75, 23);
 			this.PreviewButton.TabIndex = 5;
@@ -190,7 +193,7 @@
 			// SaveAsButton
 			// 
 			this.SaveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveAsButton.Location = new System.Drawing.Point(156, 154);
+			this.SaveAsButton.Location = new System.Drawing.Point(156, 184);
 			this.SaveAsButton.Name = "SaveAsButton";
 			this.SaveAsButton.Size = new System.Drawing.Size(75, 23);
 			this.SaveAsButton.TabIndex = 14;
@@ -202,7 +205,7 @@
 			// 
 			this.MergeTracksCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.MergeTracksCheckBox.AutoSize = true;
-			this.MergeTracksCheckBox.Location = new System.Drawing.Point(202, 55);
+			this.MergeTracksCheckBox.Location = new System.Drawing.Point(200, 55);
 			this.MergeTracksCheckBox.Name = "MergeTracksCheckBox";
 			this.MergeTracksCheckBox.Size = new System.Drawing.Size(92, 17);
 			this.MergeTracksCheckBox.TabIndex = 15;
@@ -252,7 +255,7 @@
 			// 
 			this.AdjustTempoCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.AdjustTempoCheckBox.AutoSize = true;
-			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(200, 131);
+			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(202, 131);
 			this.AdjustTempoCheckBox.Name = "AdjustTempoCheckBox";
 			this.AdjustTempoCheckBox.Size = new System.Drawing.Size(91, 17);
 			this.AdjustTempoCheckBox.TabIndex = 20;
@@ -296,11 +299,45 @@
 			this.CopyTimingPatchCheckBox.Text = "Copy Timing/Patch";
 			this.CopyTimingPatchCheckBox.UseVisualStyleBackColor = true;
 			// 
+			// ResampleLabel
+			// 
+			this.ResampleLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.ResampleLabel.AutoSize = true;
+			this.ResampleLabel.Location = new System.Drawing.Point(179, 158);
+			this.ResampleLabel.Name = "ResampleLabel";
+			this.ResampleLabel.Size = new System.Drawing.Size(54, 13);
+			this.ResampleLabel.TabIndex = 25;
+			this.ResampleLabel.Text = "Resample";
+			// 
+			// ResampleUpDown
+			// 
+			this.ResampleUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.ResampleUpDown.Location = new System.Drawing.Point(237, 155);
+			this.ResampleUpDown.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+			this.ResampleUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.ResampleUpDown.Name = "ResampleUpDown";
+			this.ResampleUpDown.Size = new System.Drawing.Size(75, 20);
+			this.ResampleUpDown.TabIndex = 24;
+			this.ResampleUpDown.Value = new decimal(new int[] {
+            480,
+            0,
+            0,
+            0});
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(320, 179);
+			this.ClientSize = new System.Drawing.Size(320, 209);
+			this.Controls.Add(this.ResampleUpDown);
 			this.Controls.Add(this.CopyTimingPatchCheckBox);
 			this.Controls.Add(this.StartLabel);
 			this.Controls.Add(this.StartCombo);
@@ -321,12 +358,14 @@
 			this.Controls.Add(this.TracksLabel);
 			this.Controls.Add(this.TrackList);
 			this.Controls.Add(this.StretchLabel);
-			this.MinimumSize = new System.Drawing.Size(336, 218);
+			this.Controls.Add(this.ResampleLabel);
+			this.MinimumSize = new System.Drawing.Size(336, 248);
 			this.Name = "Main";
 			this.Text = "Midi Slicer";
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -356,5 +395,7 @@
 		private System.Windows.Forms.Label StartLabel;
 		private System.Windows.Forms.ComboBox StartCombo;
 		private System.Windows.Forms.CheckBox CopyTimingPatchCheckBox;
+		private System.Windows.Forms.Label ResampleLabel;
+		private System.Windows.Forms.NumericUpDown ResampleUpDown;
 	}
 }
