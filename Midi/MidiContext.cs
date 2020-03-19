@@ -27,6 +27,10 @@
 		/// Indicates the microtempo for the current MIDI context
 		/// </summary>
 		public int MicroTempo { get; private set; }
+		/// <summary>
+		/// Indicates the time signature for the current MIDI context
+		/// </summary>
+		public MidiTimeSignature TimeSignature { get; private set; }
 		
 		static Channel[] _InitChannels()
 		{
@@ -42,6 +46,7 @@
 			RunningStatus = 0;
 			ChannelPrefix = 0xFF;
 			MicroTempo = 0;
+			TimeSignature = MidiTimeSignature.Default;
 		}
 		/// <summary>
 		/// Process a message, adjusting the MIDI context
@@ -110,6 +115,9 @@
 										MicroTempo=(mbs.Data[0] << 16) | (mbs.Data[1] << 8) | mbs.Data[2];
 									else
 										MicroTempo=(mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
+									break;
+								case 0x58:
+									TimeSignature = new MidiTimeSignature(mbs.Data[0], (byte)Math.Pow(mbs.Data[1], 2), mbs.Data[2], mbs.Data[3]);
 									break;
 							}
 							break;

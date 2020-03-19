@@ -14,6 +14,16 @@ namespace M
 #endif
 	static partial class MidiUtility
 	{
+		const string _Notes = "C C#D D# E F F#G G#A A#B ";
+		/// <summary>
+		/// Converts a MIDI note id into a string note representation
+		/// </summary>
+		/// <param name="noteId">The note id (0-127)</param>
+		/// <returns>The string note</returns>
+		public static string NoteIdToNote(byte noteId)
+		{
+			return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd() + ((int)(noteId / 12)).ToString();
+		}
 		/// <summary>
 		/// Converts a microtempo to a tempo
 		/// </summary>

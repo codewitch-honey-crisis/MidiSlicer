@@ -478,10 +478,9 @@
 						var mm = e.Message as MidiMessageMeta;
 						if (0x51 == mm.Data1)
 						{
-							if (BitConverter.IsLittleEndian)
-								return (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2];
-							else
-								return (mm.Data[2] << 16) | (mm.Data[1] << 8) | mm.Data[0];
+							return BitConverter.IsLittleEndian?
+								(mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2]:
+								(mm.Data[2] << 16) | (mm.Data[1] << 8) | mm.Data[0];
 						}
 					}
 				}
