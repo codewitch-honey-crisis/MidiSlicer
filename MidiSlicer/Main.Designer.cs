@@ -71,7 +71,7 @@
 			this.TrackList.FormattingEnabled = true;
 			this.TrackList.Location = new System.Drawing.Point(1, 52);
 			this.TrackList.Name = "TrackList";
-			this.TrackList.Size = new System.Drawing.Size(79, 139);
+			this.TrackList.Size = new System.Drawing.Size(79, 169);
 			this.TrackList.TabIndex = 0;
 			// 
 			// TracksLabel
@@ -151,6 +151,7 @@
 			// OffsetUpDown
 			// 
 			this.OffsetUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.OffsetUpDown.DecimalPlaces = 2;
 			this.OffsetUpDown.Location = new System.Drawing.Point(121, 105);
 			this.OffsetUpDown.Maximum = new decimal(new int[] {
             0,
@@ -184,6 +185,7 @@
 			// LengthUpDown
 			// 
 			this.LengthUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.LengthUpDown.DecimalPlaces = 2;
 			this.LengthUpDown.Location = new System.Drawing.Point(237, 105);
 			this.LengthUpDown.Maximum = new decimal(new int[] {
             0,

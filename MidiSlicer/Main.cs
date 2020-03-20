@@ -140,12 +140,12 @@ namespace MidiSlicer
 				if (TrackList.CheckedItems.Contains(TrackList.Items[i]))
 					trks.Add(f.Tracks[i]);
 			var trk = MidiSequence.Merge(trks);
-			var ofs = (int)OffsetUpDown.Value;
-			var len = (int)LengthUpDown.Value;
+			var ofs = OffsetUpDown.Value;
+			var len = LengthUpDown.Value;
 			if (0 == UnitsCombo.SelectedIndex) // beats
 			{
-				len = (int)Math.Min(Math.Ceiling(len * (decimal)f.TimeBase), f.Length);
-				ofs = (int)Math.Min(Math.Ceiling(ofs * (decimal)f.TimeBase), f.Length);
+				len = Math.Min(len * f.TimeBase, f.Length);
+				ofs = Math.Min(ofs * f.TimeBase, f.Length);
 			}
 			switch(StartCombo.SelectedIndex)
 			{
@@ -161,7 +161,7 @@ namespace MidiSlicer
 				var end = trk.FirstNoteOn;
 				if (0 == end)
 					end = trk.Length;
-				var trk2= trk.GetRange(ofs, len);
+				var trk2= trk.GetRange((int)ofs, (int)len);
 				var ins = 0;
 				for(int ic = trk.Events.Count,i=0;i<ic;++i)
 				{
@@ -194,7 +194,7 @@ namespace MidiSlicer
 				trk = trk2;
 			} else {
 				if (trk.Length != len || 0 != ofs)
-					trk = trk.GetRange(ofs, len);
+					trk = trk.GetRange((int)ofs, (int)len);
 			}
 			if (1m != StretchUpDown.Value)
 				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
@@ -279,12 +279,12 @@ namespace MidiSlicer
 				trk.NormalizeVelocities();
 			if (1m != LevelsUpDown.Value)
 				trk.ScaleVelocities((double)LevelsUpDown.Value);
-			var ofs = (int)OffsetUpDown.Value;
-			var len = (int)LengthUpDown.Value;
+			var ofs = OffsetUpDown.Value;
+			var len = LengthUpDown.Value;
 			if (0 == UnitsCombo.SelectedIndex) // beats
 			{
-				len = (int)Math.Min(Math.Ceiling(len * (decimal)_file.TimeBase), _file.Length);
-				ofs = (int)Math.Min(Math.Ceiling(ofs * (decimal)_file.TimeBase), _file.Length);
+				len = Math.Min(len * _file.TimeBase, _file.Length);
+				ofs = Math.Min(ofs * _file.TimeBase, _file.Length);
 			}
 			switch (StartCombo.SelectedIndex)
 			{
@@ -309,7 +309,7 @@ namespace MidiSlicer
 				var end = trk.FirstNoteOn;
 				if (0 == end)
 					end = trk.Length;
-				var trk2 = trk.GetRange(ofs, len);
+				var trk2 = trk.GetRange((int)ofs, (int)len);
 				var ins = 0;
 				for (int ic = trk.Events.Count, i = 0; i < ic; ++i)
 				{
@@ -344,7 +344,7 @@ namespace MidiSlicer
 			else
 			{
 				if (trk.Length != len || 0 != ofs)
-					trk = trk.GetRange(ofs, len);
+					trk = trk.GetRange((int)ofs, (int)len);
 			}
 			if (1m != StretchUpDown.Value)
 				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
