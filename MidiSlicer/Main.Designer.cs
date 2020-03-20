@@ -52,10 +52,14 @@
 			this.CopyTimingPatchCheckBox = new System.Windows.Forms.CheckBox();
 			this.ResampleLabel = new System.Windows.Forms.Label();
 			this.ResampleUpDown = new System.Windows.Forms.NumericUpDown();
+			this.NormalizeCheckBox = new System.Windows.Forms.CheckBox();
+			this.LevelsLabel = new System.Windows.Forms.Label();
+			this.LevelsUpDown = new System.Windows.Forms.NumericUpDown();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.LevelsUpDown)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// TrackList
@@ -67,7 +71,7 @@
 			this.TrackList.FormattingEnabled = true;
 			this.TrackList.Location = new System.Drawing.Point(1, 52);
 			this.TrackList.Name = "TrackList";
-			this.TrackList.Size = new System.Drawing.Size(79, 124);
+			this.TrackList.Size = new System.Drawing.Size(79, 139);
 			this.TrackList.TabIndex = 0;
 			// 
 			// TracksLabel
@@ -112,7 +116,7 @@
 			// PreviewButton
 			// 
 			this.PreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.PreviewButton.Location = new System.Drawing.Point(237, 184);
+			this.PreviewButton.Location = new System.Drawing.Point(237, 209);
 			this.PreviewButton.Name = "PreviewButton";
 			this.PreviewButton.Size = new System.Drawing.Size(75, 23);
 			this.PreviewButton.TabIndex = 5;
@@ -193,7 +197,7 @@
 			// SaveAsButton
 			// 
 			this.SaveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveAsButton.Location = new System.Drawing.Point(156, 184);
+			this.SaveAsButton.Location = new System.Drawing.Point(156, 209);
 			this.SaveAsButton.Name = "SaveAsButton";
 			this.SaveAsButton.Size = new System.Drawing.Size(75, 23);
 			this.SaveAsButton.TabIndex = 14;
@@ -303,7 +307,7 @@
 			// 
 			this.ResampleLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.ResampleLabel.AutoSize = true;
-			this.ResampleLabel.Location = new System.Drawing.Point(179, 158);
+			this.ResampleLabel.Location = new System.Drawing.Point(84, 157);
 			this.ResampleLabel.Name = "ResampleLabel";
 			this.ResampleLabel.Size = new System.Drawing.Size(54, 13);
 			this.ResampleLabel.TabIndex = 25;
@@ -312,7 +316,7 @@
 			// ResampleUpDown
 			// 
 			this.ResampleUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.ResampleUpDown.Location = new System.Drawing.Point(237, 155);
+			this.ResampleUpDown.Location = new System.Drawing.Point(142, 154);
 			this.ResampleUpDown.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -324,10 +328,59 @@
             0,
             0});
 			this.ResampleUpDown.Name = "ResampleUpDown";
-			this.ResampleUpDown.Size = new System.Drawing.Size(75, 20);
+			this.ResampleUpDown.Size = new System.Drawing.Size(54, 20);
 			this.ResampleUpDown.TabIndex = 24;
 			this.ResampleUpDown.Value = new decimal(new int[] {
             480,
+            0,
+            0,
+            0});
+			// 
+			// NormalizeCheckBox
+			// 
+			this.NormalizeCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.NormalizeCheckBox.AutoSize = true;
+			this.NormalizeCheckBox.Location = new System.Drawing.Point(202, 152);
+			this.NormalizeCheckBox.Name = "NormalizeCheckBox";
+			this.NormalizeCheckBox.Size = new System.Drawing.Size(72, 17);
+			this.NormalizeCheckBox.TabIndex = 26;
+			this.NormalizeCheckBox.Text = "Normalize";
+			this.NormalizeCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// LevelsLabel
+			// 
+			this.LevelsLabel.AutoSize = true;
+			this.LevelsLabel.Location = new System.Drawing.Point(86, 182);
+			this.LevelsLabel.Name = "LevelsLabel";
+			this.LevelsLabel.Size = new System.Drawing.Size(38, 13);
+			this.LevelsLabel.TabIndex = 27;
+			this.LevelsLabel.Text = "Levels";
+			// 
+			// LevelsUpDown
+			// 
+			this.LevelsUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.LevelsUpDown.DecimalPlaces = 2;
+			this.LevelsUpDown.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+			this.LevelsUpDown.Location = new System.Drawing.Point(130, 180);
+			this.LevelsUpDown.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+			this.LevelsUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
+			this.LevelsUpDown.Name = "LevelsUpDown";
+			this.LevelsUpDown.Size = new System.Drawing.Size(66, 20);
+			this.LevelsUpDown.TabIndex = 28;
+			this.LevelsUpDown.Value = new decimal(new int[] {
+            1,
             0,
             0,
             0});
@@ -336,7 +389,10 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(320, 209);
+			this.ClientSize = new System.Drawing.Size(320, 234);
+			this.Controls.Add(this.LevelsUpDown);
+			this.Controls.Add(this.LevelsLabel);
+			this.Controls.Add(this.NormalizeCheckBox);
 			this.Controls.Add(this.ResampleUpDown);
 			this.Controls.Add(this.CopyTimingPatchCheckBox);
 			this.Controls.Add(this.StartLabel);
@@ -359,13 +415,14 @@
 			this.Controls.Add(this.TrackList);
 			this.Controls.Add(this.StretchLabel);
 			this.Controls.Add(this.ResampleLabel);
-			this.MinimumSize = new System.Drawing.Size(336, 248);
+			this.MinimumSize = new System.Drawing.Size(336, 273);
 			this.Name = "Main";
 			this.Text = "Midi Slicer";
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.LevelsUpDown)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -397,5 +454,8 @@
 		private System.Windows.Forms.CheckBox CopyTimingPatchCheckBox;
 		private System.Windows.Forms.Label ResampleLabel;
 		private System.Windows.Forms.NumericUpDown ResampleUpDown;
+		private System.Windows.Forms.CheckBox NormalizeCheckBox;
+		private System.Windows.Forms.Label LevelsLabel;
+		private System.Windows.Forms.NumericUpDown LevelsUpDown;
 	}
 }

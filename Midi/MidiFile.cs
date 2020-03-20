@@ -253,6 +253,30 @@
 				result.Tracks.Add(trk.Stretch(diff,adjustTempo));
 			return result;
 		}
+
+		/// <summary>
+		/// Scales the velocity levels
+		/// </summary>
+		/// <param name="multiplier">The multiplier</param>
+		/// <returns>A new MIDI file with the levels scaled</returns>
+		public MidiFile ScaleVelocities(double multiplier)
+		{
+			var result = new MidiFile(Type, TimeBase);
+			foreach (var trk in Tracks)
+				result.Tracks.Add(trk.ScaleVelocities(multiplier));
+			return result;
+		}
+		/// <summary>
+		/// Normalizes the velocity levels
+		/// </summary>
+		/// <returns>A new MIDI file with the levels normalized</returns>
+		public MidiFile NormalizeVelocities()
+		{
+			var result = new MidiFile(Type, TimeBase);
+			foreach (var trk in Tracks)
+				result.Tracks.Add(trk.NormalizeVelocities());
+			return result;
+		}
 		/// <summary>
 		/// Creates a deep copy of the MIDI file
 		/// </summary>

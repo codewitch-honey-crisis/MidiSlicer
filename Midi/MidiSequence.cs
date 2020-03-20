@@ -152,6 +152,7 @@
 			get {
 				foreach (var e in AbsoluteEvents)
 				{
+
 					if (e.Message.Status == 0xFF)
 					{
 						var mm = e.Message as MidiMessageMeta;
@@ -417,7 +418,7 @@
 			var result = new MidiSequence();
 			if (!adjustTempo)
 				foreach (var e in Events)
-					result.Events.Add(new MidiEvent((int)Math.Round(e.Position * diff, MidpointRounding.AwayFromZero), e.Message));
+					result.Events.Add(new MidiEvent((int)Math.Round(e.Position * diff, MidpointRounding.AwayFromZero), e.Message.Clone()));
 			else
 			{
 				byte runningStatus = 0;
@@ -457,6 +458,61 @@
 						}
 					}
 					result.Events.Add(new MidiEvent((int)Math.Round(e.Position * diff, MidpointRounding.AwayFromZero), m));
+				}
+			}
+			return result;
+		}
+		/// <summary>
+		/// Scales all note velocities such that the highest velocity is now 127
+		/// </summary>
+		/// <returns></returns>
+		public MidiSequence NormalizeVelocities()
+		{
+			var maxvel = 0;
+			foreach (var e in Events)
+			{
+				switch (e.Message.Status & 0xF0)
+				{
+					//case 0x80:
+					case 0x90:
+						var non = e.Message as MidiMessageWord;
+						if (maxvel < non.Data2)
+							maxvel=non.Data2;
+						break;
+				}
+			}
+			var mult = 0!=maxvel?128d/maxvel:0;
+			return ScaleVelocities(mult);
+		}
+		/// <summary>
+		/// Scales note velocities by the specified value
+		/// </summary>
+		/// <param name="multiplier">The multiplier. 1 = no change</param>
+		/// <returns>A new sequence with the velocities adjusted</returns>
+		public MidiSequence ScaleVelocities(double multiplier)
+		{
+			var result = new MidiSequence();
+			foreach(var e in Events)
+			{
+				switch(e.Message.Status & 0xF0)
+				{
+					case 0x80:
+						var noff = e.Message as MidiMessageWord;
+						var d = noff.Data2 * multiplier;
+						d = Math.Round(Math.Min(Math.Max(0, d), 127), MidpointRounding.AwayFromZero);
+						var nnoff = new MidiMessageNoteOff(noff.Data1, unchecked((byte)d), unchecked((byte)(noff.Status & 0xF)));
+						result.Events.Add(new MidiEvent(e.Position, nnoff));
+						break;
+					case 0x90:
+						var non = e.Message as MidiMessageWord;
+						d = non.Data2 * multiplier;
+						d = Math.Round(Math.Min(Math.Max(0, d), 127), MidpointRounding.AwayFromZero);
+						var nnon = new MidiMessageNoteOn(non.Data1, unchecked((byte)d), unchecked((byte)(non.Status & 0xF)));
+						result.Events.Add(new MidiEvent(e.Position, nnon));
+						break;
+					default:
+						result.Events.Add(e.Clone());
+						break;
 				}
 			}
 			return result;
@@ -546,7 +602,7 @@
 							var den = mm.Data[1];
 							var met = mm.Data[2];
 							var q32 = mm.Data[3];
-							return new MidiTimeSignature(num, (short)Math.Pow(den, 2), met, q32);
+							return new MidiTimeSignature(num, (short)Math.Pow(2,den), met, q32);
 						}
 					}
 				}

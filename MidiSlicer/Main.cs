@@ -58,6 +58,8 @@ namespace MidiSlicer
 				CopyTimingPatchCheckBox.Enabled = false;
 				AdjustTempoCheckBox.Enabled = false;
 				ResampleUpDown.Enabled = false;
+				NormalizeCheckBox.Enabled = false;
+				LevelsUpDown.Enabled = false;
 				SaveAsButton.Enabled = false;
 			}
 			else
@@ -87,6 +89,8 @@ namespace MidiSlicer
 				CopyTimingPatchCheckBox.Enabled = true;
 				AdjustTempoCheckBox.Enabled = true;
 				ResampleUpDown.Enabled = true;
+				NormalizeCheckBox.Enabled = true;
+				LevelsUpDown.Enabled = true;
 				SaveAsButton.Enabled = true;
 				StretchUpDown.Value = 1;
 				UnitsCombo.SelectedIndex = 0;
@@ -127,6 +131,10 @@ namespace MidiSlicer
 			var f = _file;
 			if (ResampleUpDown.Value != _file.TimeBase)
 				f = _file.Resample(unchecked((short)ResampleUpDown.Value));
+			if (NormalizeCheckBox.Checked)
+				f = _file.NormalizeVelocities();
+			if (1m != LevelsUpDown.Value)
+				f = _file.ScaleVelocities((double)LevelsUpDown.Value);
 			var trks = new List<MidiSequence>(f.Tracks.Count);
 			for (int ic = TrackList.Items.Count, i = 0; i < ic; ++i)
 				if (TrackList.CheckedItems.Contains(TrackList.Items[i]))
@@ -267,6 +275,10 @@ namespace MidiSlicer
 		}
 		MidiSequence _ProcessTrack(MidiSequence trk)
 		{
+			if (NormalizeCheckBox.Checked)
+				trk.NormalizeVelocities();
+			if (1m != LevelsUpDown.Value)
+				trk.ScaleVelocities((double)LevelsUpDown.Value);
 			var ofs = (int)OffsetUpDown.Value;
 			var len = (int)LengthUpDown.Value;
 			if (0 == UnitsCombo.SelectedIndex) // beats

@@ -117,7 +117,7 @@
 										MicroTempo=(mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
 									break;
 								case 0x58:
-									TimeSignature = new MidiTimeSignature(mbs.Data[0], (byte)Math.Pow(mbs.Data[1], 2), mbs.Data[2], mbs.Data[3]);
+									TimeSignature = new MidiTimeSignature(mbs.Data[0], (byte)Math.Pow(2,mbs.Data[1]), mbs.Data[2], mbs.Data[3]);
 									break;
 							}
 							break;
