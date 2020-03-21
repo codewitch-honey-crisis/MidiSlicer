@@ -98,7 +98,7 @@ namespace MidiSlicer
 				ResampleUpDown.Value = _file.TimeBase;
 				if (0 == UnitsCombo.SelectedIndex) // beats
 				{
-					LengthUpDown.Maximum = Math.Ceiling(_file.Length / (decimal)_file.TimeBase);
+					LengthUpDown.Maximum = _file.Length / (decimal)_file.TimeBase;
 					OffsetUpDown.Maximum = LengthUpDown.Maximum - 1;
 				}
 				else // ticks
