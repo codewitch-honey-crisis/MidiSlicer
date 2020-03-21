@@ -256,8 +256,6 @@ namespace MidiSlicer
 			if (0!=ofs || result.Length!=len)
 				result = result.GetRange((int)ofs, (int)len,false);
 			
-			if (1m != StretchUpDown.Value)
-				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 			var l = new List<MidiSequence>(result.Tracks);
 			result.Tracks.Clear();
 			for(int ic=l.Count,i=0;i<ic;++i)
@@ -291,7 +289,8 @@ namespace MidiSlicer
 			endTrack.Events.Add(new MidiEvent((int)len, msg));
 			// merge new track with track zero
 			result.Tracks[0] = MidiSequence.Merge(result.Tracks[0], endTrack);
-			return result; // TEST
+			if (1m != StretchUpDown.Value)
+				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 
 			if (MergeTracksCheckBox.Checked)
 			{
