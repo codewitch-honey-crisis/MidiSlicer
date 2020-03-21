@@ -351,6 +351,7 @@
 			// 
 			// LevelsLabel
 			// 
+			this.LevelsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.LevelsLabel.AutoSize = true;
 			this.LevelsLabel.Location = new System.Drawing.Point(86, 182);
 			this.LevelsLabel.Name = "LevelsLabel";
