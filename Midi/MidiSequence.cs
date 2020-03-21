@@ -231,7 +231,7 @@
 								var ba = new byte[l];
 								if (l != stream.Read(ba, 0, ba.Length))
 									throw new EndOfStreamException();
-								m = new MidiMessageMeta(st, b, ba);
+								m = new MidiMessageMeta(b, ba);
 								break;
 							case 0x0:
 							case 0x7:
@@ -357,7 +357,7 @@
 				}
 			}
 			if(sawEnd) // add an end marker back to the track
-				result.Events.Add(new MidiEvent(endDelta, new MidiMessageMeta(0xFF, 0x2F, new byte[0])));
+				result.Events.Add(new MidiEvent(endDelta, new MidiMessageMeta(0x2F, new byte[0])));
 			return result;
 		}
 		/// <summary>
@@ -402,7 +402,7 @@
 				last = e.Position;
 			}
 			if(hasMidiEnd) // if we found a midi end track, then add one back after all is done
-				result.Events.Add(new MidiEvent(last, new MidiMessageMeta(0xFF, 0x2F, new byte[0])));
+				result.Events.Add(new MidiEvent(last, new MidiMessageMeta(0x2F, new byte[0])));
 			
 			return result;
 		}
@@ -453,7 +453,7 @@
 									buf[1] = unchecked((byte)((mt >> 8) & 0xFF));
 									buf[2] = unchecked((byte)((mt >> 16) & 0xFF));
 								}
-								m= new MidiMessageMeta(mbs.Status, mbs.Data1, buf);
+								m= new MidiMessageMeta(mbs.Data1, buf);
 							}
 						}
 					}
@@ -798,7 +798,7 @@
 							var mbs = e.Message as MidiMessageMeta;
 							if (null != mbs)
 							{
-								m = new MidiMessageMeta(r, mbs.Data1, mbs.Data);
+								m = new MidiMessageMeta(mbs.Data1, mbs.Data);
 								if (0x20 == mbs.Data1)
 									channelPrefix = mbs.Data[0];
 								break;

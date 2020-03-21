@@ -277,6 +277,12 @@ namespace MidiSlicer
 					}
 				}
 			}
+			var endTrack = new MidiSequence();
+			// add end marker to new track
+			var msg = new MidiMessageMeta(0x2F, new byte[0]);
+			endTrack.Events.Add(new MidiEvent((int)len, msg));
+			// merge new track with track zero
+			result.Tracks[0] = MidiSequence.Merge(result.Tracks[0], endTrack);
 			if(MergeTracksCheckBox.Checked)
 			{
 				var trk = MidiSequence.Merge(result.Tracks);
@@ -284,75 +290,6 @@ namespace MidiSlicer
 				result.Tracks.Add(trk);
 			}
 			return result;
-		}
-		MidiSequence _ProcessTrack(MidiSequence trk)
-		{
-			if (NormalizeCheckBox.Checked)
-				trk.NormalizeVelocities();
-			if (1m != LevelsUpDown.Value)
-				trk.ScaleVelocities((double)LevelsUpDown.Value);
-			var ofs = OffsetUpDown.Value;
-			var len = LengthUpDown.Value;
-			if (0 == UnitsCombo.SelectedIndex) // beats
-			{
-				len = Math.Min(len * _file.TimeBase, _file.Length);
-				ofs = Math.Min(ofs * _file.TimeBase, _file.Length);
-			}
-			switch (StartCombo.SelectedIndex)
-			{
-				case 1:
-					ofs += _file.FirstDownBeat;
-					break;
-				case 2:
-					ofs += _file.FirstNoteOn;
-					break;
-			}
-			
-			if (0 != ofs && CopyTimingPatchCheckBox.Checked)
-			{
-				var end = trk.FirstNoteOn;
-				if (0 == end)
-					end = trk.Length;
-				var trk2 = trk.GetRange((int)ofs, (int)len);
-				var ins = 0;
-				for (int ic = trk.Events.Count, i = 0; i < ic; ++i)
-				{
-					var ev = trk.Events[i];
-					if (ev.Position >= end)
-						break;
-					var m = ev.Message;
-					switch (m.Status)
-					{
-						case 0xFF:
-							var mm = m as MidiMessageMeta;
-							switch (mm.Data1)
-							{
-								case 0x51:
-								case 0x54:
-									trk2.Events.Insert(ins, ev.Clone());
-									++ins;
-									break;
-							}
-							break;
-						default:
-							if (0xC0 == (ev.Message.Status & 0xF0))
-							{
-								trk2.Events.Insert(ins, ev.Clone());
-								++ins;
-							}
-							break;
-					}
-				}
-				trk = trk2;
-			}
-			else
-			{
-				if (trk.Length != len || 0 != ofs)
-					trk = trk.GetRange((int)ofs, (int)len);
-			}
-			if (1m != StretchUpDown.Value)
-				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
-			return trk;
 		}
 	}
 }

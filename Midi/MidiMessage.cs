@@ -153,20 +153,18 @@
 		/// <summary>
 		/// Creates a MIDI message with the specified status, type and payload
 		/// </summary>
-		/// <param name="status">The MIDI status byte</param>
 		/// <param name="type">The type of the MIDI message</param>
 		/// <param name="data">The payload of the MIDI message, as bytes</param>
-		public MidiMessageMeta(byte status,byte type,byte[] data) : base(status,type)
+		public MidiMessageMeta(byte type,byte[] data) : base(0xFF,type)
 		{
 			Data = data;
 		}
 		/// <summary>
 		/// Creates a MIDI message with the specified status, type and payload
 		/// </summary>
-		/// <param name="status">The MIDI status byte</param>
 		/// <param name="type">The type of the MIDI message</param>
 		/// <param name="text">The payload of the MIDI message, as ASCII text</param>
-		public MidiMessageMeta(byte status, byte type, string text) : base(status, type)
+		public MidiMessageMeta(byte type, string text) : base(0xFF, type)
 		{
 			Data = Encoding.ASCII.GetBytes(text);
 		}
@@ -191,7 +189,7 @@
 		/// <returns>The cloned MIDI message</returns>
 		protected override MidiMessage CloneImpl()
 		{
-			return new MidiMessageMeta(Status, Data1, Data);
+			return new MidiMessageMeta(Data1, Data);
 		}
 	}
 	/// <summary>
