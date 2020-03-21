@@ -253,7 +253,24 @@
 				result.Tracks.Add(trk.Stretch(diff,adjustTempo));
 			return result;
 		}
-
+		/// <summary>
+		/// Gets a range of events as a new MidiFile
+		/// </summary>
+		/// <param name="start">The start in ticks</param>
+		/// <param name="length">The length, in ticks</param>
+		/// <param name="eliminateEmptyTracks">True to eliminate tracks that end up with no events, otherwise false</param>
+		/// <returns></returns>
+		public MidiFile GetRange(int start,int length,bool eliminateEmptyTracks = true)
+		{
+			var result = new MidiFile(Type, TimeBase);
+			foreach (var trk in Tracks)
+			{
+				var t = trk.GetRange(start, length);
+				if(!eliminateEmptyTracks || 0<t.Events.Count)
+					result.Tracks.Add(t);
+			}
+			return result;
+		}
 		/// <summary>
 		/// Scales the velocity levels
 		/// </summary>
