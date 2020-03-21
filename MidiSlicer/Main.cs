@@ -128,77 +128,7 @@ namespace MidiSlicer
 				PreviewButton.Text = "Preview";
 				return;
 			}
-			var f = _file;
-			if (ResampleUpDown.Value != _file.TimeBase)
-				f = _file.Resample(unchecked((short)ResampleUpDown.Value));
-			if (NormalizeCheckBox.Checked)
-				f = _file.NormalizeVelocities();
-			if (1m != LevelsUpDown.Value)
-				f = _file.ScaleVelocities((double)LevelsUpDown.Value);
-			var trks = new List<MidiSequence>(f.Tracks.Count);
-			for (int ic = TrackList.Items.Count, i = 0; i < ic; ++i)
-				if (TrackList.CheckedItems.Contains(TrackList.Items[i]))
-					trks.Add(f.Tracks[i]);
-			var trk = MidiSequence.Merge(trks);
-			var ofs = OffsetUpDown.Value;
-			var len = LengthUpDown.Value;
-			if (0 == UnitsCombo.SelectedIndex) // beats
-			{
-				len = Math.Min(len * f.TimeBase, f.Length);
-				ofs = Math.Min(ofs * f.TimeBase, f.Length);
-			}
-			switch(StartCombo.SelectedIndex)
-			{
-				case 1:
-					ofs += f.FirstDownBeat;
-					break;
-				case 2:
-					ofs += f.FirstNoteOn;
-					break;
-			}
-			if (0 != ofs && CopyTimingPatchCheckBox.Checked)
-			{
-				var end = trk.FirstNoteOn;
-				if (0 == end)
-					end = trk.Length;
-				var trk2= trk.GetRange((int)ofs, (int)len);
-				var ins = 0;
-				for(int ic = trk.Events.Count,i=0;i<ic;++i)
-				{
-					var ev = trk.Events[i];
-					if (ev.Position >= end)
-						break;
-					var m = ev.Message;
-					switch(m.Status)
-					{
-						case 0xFF:
-							var mm = m as MidiMessageMeta;
-							switch(mm.Data1) 
-							{
-								case 0x51:
-								case 0x54:
-									trk2.Events.Insert(ins, ev.Clone());
-									++ins;
-									break;
-							}
-							break;
-						default:
-							if (0xC0 == (ev.Message.Status & 0xF0))
-							{
-								trk2.Events.Insert(ins, ev.Clone());
-								++ins;
-							}
-							break;
-					}
-				}
-				trk = trk2;
-			} else {
-				if (trk.Length != len || 0 != ofs)
-					trk = trk.GetRange((int)ofs, (int)len);
-			}
-			if (1m != StretchUpDown.Value)
-				trk = trk.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
-
+			
 			if (null != _previewThread)
 			{
 				_previewThread.Abort();
@@ -206,7 +136,8 @@ namespace MidiSlicer
 				_previewThread = null;
 			}
 			PreviewButton.Text = "Stop";
-			_previewThread = new Thread(() => { trk.Preview(f.TimeBase,0,true); });
+			var f = _ProcessFile();
+			_previewThread = new Thread(() => { f.Preview(0,true); });
 			_previewThread.Start();
 		}
 		protected override void OnClosing(CancelEventArgs e)
@@ -244,34 +175,115 @@ namespace MidiSlicer
 			var res = SaveMidiFile.ShowDialog(this);
 			if (DialogResult.OK == res)
 			{
-				var f = _file;
-				if (ResampleUpDown.Value != _file.TimeBase)
-				{
-					f = f.Resample(unchecked((short)ResampleUpDown.Value));
-				}
-				var trks = new List<MidiSequence>(f.Tracks.Count);
-				for (int ic = TrackList.Items.Count, i = 0; i < ic; ++i)
-					if (TrackList.CheckedItems.Contains(TrackList.Items[i]))
-						trks.Add(f.Tracks[i]);
-
-				var mf = new MidiFile(1,f.TimeBase);
-				if (!MergeTracksCheckBox.Checked)
-				{
-					foreach (var tr in trks)
-					{
-						mf.Tracks.Add(_ProcessTrack(tr));
-					}
-				}
-				else
-				{
-					mf.Tracks.Add(_ProcessTrack(MidiSequence.Merge(trks)));
-				}
+				var mf = _ProcessFile();
 				using (var stm = File.OpenWrite(SaveMidiFile.FileName))
 				{
 					mf.WriteTo(stm);
 				}
 					
 			}
+		}
+		MidiFile _ProcessFile()
+		{
+			var result = _file.Clone();
+			if (ResampleUpDown.Value != _file.TimeBase)
+				result = result.Resample(unchecked((short)ResampleUpDown.Value));
+			if (NormalizeCheckBox.Checked)
+				result = result.NormalizeVelocities();
+			if(1m!=LevelsUpDown.Value)
+				result = result.ScaleVelocities((double)LevelsUpDown.Value);
+			var ofs = OffsetUpDown.Value;
+			var len = LengthUpDown.Value;
+			if (0 == UnitsCombo.SelectedIndex) // beats
+			{
+				len = Math.Min(len * _file.TimeBase, _file.Length);
+				ofs = Math.Min(ofs * _file.TimeBase, _file.Length);
+			}
+			switch (StartCombo.SelectedIndex)
+			{
+				case 1:
+					ofs += result.FirstDownBeat;
+					break;
+				case 2:
+					ofs += result.FirstNoteOn;
+					break;
+			}
+			var nseq = new MidiSequence();
+			if(0!=ofs && CopyTimingPatchCheckBox.Checked)
+			{
+				var mtrk = MidiSequence.Merge(result.Tracks);
+				var end = mtrk.FirstNoteOn;
+				if (0 == end)
+					end = mtrk.Length;
+				var ins = 0;
+				for (int ic = mtrk.Events.Count, i = 0; i < ic; ++i)
+				{
+					var ev = mtrk.Events[i];
+					if (ev.Position >= end)
+						break;
+					var m = ev.Message;
+					switch (m.Status)
+					{
+						case 0xFF:
+							var mm = m as MidiMessageMeta;
+							switch (mm.Data1)
+							{
+								case 0x51:
+								case 0x54:
+									if (0 == nseq.Events.Count)
+										nseq.Events.Add(new MidiEvent(0,ev.Message.Clone()));
+									else
+										nseq.Events.Insert(ins, new MidiEvent(0,ev.Message.Clone()));
+									++ins;
+									break;
+							}
+							break;
+						default:
+							if (0xC0 == (ev.Message.Status & 0xF0))
+							{
+								if (0 == nseq.Events.Count)
+									nseq.Events.Add(new MidiEvent(0, ev.Message.Clone()));
+								else
+									nseq.Events.Insert(ins, new MidiEvent(0, ev.Message.Clone()));
+								++ins;
+							}
+							break;
+					}
+				}
+			}
+			var hasTrack0 = TrackList.GetItemChecked(0);
+			if (0!=ofs || result.Length!=len)
+				result = result.GetRange((int)ofs, (int)len,false);
+			if (1m != StretchUpDown.Value)
+				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
+			for(int ic=result.Tracks.Count,i=0;i<ic;++i)
+			{
+				if(!TrackList.GetItemChecked(i))
+				{
+					result.Tracks.RemoveAt(i);
+					--ic;
+					--i;
+				}
+			}
+			if (0 < nseq.Events.Count)
+			{
+				if(!hasTrack0)
+					result.Tracks.Insert(0,nseq);
+				else
+				{
+					for(var i = nseq.Events.Count-1;0<=i;--i)
+					{
+						result.Tracks[0].Events.Insert(0, nseq.Events[i]);
+					}
+				}
+			}
+			if(MergeTracksCheckBox.Checked)
+			{
+				var trk = MidiSequence.Merge(result.Tracks);
+				result.Tracks.Clear();
+				result.Tracks.Add(trk);
+			}
+			return result;
 		}
 		MidiSequence _ProcessTrack(MidiSequence trk)
 		{
@@ -295,15 +307,7 @@ namespace MidiSlicer
 					ofs += _file.FirstNoteOn;
 					break;
 			}
-			switch (StartCombo.SelectedIndex)
-			{
-				case 1:
-					ofs += _file.FirstDownBeat;
-					break;
-				case 2:
-					ofs += _file.FirstNoteOn;
-					break;
-			}
+			
 			if (0 != ofs && CopyTimingPatchCheckBox.Checked)
 			{
 				var end = trk.FirstNoteOn;
