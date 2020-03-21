@@ -178,9 +178,9 @@ namespace MidiSlicer
 				var mf = _ProcessFile();
 				using (var stm = File.OpenWrite(SaveMidiFile.FileName))
 				{
+					stm.SetLength(0);
 					mf.WriteTo(stm);
 				}
-					
 			}
 		}
 		MidiFile _ProcessFile()
@@ -208,6 +208,7 @@ namespace MidiSlicer
 					ofs += result.FirstNoteOn;
 					break;
 			}
+			
 			var nseq = new MidiSequence();
 			if(0!=ofs && CopyTimingPatchCheckBox.Checked)
 			{
@@ -254,15 +255,16 @@ namespace MidiSlicer
 			var hasTrack0 = TrackList.GetItemChecked(0);
 			if (0!=ofs || result.Length!=len)
 				result = result.GetRange((int)ofs, (int)len,false);
+			
 			if (1m != StretchUpDown.Value)
 				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
-			for(int ic=result.Tracks.Count,i=0;i<ic;++i)
+			var l = new List<MidiSequence>(result.Tracks);
+			result.Tracks.Clear();
+			for(int ic=l.Count,i=0;i<ic;++i)
 			{
-				if(!TrackList.GetItemChecked(i))
+				if(TrackList.GetItemChecked(i))
 				{
-					result.Tracks.RemoveAt(i);
-					--ic;
-					--i;
+					result.Tracks.Add(l[i]);
 				}
 			}
 			if (0 < nseq.Events.Count)
@@ -279,11 +281,19 @@ namespace MidiSlicer
 			}
 			var endTrack = new MidiSequence();
 			// add end marker to new track
-			var msg = new MidiMessageMeta(0x2F, new byte[0]);
+			// HACK: For some reason, adding the MIDI end track message (Meta type 0x2F)
+			// causes a pause in playback (preceeding or following i'm not sure)
+			// I haven't been able to track it down so i'm sending a note off
+			// message instead on note C octave 0" - it's just a placeholder
+			// so the track doesn't end early.
+			var msg = new MidiMessageNoteOff(0,0,0);
+			//var msg = new MidiMessageMeta(0x2f,new byte[0]);
 			endTrack.Events.Add(new MidiEvent((int)len, msg));
 			// merge new track with track zero
 			result.Tracks[0] = MidiSequence.Merge(result.Tracks[0], endTrack);
-			if(MergeTracksCheckBox.Checked)
+			return result; // TEST
+
+			if (MergeTracksCheckBox.Checked)
 			{
 				var trk = MidiSequence.Merge(result.Tracks);
 				result.Tracks.Clear();

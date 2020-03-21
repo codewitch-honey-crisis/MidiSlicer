@@ -860,11 +860,19 @@
 										end = (long)(Length * tickspertick + tickStart);
 									}
 									else if (0x2F == mbs.Data1)
+									{
 										done = true;
+										end = 0;
+									}
 								}
-								MidiUtility.Send(handle, e.Current.Message);
+								else
+								{
+									//System.Diagnostics.Debug.WriteLine("Tick at " + ce.ToString());
+									MidiUtility.Send(handle, e.Current.Message);
+								}
 								if (!e.MoveNext())
 									done = true;
+								
 							}
 						}
 					}
