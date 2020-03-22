@@ -780,7 +780,6 @@
 				foreach(var e in Events)
 				{
 					pos += e.Position;
-					var m = default(MidiMessage);
 					var hs = true;
 					if (0 != e.Message.Status)
 						runningStatus = e.Message.Status;
@@ -977,7 +976,7 @@
 					else
 						return _Swap(result << 7);
 				}
-				throw new NotSupportedException("MIDI Variable length quantity can't be greater than 28 bits.");
+				throw new OverflowException("MIDI Variable length quantity can't be greater than 28 bits.");
 			}
 		}
 		private static void _WriteVarlen(Stream stream, int value)
