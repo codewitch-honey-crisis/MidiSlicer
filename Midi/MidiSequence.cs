@@ -72,7 +72,7 @@
 		/// Gets the <see cref="MidiContext"/> at the specified position
 		/// </summary>
 		/// <param name="position">The position to retrieve the context from, in ticks</param>
-		/// <returns></returns>
+		/// <returns>A MIDI context for this position</returns>
 		public MidiContext GetContext(int position=0)
 		{
 			var result = new MidiContext();
@@ -95,18 +95,29 @@
 		public MidiSequence GetRange(int start,int length)
 		{
 			var result = new MidiSequence();
-			int last = start;
+			var last = start;
 			foreach (var e in AbsoluteEvents)
 			{
 				if(e.Position>=start)
 				{
 					if (e.Position >= start + length)
 						break;
+					if (0xFF == e.Message.Status && -1 == e.Message.PayloadLength)
+					{
+						var mbs = e.Message as MidiMessageMeta;
+						// filter the midi end track sequences out, note if we found at least one
+						if (0x2F == mbs.Data1)
+						{
+							continue;
+						}
+					}
 					result.Events.Add(new MidiEvent(e.Position - last, e.Message));
 					last = e.Position;
 				}
 			}
-			return result;
+			var seq = new MidiSequence();
+			seq.Events.Add(new MidiEvent(length, new MidiMessageMeta(0x2F, new byte[0])));
+			return Merge(result,seq);
 		}
 		/// <summary>
 		/// Indicates the name of the sequence, or null if no name is present
@@ -475,7 +486,7 @@
 		/// <summary>
 		/// Scales all note velocities such that the highest velocity is now 127
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>A new MIDI sequence with the velocities scaled</returns>
 		public MidiSequence NormalizeVelocities()
 		{
 			var maxvel = 0;

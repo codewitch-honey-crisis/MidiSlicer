@@ -269,6 +269,7 @@ namespace MidiSlicer
 							break;
 					}
 				}
+				nseq.Events.Add(new MidiEvent((int)len, new MidiMessageMeta(0x2F, new byte[0])));
 			}
 			var hasTrack0 = TrackList.GetItemChecked(0);
 			if (0!=ofs || result.Length!=len)
@@ -289,24 +290,10 @@ namespace MidiSlicer
 					result.Tracks.Insert(0,nseq);
 				else
 				{
-					for(var i = nseq.Events.Count-1;0<=i;--i)
-					{
-						result.Tracks[0].Events.Insert(0, nseq.Events[i]);
-					}
+					result.Tracks[0] = MidiSequence.Merge(nseq, result.Tracks[0]);
+					
 				}
 			}
-			var endTrack = new MidiSequence();
-			// add end marker to new track
-			// HACK: For some reason, adding the MIDI end track message (Meta type 0x2F)
-			// causes a pause in playback (preceeding or following i'm not sure)
-			// I haven't been able to track it down so i'm sending a note off
-			// message instead on note C octave 0" - it's just a placeholder
-			// so the track doesn't end early.
-			//var msg = new MidiMessageNoteOff(0,0,0);
-			var msg = new MidiMessageMeta(0x2f,new byte[0]);
-			endTrack.Events.Add(new MidiEvent((int)len, msg));
-			// merge new track with track zero
-			result.Tracks[0] = MidiSequence.Merge(result.Tracks[0], endTrack);
 			if (1m != StretchUpDown.Value)
 				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 
