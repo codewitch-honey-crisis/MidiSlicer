@@ -344,13 +344,13 @@
 		/// Concatenates this sequence with other MIDI sequences
 		/// </summary>
 		/// <param name="sequences">The sequences to concatenate this sequence with</param>
-		/// <returns>A new MIDI sequence that is the concatenation of this sequence and <paramref name="sequences"/></returns>
+		/// <returns>A new MIDI sequence that is the concatenation <paramref name="sequences"/></returns>
 		public static MidiSequence Concat(params MidiSequence[] sequences) => Concat((IEnumerable<MidiSequence>)sequences);
 		/// <summary>
 		/// Concatenates this sequence with other MIDI sequences
 		/// </summary>
 		/// <param name="sequences">The sequences to concatenate this sequence with</param>
-		/// <returns>A new MIDI sequence that is the concatenation of this sequence and <paramref name="sequences"/></returns>
+		/// <returns>A new MIDI sequence that is the concatenation of <paramref name="sequences"/></returns>
 		public static MidiSequence Concat(IEnumerable<MidiSequence> sequences)
 		{
 			var result = new MidiSequence();
@@ -377,8 +377,8 @@
 					endDelta = 0;
 				}
 			}
-			if(sawEnd) // add an end marker back to the track
-				result.Events.Add(new MidiEvent(endDelta, new MidiMessageMeta(0x2F, new byte[0])));
+			//if(sawEnd) // add an end marker back to the track
+			result.Events.Add(new MidiEvent(endDelta, new MidiMessageMeta(0x2F, new byte[0])));
 			return result;
 		}
 		/// <summary>
@@ -391,13 +391,13 @@
 		/// Merges this sequence with other MIDI sequences
 		/// </summary>
 		/// <param name="sequences">The sequences to merge this sequence with</param>
-		/// <returns>A new MIDI sequence that is a merge of this sequence and <paramref name="sequences"/></returns>
+		/// <returns>A new MIDI sequence that is a merge <paramref name="sequences"/></returns>
 		public static MidiSequence Merge(params MidiSequence[] sequences) => Merge((IEnumerable<MidiSequence>)sequences);
 		/// <summary>
 		/// Merges this sequence with other MIDI sequences
 		/// </summary>
 		/// <param name="sequences">The sequences to merge this sequence with</param>
-		/// <returns>A new MIDI sequence that is a merge of this sequence and <paramref name="sequences"/></returns>
+		/// <returns>A new MIDI sequence that is a merge <paramref name="sequences"/></returns>
 		public static MidiSequence Merge(IEnumerable<MidiSequence> sequences)
 		{
 			var result = new MidiSequence();
