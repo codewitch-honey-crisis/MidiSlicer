@@ -253,7 +253,6 @@
 								m = new MidiMessageByte(st, b);
 								break;
 							case 0x6:
-							
 							case 0x8:
 							case 0xA:
 							case 0xB:
@@ -302,13 +301,24 @@
 						break;
 					case -1:
 						if (0 != e.Message.Status) stream.WriteByte(e.Message.Status);
-						var mbs = e.Message as MidiMessageMeta;
-						stream.WriteByte(mbs.Data1);
-						int v = mbs.Data.Length;
-						//if (BitConverter.IsLittleEndian)
-						//	v = _Swap(v);
-						_WriteVarlen(stream, v);
-						stream.Write(mbs.Data, 0, mbs.Data.Length);
+						var mma = e.Message as MidiMessageMeta;
+						if (null != mma)
+						{
+							stream.WriteByte(mma.Data1);
+							int v = mma.Data.Length;
+							//if (BitConverter.IsLittleEndian)
+							//	v = _Swap(v);
+							_WriteVarlen(stream, v);
+							stream.Write(mma.Data, 0, mma.Data.Length);
+							break; 
+						}
+						var msx = e.Message as MidiMessageSysex;
+						if(null!=msx)
+						{
+							int v = msx.Data.Length;
+							_WriteVarlen(stream, v);
+							stream.Write(msx.Data, 0, msx.Data.Length);
+						}
 						break;
 				}
 			}
@@ -384,7 +394,7 @@
 			foreach(var seq in sequences)
 				l.AddRange(seq.AbsoluteEvents);
 			l.Sort(delegate (MidiEvent x, MidiEvent y) { return x.Position.CompareTo(y.Position); });
-			var hasMidiEnd = false;
+			int midiEnd = -1;
 			var last = 0;
 			foreach (var e in l)
 			{
@@ -394,15 +404,15 @@
 					// filter the midi end track sequences out, note if we found at least one
 					if (0x2F == mbs.Data1)
 					{
-						hasMidiEnd = true;
+						midiEnd = e.Position;
 						continue;
 					}
 				}
 				result.Events.Add(new MidiEvent(e.Position - last, e.Message));
 				last = e.Position;
 			}
-			if(hasMidiEnd) // if we found a midi end track, then add one back after all is done
-				result.Events.Add(new MidiEvent(last, new MidiMessageMeta(0x2F, new byte[0])));
+			if(-1<midiEnd) // if we found a midi end track, then add one back after all is done
+				result.Events.Add(new MidiEvent(Math.Max(0,midiEnd-last), new MidiMessageMeta(0x2F, new byte[0])));
 			
 			return result;
 		}
@@ -778,36 +788,9 @@
 						hs = false;
 					r = runningStatus;
 					if(!hs && r<0xF0 && 0xFF!=channelPrefix)
-					{
 						r = unchecked((byte)((r & 0xF0) | channelPrefix));
-					}
-					switch (e.Message.PayloadLength)
-					{
-						case 0:
-							m = new MidiMessage(r);
-							break;
-						case 1:
-							var mb = e.Message as MidiMessageByte;
-							m = new MidiMessageByte(r, mb.Data1);
-							break;
-						case 2:
-							var mw = e.Message as MidiMessageWord;
-							m = new MidiMessageWord(r, mw.Data1,mw.Data2);
-							break;
-						case -1:
-							var mbs = e.Message as MidiMessageMeta;
-							if (null != mbs)
-							{
-								m = new MidiMessageMeta(mbs.Data1, mbs.Data);
-								if (0x20 == mbs.Data1)
-									channelPrefix = mbs.Data[0];
-								break;
-							}
-							var msx = e.Message as MidiMessageSysex;
-							m = new MidiMessageSysex(r, msx.Data);
-							break;
-					}
-					yield return new MidiEvent(pos, m);
+					
+					yield return new MidiEvent(pos, e.Message.Clone());
 				}
 			}
 		}
@@ -859,11 +842,11 @@
 										tickspertick = ticksusec / (tpm / 1000) * 100;
 										end = (long)(Length * tickspertick + tickStart);
 									}
-									else if (0x2F == mbs.Data1)
+									/*else if (0x2F == mbs.Data1)
 									{
 										done = true;
 										end = 0;
-									}
+									}*/
 								}
 								else
 								{
@@ -905,8 +888,8 @@
 		private static int _ReadVarlen(Stream stream)
 		{
 			var b = stream.ReadByte();
-			var result = 0;
-			if (-1 == b) return -1;
+			var result =-1;
+			if (-1 == b) return result;
 			if (0x80 > b) // single value
 			{
 				result = b;
@@ -947,13 +930,13 @@
 					else
 						return _Swap(result << 7);
 				}
-				throw new NotSupportedException("MIDI Variable length quantity can't be greater than 28 bits.");
+				throw new OverflowException("MIDI Variable length quantity can't be greater than 28 bits.");
 			}
 		}
 		private static int _ReadVarlen(byte firstByte,Stream stream)
 		{
 			var b = (int)firstByte;
-			var result = 0;
+			int result;
 			if (0x80 > b) // single value
 			{
 				result = b;

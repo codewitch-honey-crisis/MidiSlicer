@@ -169,6 +169,14 @@
 			Data = Encoding.ASCII.GetBytes(text);
 		}
 		/// <summary>
+		/// Indicates the type of the meta-message
+		/// </summary>
+		public byte Type {
+			get {
+				return Data1;
+			}
+		}
+		/// <summary>
 		/// Indicates the payload length for this MIDI message
 		/// </summary>
 		public override int PayloadLength => -1;
@@ -189,7 +197,7 @@
 		/// <returns>The cloned MIDI message</returns>
 		protected override MidiMessage CloneImpl()
 		{
-			return new MidiMessageMeta(Data1, Data);
+			return new MidiMessageMeta(Type, Data);
 		}
 	}
 	/// <summary>
@@ -205,7 +213,7 @@
 		/// <summary>
 		/// Creates a MIDI message with the specified status, type and payload
 		/// </summary>
-		/// <param name="status">The MIDI status byte</param>
+		/// <param name="status">The MIDI status byte (should be F0 or F7)</param>
 		/// <param name="data">The payload of the MIDI message, as bytes</param>
 		public MidiMessageSysex(byte status, byte[] data) : base(status)
 		{
@@ -273,6 +281,15 @@
 		{
 			return new MidiMessageNoteOn(NoteId, Velocity, Channel);
 		}
+		/// <summary>
+		/// Gets a string representation of this message
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return "Note On: " + MidiUtility.NoteIdToNote(NoteId) + ", Velocity: " + Velocity.ToString() + ", Channel: " + Channel.ToString();
+		}
+		
 	}
 	/// <summary>
 	/// Represents a MIDI note off message
@@ -320,6 +337,14 @@
 		{
 			return new MidiMessageNoteOff(NoteId, Velocity, Channel);
 		}
+		/// <summary>
+		/// Gets a string representation of this message
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return "Note Off: " + MidiUtility.NoteIdToNote(NoteId) + ", Velocity: " + Velocity.ToString()+", Channel: "+Channel.ToString();
+		}
 	}
 	/// <summary>
 	/// Represents a MIDI key pressure/aftertouch message
@@ -364,6 +389,14 @@
 		protected override MidiMessage CloneImpl()
 		{
 			return new MidiMessageKeyPressure(NoteId, Pressure, Channel);
+		}
+		/// <summary>
+		/// Gets a string representation of this message
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return "Key Pressure: " + MidiUtility.NoteIdToNote(NoteId) + ", Pressure: " + Pressure.ToString()+", Channel: "+Channel.ToString();
 		}
 	}
 	/// <summary>
@@ -410,6 +443,14 @@
 		{
 			return new MidiMessageCC(ControlId, Value, Channel);
 		}
+		/// <summary>
+		/// Gets a string representation of this message
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return "CC: " + ControlId.ToString()+ ", Value: " + Value.ToString() + ", Channel: " + Channel.ToString();
+		}
 	}
 	/// <summary>
 	/// Represents a MIDI key pressure/aftertouch message
@@ -447,6 +488,14 @@
 		{
 			return new MidiMessagePatchChange(PatchId, Channel);
 		}
+		/// <summary>
+		/// Gets a string representation of this message
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return "Patch Change: "+PatchId.ToString()+", Channel: " + Channel.ToString();
+		}
 	}
 	/// <summary>
 	/// Represents a MIDI key pressure/aftertouch message
@@ -483,6 +532,14 @@
 		protected override MidiMessage CloneImpl()
 		{
 			return new MidiMessageChannelPressure(Pressure, Channel);
+		}
+		/// <summary>
+		/// Gets a string representation of this message
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return "Channel Pressure: " + Pressure.ToString() + ", Channel: " + Channel.ToString();
 		}
 	}
 	/// <summary>
@@ -526,5 +583,14 @@
 		{
 			return new MidiMessageChannelPitch(Data1,Data2, Channel);
 		}
+		/// <summary>
+		/// Gets a string representation of this message
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return "Channel Pitch: " + Pitch.ToString() + ", Channel: " + Channel.ToString();
+		}
 	}
+
 }

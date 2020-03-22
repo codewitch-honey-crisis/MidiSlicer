@@ -137,9 +137,27 @@ namespace MidiSlicer
 			}
 			PreviewButton.Text = "Stop";
 			var f = _ProcessFile();
+#if DEBUG
+			_DumpFile(f);
+#endif
+
 			_previewThread = new Thread(() => { f.Preview(0,true); });
 			_previewThread.Start();
 		}
+#if DEBUG
+		void _DumpFile(MidiFile f)
+		{
+			for(var i = 0;i<f.Tracks.Count;++i)
+			{
+				System.Diagnostics.Debug.WriteLine("Track #" + i.ToString());
+				foreach(var ev in f.Tracks[i].AbsoluteEvents)
+				{
+					System.Diagnostics.Debug.WriteLine(ev.Position.ToString() + ": " + ev.Message.ToString());
+				}
+				System.Diagnostics.Debug.WriteLine("");
+			}
+		}
+#endif
 		protected override void OnClosing(CancelEventArgs e)
 		{
 			if (null != _previewThread)
@@ -284,8 +302,8 @@ namespace MidiSlicer
 			// I haven't been able to track it down so i'm sending a note off
 			// message instead on note C octave 0" - it's just a placeholder
 			// so the track doesn't end early.
-			var msg = new MidiMessageNoteOff(0,0,0);
-			//var msg = new MidiMessageMeta(0x2f,new byte[0]);
+			//var msg = new MidiMessageNoteOff(0,0,0);
+			var msg = new MidiMessageMeta(0x2f,new byte[0]);
 			endTrack.Events.Add(new MidiEvent((int)len, msg));
 			// merge new track with track zero
 			result.Tracks[0] = MidiSequence.Merge(result.Tracks[0], endTrack);
