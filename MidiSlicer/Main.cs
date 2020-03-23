@@ -144,7 +144,8 @@ namespace MidiSlicer
 			PreviewButton.Text = "Stop";
 			var f = _ProcessFile();
 #if DEBUG
-			_DumpFile(f);
+			if(System.Diagnostics.Debugger.IsAttached)
+				_DumpFile(f);
 #endif
 
 			_previewThread = new Thread(() => { f.Preview(0,true); });
