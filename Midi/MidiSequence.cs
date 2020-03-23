@@ -308,6 +308,9 @@
 									case 8:
 										m = new MidiMessageMetaProgramName(ba);
 										break;
+									case 9:
+										m = new MidiMessageMetaDevicePortName(ba);
+										break;
 									case 0x20:
 										m = new MidiMessageMetaChannelPrefix(ba);
 										break;
