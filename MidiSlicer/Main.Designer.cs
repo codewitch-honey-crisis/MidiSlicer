@@ -479,7 +479,7 @@
 			this.Controls.Add(this.ResampleLabel);
 			this.MinimumSize = new System.Drawing.Size(336, 302);
 			this.Name = "Main";
-			this.Text = "Midi Slicer";
+			this.Text = "MIDI Slicer";
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).EndInit();

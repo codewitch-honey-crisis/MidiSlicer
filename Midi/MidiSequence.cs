@@ -69,6 +69,23 @@
 			}
 		}
 		/// <summary>
+		/// Gets the root note of the sequence or > 127 if not found
+		/// </summary>
+		public byte RootNote {
+			get {
+				foreach(var ev in Events)
+				{
+					var m = ev.Message;
+					if(0x90==(m.Status & 0xF0))
+					{
+						var mw = m as MidiMessageWord;
+						return mw.Data1;
+					}
+				}
+				return 0x80;
+			}
+		}
+		/// <summary>
 		/// Gets the <see cref="MidiContext"/> at the specified position
 		/// </summary>
 		/// <param name="position">The position to retrieve the context from, in ticks</param>
