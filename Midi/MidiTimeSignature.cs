@@ -49,5 +49,13 @@
 				return new MidiTimeSignature(4, 4, 24, 8);
 			}
 		}
+		/// <summary>
+		/// Retrieves a string representation of the time signature
+		/// </summary>
+		/// <returns>A string representing the time signature</returns>
+		public override string ToString()
+		{
+			return Numerator.ToString() + "/" + Denominator.ToString();
+		}
 	}
 }

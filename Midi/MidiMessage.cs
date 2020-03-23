@@ -209,6 +209,518 @@
 		}
 	}
 	/// <summary>
+	/// Represents a MIDI sequence number meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaSequenceNumber : MidiMessageMeta
+	{
+		internal MidiMessageMetaSequenceNumber(byte[] data) : base(0,data) { }
+		/// <summary>
+		/// Creates a new message with the specified sequence number
+		/// </summary>
+		/// <param name="sequenceNumber">The sequence number</param>
+		public MidiMessageMetaSequenceNumber(short sequenceNumber) : base(0, new byte[] { unchecked((byte)(sequenceNumber & 0x7F)),unchecked((byte)((sequenceNumber/ 256) & 0x7F))})
+		{
+
+		}
+		/// <summary>
+		/// Creates a new message with the default sequence number
+		/// </summary>
+		public MidiMessageMetaSequenceNumber() : base(0, new byte[0])
+		{
+
+		}
+
+		/// <summary>
+		/// Indicates the sequence number, or -1 if there was none specified
+		/// </summary>
+		public short SequenceNumber {
+			get {
+				if (0 == Data.Length)
+					return -1;
+				return unchecked((short)(Data[0]+ Data[1] * 256));
+			}
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Sequence Number: " + (0 == Data.Length ? "<default>" : SequenceNumber.ToString());
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaSequenceNumber(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI text meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaText : MidiMessageMeta
+	{
+		internal MidiMessageMetaText(byte[] data) : base(1, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaText(string text) : base( 1,text??"")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Text: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaText(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI copyright meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaCopyright : MidiMessageMeta
+	{
+		internal MidiMessageMetaCopyright(byte[] data) : base(2, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaCopyright(string text) : base(2, text ?? "")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Copyright: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaCopyright(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI sequence/track name meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaSequenceOrTrackName : MidiMessageMeta
+	{
+		internal MidiMessageMetaSequenceOrTrackName(byte[] data) : base(3, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaSequenceOrTrackName(string text) : base(3, text ?? "")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Sequence/Track Name: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaSequenceOrTrackName(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI instrument name meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaInstrumentName : MidiMessageMeta
+	{
+		internal MidiMessageMetaInstrumentName(byte[] data) : base(4, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaInstrumentName(string text) : base(4, text ?? "")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Instrument Name: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaInstrumentName(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI lyric meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaLyric : MidiMessageMeta
+	{
+		internal MidiMessageMetaLyric(byte[] data) : base(5, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaLyric(string text) : base(5, text ?? "")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Lyric: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaLyric(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI marker meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaMarker : MidiMessageMeta
+	{
+		internal MidiMessageMetaMarker(byte[] data) : base(6, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaMarker(string text) : base(6, text ?? "")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Marker: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaMarker(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI cue point meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaCuePoint : MidiMessageMeta
+	{
+		internal MidiMessageMetaCuePoint(byte[] data) : base(7, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaCuePoint(string text) : base(7, text ?? "")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Cue Point: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaCuePoint(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI channel prefix meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaChannelPrefix : MidiMessageMeta
+	{
+		internal MidiMessageMetaChannelPrefix(byte[] data) : base(0x20, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified channel
+		/// </summary>
+		/// <param name="channelPrefix">The channel (0-15)</param>
+		public MidiMessageMetaChannelPrefix(byte channelPrefix) : base(0x20, new byte[] { unchecked((byte)(channelPrefix & 0x0F)) })
+		{
+
+		}
+		/// <summary>
+		/// Indicates the channel for the channel prefix
+		/// </summary>
+		public byte ChannelPrefix { get { return Data[0]; } }
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Channel Prefix: " + ChannelPrefix;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaChannelPrefix(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI end of track meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaEndOfTrack : MidiMessageMeta
+	{
+		internal MidiMessageMetaEndOfTrack(byte[] data) : base(0x2F, data) { }
+		/// <summary>
+		/// Creates a new instance 
+		/// </summary>
+		public MidiMessageMetaEndOfTrack() : base(0x2F,new byte[0]) {}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "<End of Track>";
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaEndOfTrack(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI tempo meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaTempo : MidiMessageMeta
+	{
+		internal MidiMessageMetaTempo(byte[] data) : base(0x51, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified tempo
+		/// </summary>
+		/// <param name="tempo">The tempo</param>
+		public MidiMessageMetaTempo(double tempo) :this(MidiUtility.TempoToMicroTempo(tempo))
+		{
+
+		}
+		/// <summary>
+		/// Creates a new instance with the specified microtempo
+		/// </summary>
+		/// <param name="microTempo">The microtempo</param>
+		public MidiMessageMetaTempo(int microTempo) : base(0x51, BitConverter.IsLittleEndian ?
+								new byte[] { unchecked((byte)(microTempo >> 16)), unchecked((byte)((microTempo >> 8) & 0xFF)), unchecked((byte)(microTempo & 0xFF)) } :
+								new byte[] { unchecked((byte)(microTempo & 0xFF)), unchecked((byte)((microTempo >> 8) & 0xFF)), unchecked((byte)(microTempo >> 16)) })
+		{ }
+		/// <summary>
+		/// Indicates the microtempo of the MIDI message
+		/// </summary>
+		public int MicroTempo {
+			get {
+					return BitConverter.IsLittleEndian ?
+						(Data[0] << 16) | (Data[1] << 8) | Data[2] :
+						(Data[2] << 16) | (Data[1] << 8) | Data[0];
+			}
+		}
+		/// <summary>
+		/// Indicates the tempo of the MIDI message
+		/// </summary>
+		public double Tempo {
+			get { return MidiUtility.MicroTempoToTempo(MicroTempo); }
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Tempo: " + Tempo.ToString();
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaTempo(Data);
+		}
+	}
+
+	/// <summary>
+	/// Represents a MIDI time signature meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaTimeSignature : MidiMessageMeta
+	{
+		internal MidiMessageMetaTimeSignature(byte[] data) : base(0x58, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified tempo
+		/// </summary>
+		/// <param name="timeSignature">The time signature</param>
+		public MidiMessageMetaTimeSignature(MidiTimeSignature timeSignature) : base(0x58, new byte[] {
+						timeSignature.Numerator,
+						unchecked((byte)(Math.Log(timeSignature.Denominator)/Math.Log(2))),
+						timeSignature.MidiTicksPerMetronomeTick,
+						timeSignature.ThirtySecondNotesPerQuarterNote })
+		{
+
+		}
+		/// <summary>
+		/// Indicates the time signature
+		/// </summary>
+		public MidiTimeSignature TimeSignature {
+			get {
+				var num = Data[0];
+				var den = Data[1];
+				var met = Data[2];
+				var q32 = Data[3];
+				return new MidiTimeSignature(num, (short)Math.Pow(2, den), met, q32);
+			}
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Time Signature: " + TimeSignature.ToString();
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaTimeSignature(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI time signature meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaKeySignature : MidiMessageMeta
+	{
+		internal MidiMessageMetaKeySignature(byte[] data) : base(0x59, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified tempo
+		/// </summary>
+		/// <param name="keySignature">The time signature</param>
+		public MidiMessageMetaKeySignature(MidiKeySignature keySignature) : base(0x59, new byte[] {
+						unchecked((byte)(0<keySignature.FlatsCount?-keySignature.FlatsCount:keySignature.SharpsCount)),
+						unchecked((byte)(keySignature.IsMinor?1:0))})
+		{
+
+		}
+		/// <summary>
+		/// Indicates the key signature
+		/// </summary>
+		public MidiKeySignature KeySignature {
+			get {
+				return new MidiKeySignature(unchecked((sbyte)Data[0]), 0 != Data[1]);
+			}
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Key Signature: " + KeySignature.ToString();
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaKeySignature(Data);
+		}
+	}
+
+	/// <summary>
 	/// Represents a MIDI system exclusive message with an arbitrary length payload
 	/// </summary>
 #if MIDILIB

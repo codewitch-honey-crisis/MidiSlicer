@@ -19,10 +19,13 @@ namespace M
 		/// Converts a MIDI note id into a string note representation
 		/// </summary>
 		/// <param name="noteId">The note id (0-127)</param>
+		/// <param name="withOctave">Indicates whether or not the octave should be returned</param>
 		/// <returns>The string note</returns>
-		public static string NoteIdToNote(byte noteId)
+		public static string NoteIdToNote(byte noteId, bool withOctave=true)
 		{
-			return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd() + ((int)(noteId / 12)).ToString();
+			if(withOctave)
+				return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd() + ((int)(noteId / 12)).ToString();
+			return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd();
 		}
 		/// <summary>
 		/// Converts a microtempo to a tempo

@@ -277,7 +277,7 @@ namespace MidiSlicer
 							break;
 					}
 				}
-				nseq.Events.Add(new MidiEvent((int)len, new MidiMessageMeta(0x2F, new byte[0])));
+				nseq.Events.Add(new MidiEvent((int)len, new MidiMessageMetaEndOfTrack()));
 			}
 			var hasTrack0 = TrackList.GetItemChecked(0);
 			if (0!=ofs || result.Length!=len)

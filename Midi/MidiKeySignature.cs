@@ -49,5 +49,19 @@
 				return new MidiKeySignature(0, false);
 			}
 		}
+		/// <summary>
+		/// Retrieves a string representation of the key signature
+		/// </summary>
+		/// <returns>A string representing the key signature</returns>
+		public override string ToString()
+		{
+			sbyte scode;
+			if (0 < FlatsCount)
+				scode = unchecked((sbyte)-FlatsCount);
+			else
+				scode = unchecked((sbyte)SharpsCount);
+			// TODO: return an actual key sig here
+			return scode.ToString() + " " + (IsMinor ? "minor" : "major");
+		}
 	}
 }

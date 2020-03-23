@@ -102,19 +102,11 @@
 				var ctx = GetContext(start - 1);
 				if(0!=ctx.MicroTempo)
 				{
-					var ba = BitConverter.IsLittleEndian ?
-								new byte[] { unchecked((byte)(ctx.MicroTempo >> 16)), unchecked((byte)((ctx.MicroTempo >> 8) & 0xFF)), unchecked((byte)(ctx.MicroTempo & 0xFF)) } :
-								new byte[] { unchecked((byte)(ctx.MicroTempo & 0xFF)),unchecked((byte)((ctx.MicroTempo >> 8) & 0xFF)), unchecked((byte)(ctx.MicroTempo >> 16)) };
-					result.Events.Add(new MidiEvent(0, new MidiMessageMeta(0x51, ba)));
+					result.Events.Add(new MidiEvent(0, new MidiMessageMetaTempo(ctx.MicroTempo)));
 				}
 				if(0!=ctx.TimeSignature.Numerator)
 				{
-					var ba = new byte[] { 
-						ctx.TimeSignature.Numerator, 
-						unchecked((byte)(Math.Log(ctx.TimeSignature.Denominator)/Math.Log(2))),
-						ctx.TimeSignature.MidiTicksPerMetronomeTick, 
-						ctx.TimeSignature.ThirtySecondNotesPerQuarterNote };
-					result.Events.Add(new MidiEvent(0, new MidiMessageMeta(0x58, ba)));
+					result.Events.Add(new MidiEvent(0, new MidiMessageMetaTimeSignature(ctx.TimeSignature)));
 				}
 				for (var i = 0; i < ctx.Channels.Length; i++) {
 					var ch = ctx.Channels[i];
@@ -146,7 +138,7 @@
 				}
 			}
 			var seq = new MidiSequence();
-			seq.Events.Add(new MidiEvent(length, new MidiMessageMeta(0x2F, new byte[0])));
+			seq.Events.Add(new MidiEvent(length, new MidiMessageMetaEndOfTrack()));
 			return Merge(result,seq);
 		}
 		/// <summary>
@@ -267,12 +259,56 @@
 							case 0xF:
 								if (i == -1) throw new EndOfStreamException();
 								var l = _ReadVarlen(stream);
-								//if (BitConverter.IsLittleEndian)
-								//	l = _Swap(l);
 								var ba = new byte[l];
 								if (l != stream.Read(ba, 0, ba.Length))
 									throw new EndOfStreamException();
-								m = new MidiMessageMeta(b, ba);
+								switch (b)
+								{
+									case 0:
+										m = new MidiMessageMetaSequenceNumber(ba);
+										break;
+									case 1:
+										m = new MidiMessageMetaText(ba);
+										break;
+									case 2:
+										m = new MidiMessageMetaCopyright(ba);
+										break;
+									case 3:
+										m = new MidiMessageMetaSequenceOrTrackName(ba);
+										break;
+									case 4:
+										m = new MidiMessageMetaInstrumentName(ba);
+										break;
+									case 5:
+										m = new MidiMessageMetaLyric(ba);
+										break;
+									case 6:
+										m = new MidiMessageMetaMarker(ba);
+										break;
+									case 7:
+										m = new MidiMessageMetaCuePoint(ba);
+										break;
+									case 0x20:
+										m = new MidiMessageMetaChannelPrefix(ba);
+										break;
+									case 0x2F:
+										m = new MidiMessageMetaEndOfTrack(ba);
+										break;
+									case 0x51:
+										m = new MidiMessageMetaTempo(ba);
+										break;
+									case 0x58:
+										m = new MidiMessageMetaTimeSignature(ba);
+										break;
+									case 0x59:
+										m = new MidiMessageMetaKeySignature(ba);
+										break;
+									default:
+										m = new MidiMessageMeta(b, ba);
+										break;
+
+								}
+								
 								break;
 							case 0x0:
 							case 0x7:
@@ -408,7 +444,7 @@
 				}
 			}
 			//if(sawEnd) // add an end marker back to the track
-			result.Events.Add(new MidiEvent(endDelta, new MidiMessageMeta(0x2F, new byte[0])));
+			result.Events.Add(new MidiEvent(endDelta, new MidiMessageMetaEndOfTrack()));
 			return result;
 		}
 		/// <summary>
@@ -453,7 +489,7 @@
 				last = e.Position;
 			}
 			if(-1<midiEnd) // if we found a midi end track, then add one back after all is done
-				result.Events.Add(new MidiEvent(Math.Max(0,midiEnd-last), new MidiMessageMeta(0x2F, new byte[0])));
+				result.Events.Add(new MidiEvent(Math.Max(0,midiEnd-last), new MidiMessageMetaEndOfTrack()));
 			
 			return result;
 		}
@@ -554,20 +590,8 @@
 								else
 									mt = (mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
 								mt = (int)Math.Round(mt / diff, MidpointRounding.AwayFromZero);
-								var buf = new byte[3];
-								if (BitConverter.IsLittleEndian)
-								{
-									buf[0] = unchecked((byte)((mt >> 16) & 0xFF));
-									buf[1] = unchecked((byte)((mt >> 8) & 0xFF));
-									buf[2] = unchecked((byte)((mt) & 0xFF));
-								}
-								else
-								{
-									buf[0] = unchecked((byte)((mt) & 0xFF));
-									buf[1] = unchecked((byte)((mt >> 8) & 0xFF));
-									buf[2] = unchecked((byte)((mt >> 16) & 0xFF));
-								}
-								m= new MidiMessageMeta(mbs.Data1, buf);
+								
+								m= new MidiMessageMetaTempo(mt);
 							}
 						}
 					}
