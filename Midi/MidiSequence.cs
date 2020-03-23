@@ -355,7 +355,7 @@
 		{
 			var result = new MidiSequence();
 			var endDelta = 0;
-			var sawEnd = false;
+			//var sawEnd = false;
 			foreach (var seq in sequences)
 			{
 				int rs = 0;
@@ -368,7 +368,7 @@
 						var mbs = m as MidiMessageMeta;
 						if (0x2F == mbs.Data1)
 						{
-							sawEnd = true;
+							//sawEnd = true;
 							endDelta = e.Position;
 							break;
 						}
@@ -425,6 +425,64 @@
 			if(-1<midiEnd) // if we found a midi end track, then add one back after all is done
 				result.Events.Add(new MidiEvent(Math.Max(0,midiEnd-last), new MidiMessageMeta(0x2F, new byte[0])));
 			
+			return result;
+		}
+		/// <summary>
+		/// Transposes the notes in a sequence, optionally wrapping the note values
+		/// </summary>
+		/// <param name="noteAdjust">The number of MIDI notes to add or subtract</param>
+		/// <param name="wrap">True if out of range notes are wrapped, false if they are to be clipped</param>
+		/// <returns>A new MIDI sequence with the notes transposed</returns>
+		public MidiSequence Transpose(sbyte noteAdjust,bool wrap = false)
+		{
+			var events = new List<MidiEvent>(Events.Count);
+			foreach(var ev in AbsoluteEvents)
+			{
+				int n;
+				switch(ev.Message.Status & 0xF0)
+				{
+					case 0x80:
+						var no = ev.Message as MidiMessageWord;
+						n = no.Data1 + noteAdjust;
+						if(0>n || 127<n)
+						{
+							if (!wrap)
+								continue;
+							if (0 > n)
+								n += 127;
+							else
+								n -= 127;
+						}
+						no = new MidiMessageNoteOff(unchecked((byte)n), no.Data2, no.Channel);
+						events.Add(new MidiEvent(ev.Position, no));
+						break;
+					case 0x90:
+						no = ev.Message as MidiMessageWord;
+						n = no.Data1 + noteAdjust;
+						if (0 > n || 127 < n)
+						{
+							if (!wrap)
+								continue;
+							if (0 > n)
+								n += 127;
+							else
+								n -= 127;
+						}
+						no = new MidiMessageNoteOn(unchecked((byte)n), no.Data2, no.Channel);
+						events.Add(new MidiEvent(ev.Position, no));
+						break;
+					default:
+						events.Add(ev.Clone());
+						break;
+				}
+			}
+			var result = new MidiSequence();
+			var last = 0;
+			foreach(var ev in events)
+			{
+				result.Events.Add(new MidiEvent(ev.Position - last, ev.Message));
+				last = ev.Position;
+			}
 			return result;
 		}
 		/// <summary>

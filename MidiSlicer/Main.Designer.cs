@@ -55,11 +55,15 @@
 			this.NormalizeCheckBox = new System.Windows.Forms.CheckBox();
 			this.LevelsLabel = new System.Windows.Forms.Label();
 			this.LevelsUpDown = new System.Windows.Forms.NumericUpDown();
+			this.TransposeUpDown = new System.Windows.Forms.NumericUpDown();
+			this.TransposeLabel = new System.Windows.Forms.Label();
+			this.WrapCheckBox = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LevelsUpDown)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.TransposeUpDown)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// TrackList
@@ -71,7 +75,7 @@
 			this.TrackList.FormattingEnabled = true;
 			this.TrackList.Location = new System.Drawing.Point(1, 52);
 			this.TrackList.Name = "TrackList";
-			this.TrackList.Size = new System.Drawing.Size(79, 169);
+			this.TrackList.Size = new System.Drawing.Size(79, 184);
 			this.TrackList.TabIndex = 0;
 			// 
 			// TracksLabel
@@ -116,7 +120,7 @@
 			// PreviewButton
 			// 
 			this.PreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.PreviewButton.Location = new System.Drawing.Point(237, 209);
+			this.PreviewButton.Location = new System.Drawing.Point(237, 238);
 			this.PreviewButton.Name = "PreviewButton";
 			this.PreviewButton.Size = new System.Drawing.Size(75, 23);
 			this.PreviewButton.TabIndex = 5;
@@ -199,7 +203,7 @@
 			// SaveAsButton
 			// 
 			this.SaveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveAsButton.Location = new System.Drawing.Point(156, 209);
+			this.SaveAsButton.Location = new System.Drawing.Point(156, 238);
 			this.SaveAsButton.Name = "SaveAsButton";
 			this.SaveAsButton.Size = new System.Drawing.Size(75, 23);
 			this.SaveAsButton.TabIndex = 14;
@@ -342,7 +346,7 @@
 			// 
 			this.NormalizeCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.NormalizeCheckBox.AutoSize = true;
-			this.NormalizeCheckBox.Location = new System.Drawing.Point(202, 152);
+			this.NormalizeCheckBox.Location = new System.Drawing.Point(202, 181);
 			this.NormalizeCheckBox.Name = "NormalizeCheckBox";
 			this.NormalizeCheckBox.Size = new System.Drawing.Size(72, 17);
 			this.NormalizeCheckBox.TabIndex = 26;
@@ -388,11 +392,53 @@
             0,
             0});
 			// 
+			// TransposeUpDown
+			// 
+			this.TransposeUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.TransposeUpDown.Location = new System.Drawing.Point(142, 206);
+			this.TransposeUpDown.Maximum = new decimal(new int[] {
+            127,
+            0,
+            0,
+            0});
+			this.TransposeUpDown.Minimum = new decimal(new int[] {
+            127,
+            0,
+            0,
+            -2147483648});
+			this.TransposeUpDown.Name = "TransposeUpDown";
+			this.TransposeUpDown.Size = new System.Drawing.Size(54, 20);
+			this.TransposeUpDown.TabIndex = 30;
+			// 
+			// TransposeLabel
+			// 
+			this.TransposeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.TransposeLabel.AutoSize = true;
+			this.TransposeLabel.Location = new System.Drawing.Point(86, 208);
+			this.TransposeLabel.Name = "TransposeLabel";
+			this.TransposeLabel.Size = new System.Drawing.Size(57, 13);
+			this.TransposeLabel.TabIndex = 29;
+			this.TransposeLabel.Text = "Transpose";
+			// 
+			// WrapCheckBox
+			// 
+			this.WrapCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.WrapCheckBox.AutoSize = true;
+			this.WrapCheckBox.Location = new System.Drawing.Point(202, 207);
+			this.WrapCheckBox.Name = "WrapCheckBox";
+			this.WrapCheckBox.Size = new System.Drawing.Size(83, 17);
+			this.WrapCheckBox.TabIndex = 31;
+			this.WrapCheckBox.Text = "Wrap Notes";
+			this.WrapCheckBox.UseVisualStyleBackColor = true;
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(320, 234);
+			this.ClientSize = new System.Drawing.Size(320, 263);
+			this.Controls.Add(this.WrapCheckBox);
+			this.Controls.Add(this.TransposeUpDown);
+			this.Controls.Add(this.TransposeLabel);
 			this.Controls.Add(this.LevelsUpDown);
 			this.Controls.Add(this.LevelsLabel);
 			this.Controls.Add(this.NormalizeCheckBox);
@@ -418,7 +464,7 @@
 			this.Controls.Add(this.TrackList);
 			this.Controls.Add(this.StretchLabel);
 			this.Controls.Add(this.ResampleLabel);
-			this.MinimumSize = new System.Drawing.Size(336, 273);
+			this.MinimumSize = new System.Drawing.Size(336, 302);
 			this.Name = "Main";
 			this.Text = "Midi Slicer";
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).EndInit();
@@ -426,6 +472,7 @@
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.LevelsUpDown)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.TransposeUpDown)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -460,5 +507,8 @@
 		private System.Windows.Forms.CheckBox NormalizeCheckBox;
 		private System.Windows.Forms.Label LevelsLabel;
 		private System.Windows.Forms.NumericUpDown LevelsUpDown;
+		private System.Windows.Forms.NumericUpDown TransposeUpDown;
+		private System.Windows.Forms.Label TransposeLabel;
+		private System.Windows.Forms.CheckBox WrapCheckBox;
 	}
 }

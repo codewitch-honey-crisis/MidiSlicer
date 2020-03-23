@@ -240,6 +240,19 @@
 			}
 		}
 		/// <summary>
+		/// Transposes the notes in a file, optionally wrapping the note values
+		/// </summary>
+		/// <param name="noteAdjust">The number of MIDI notes to add or subtract</param>
+		/// <param name="wrap">True if out of range notes are wrapped, false if they are to be clipped</param>
+		/// <returns>A new MIDI file with the notes transposed</returns>
+		public MidiFile Transpose(sbyte noteAdjust, bool wrap = false)
+		{
+			var result = new MidiFile(Type, TimeBase);
+			foreach(var track in Tracks)
+				result.Tracks.Add(track.Transpose(noteAdjust, wrap));
+			return result;
+		}
+		/// <summary>
 		/// Stretches or compresses the MIDI file events
 		/// </summary>
 		/// <remarks>If <paramref name="adjustTempo"/> is false this will change the playback speed of the MIDI</remarks>
