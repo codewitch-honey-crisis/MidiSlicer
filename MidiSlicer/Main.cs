@@ -61,6 +61,8 @@ namespace MidiSlicer
 				NormalizeCheckBox.Enabled = false;
 				LevelsUpDown.Enabled = false;
 				TransposeUpDown.Enabled = false;
+				WrapCheckBox.Enabled = false;
+				DrumsCheckBox.Enabled = false;
 				SaveAsButton.Enabled = false;
 			}
 			else
@@ -93,6 +95,8 @@ namespace MidiSlicer
 				NormalizeCheckBox.Enabled = true;
 				LevelsUpDown.Enabled = true;
 				TransposeUpDown.Enabled = true;
+				WrapCheckBox.Enabled = true;
+				DrumsCheckBox.Enabled = true;
 				SaveAsButton.Enabled = true;
 				StretchUpDown.Value = 1;
 				UnitsCombo.SelectedIndex = 0;
@@ -207,7 +211,7 @@ namespace MidiSlicer
 		{
 			var result = _file.Clone();
 			if(0!=TransposeUpDown.Value)
-				result = result.Transpose((sbyte)TransposeUpDown.Value, WrapCheckBox.Checked);
+				result = result.Transpose((sbyte)TransposeUpDown.Value, WrapCheckBox.Checked,!DrumsCheckBox.Checked);
 			if (ResampleUpDown.Value != _file.TimeBase)
 				result = result.Resample(unchecked((short)ResampleUpDown.Value));
 			if (NormalizeCheckBox.Checked)

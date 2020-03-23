@@ -244,12 +244,13 @@
 		/// </summary>
 		/// <param name="noteAdjust">The number of MIDI notes to add or subtract</param>
 		/// <param name="wrap">True if out of range notes are wrapped, false if they are to be clipped</param>
+		/// <param name="noDrums">True if drum/percussion notes are to be left alone, otherwise false</param>
 		/// <returns>A new MIDI file with the notes transposed</returns>
-		public MidiFile Transpose(sbyte noteAdjust, bool wrap = false)
+		public MidiFile Transpose(sbyte noteAdjust, bool wrap = false,bool noDrums=true)
 		{
 			var result = new MidiFile(Type, TimeBase);
 			foreach(var track in Tracks)
-				result.Tracks.Add(track.Transpose(noteAdjust, wrap));
+				result.Tracks.Add(track.Transpose(noteAdjust, wrap,noDrums));
 			return result;
 		}
 		/// <summary>

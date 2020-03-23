@@ -432,8 +432,9 @@
 		/// </summary>
 		/// <param name="noteAdjust">The number of MIDI notes to add or subtract</param>
 		/// <param name="wrap">True if out of range notes are wrapped, false if they are to be clipped</param>
+		/// <param name="noDrums">True if drums are to be skipped, otherwise false</param>
 		/// <returns>A new MIDI sequence with the notes transposed</returns>
-		public MidiSequence Transpose(sbyte noteAdjust,bool wrap = false)
+		public MidiSequence Transpose(sbyte noteAdjust,bool wrap = false,bool noDrums=true)
 		{
 			var events = new List<MidiEvent>(Events.Count);
 			foreach(var ev in AbsoluteEvents)
@@ -442,6 +443,8 @@
 				switch(ev.Message.Status & 0xF0)
 				{
 					case 0x80:
+						if (noDrums && 9 == ev.Message.Channel)
+							goto default;
 						var no = ev.Message as MidiMessageWord;
 						n = no.Data1 + noteAdjust;
 						if(0>n || 127<n)
@@ -457,6 +460,8 @@
 						events.Add(new MidiEvent(ev.Position, no));
 						break;
 					case 0x90:
+						if (noDrums && 9 == ev.Message.Channel)
+							goto default;
 						no = ev.Message as MidiMessageWord;
 						n = no.Data1 + noteAdjust;
 						if (0 > n || 127 < n)

@@ -58,6 +58,7 @@
 			this.TransposeUpDown = new System.Windows.Forms.NumericUpDown();
 			this.TransposeLabel = new System.Windows.Forms.Label();
 			this.WrapCheckBox = new System.Windows.Forms.CheckBox();
+			this.DrumsCheckBox = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
@@ -75,7 +76,7 @@
 			this.TrackList.FormattingEnabled = true;
 			this.TrackList.Location = new System.Drawing.Point(1, 52);
 			this.TrackList.Name = "TrackList";
-			this.TrackList.Size = new System.Drawing.Size(79, 184);
+			this.TrackList.Size = new System.Drawing.Size(88, 184);
 			this.TrackList.TabIndex = 0;
 			// 
 			// TracksLabel
@@ -93,7 +94,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.MidiFileBox.Location = new System.Drawing.Point(30, 2);
 			this.MidiFileBox.Name = "MidiFileBox";
-			this.MidiFileBox.Size = new System.Drawing.Size(251, 20);
+			this.MidiFileBox.Size = new System.Drawing.Size(260, 20);
 			this.MidiFileBox.TabIndex = 2;
 			this.MidiFileBox.Leave += new System.EventHandler(this.MidiFileBox_Leave);
 			// 
@@ -109,7 +110,7 @@
 			// BrowseButton
 			// 
 			this.BrowseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.BrowseButton.Location = new System.Drawing.Point(287, 1);
+			this.BrowseButton.Location = new System.Drawing.Point(296, 1);
 			this.BrowseButton.Name = "BrowseButton";
 			this.BrowseButton.Size = new System.Drawing.Size(25, 22);
 			this.BrowseButton.TabIndex = 4;
@@ -120,7 +121,7 @@
 			// PreviewButton
 			// 
 			this.PreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.PreviewButton.Location = new System.Drawing.Point(237, 238);
+			this.PreviewButton.Location = new System.Drawing.Point(246, 238);
 			this.PreviewButton.Name = "PreviewButton";
 			this.PreviewButton.Size = new System.Drawing.Size(75, 23);
 			this.PreviewButton.TabIndex = 5;
@@ -132,7 +133,7 @@
 			// 
 			this.UnitsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.UnitsLabel.AutoSize = true;
-			this.UnitsLabel.Location = new System.Drawing.Point(86, 55);
+			this.UnitsLabel.Location = new System.Drawing.Point(95, 55);
 			this.UnitsLabel.Name = "UnitsLabel";
 			this.UnitsLabel.Size = new System.Drawing.Size(31, 13);
 			this.UnitsLabel.TabIndex = 9;
@@ -146,7 +147,7 @@
 			this.UnitsCombo.Items.AddRange(new object[] {
             "Beats",
             "Ticks"});
-			this.UnitsCombo.Location = new System.Drawing.Point(121, 52);
+			this.UnitsCombo.Location = new System.Drawing.Point(130, 52);
 			this.UnitsCombo.Name = "UnitsCombo";
 			this.UnitsCombo.Size = new System.Drawing.Size(75, 21);
 			this.UnitsCombo.TabIndex = 8;
@@ -156,7 +157,7 @@
 			// 
 			this.OffsetUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.OffsetUpDown.DecimalPlaces = 2;
-			this.OffsetUpDown.Location = new System.Drawing.Point(121, 105);
+			this.OffsetUpDown.Location = new System.Drawing.Point(130, 105);
 			this.OffsetUpDown.Maximum = new decimal(new int[] {
             0,
             0,
@@ -170,7 +171,7 @@
 			// 
 			this.OffsetLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.OffsetLabel.AutoSize = true;
-			this.OffsetLabel.Location = new System.Drawing.Point(86, 108);
+			this.OffsetLabel.Location = new System.Drawing.Point(95, 108);
 			this.OffsetLabel.Name = "OffsetLabel";
 			this.OffsetLabel.Size = new System.Drawing.Size(35, 13);
 			this.OffsetLabel.TabIndex = 11;
@@ -180,7 +181,7 @@
 			// 
 			this.LengthLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.LengthLabel.AutoSize = true;
-			this.LengthLabel.Location = new System.Drawing.Point(197, 108);
+			this.LengthLabel.Location = new System.Drawing.Point(206, 108);
 			this.LengthLabel.Name = "LengthLabel";
 			this.LengthLabel.Size = new System.Drawing.Size(40, 13);
 			this.LengthLabel.TabIndex = 13;
@@ -190,7 +191,7 @@
 			// 
 			this.LengthUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.LengthUpDown.DecimalPlaces = 2;
-			this.LengthUpDown.Location = new System.Drawing.Point(237, 105);
+			this.LengthUpDown.Location = new System.Drawing.Point(246, 105);
 			this.LengthUpDown.Maximum = new decimal(new int[] {
             0,
             0,
@@ -203,7 +204,7 @@
 			// SaveAsButton
 			// 
 			this.SaveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveAsButton.Location = new System.Drawing.Point(156, 238);
+			this.SaveAsButton.Location = new System.Drawing.Point(165, 238);
 			this.SaveAsButton.Name = "SaveAsButton";
 			this.SaveAsButton.Size = new System.Drawing.Size(75, 23);
 			this.SaveAsButton.TabIndex = 14;
@@ -215,7 +216,7 @@
 			// 
 			this.MergeTracksCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.MergeTracksCheckBox.AutoSize = true;
-			this.MergeTracksCheckBox.Location = new System.Drawing.Point(200, 55);
+			this.MergeTracksCheckBox.Location = new System.Drawing.Point(209, 55);
 			this.MergeTracksCheckBox.Name = "MergeTracksCheckBox";
 			this.MergeTracksCheckBox.Size = new System.Drawing.Size(92, 17);
 			this.MergeTracksCheckBox.TabIndex = 15;
@@ -226,7 +227,7 @@
 			// 
 			this.StretchLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.StretchLabel.AutoSize = true;
-			this.StretchLabel.Location = new System.Drawing.Point(81, 132);
+			this.StretchLabel.Location = new System.Drawing.Point(90, 132);
 			this.StretchLabel.Name = "StretchLabel";
 			this.StretchLabel.Size = new System.Drawing.Size(41, 13);
 			this.StretchLabel.TabIndex = 19;
@@ -241,7 +242,7 @@
             0,
             0,
             65536});
-			this.StretchUpDown.Location = new System.Drawing.Point(121, 129);
+			this.StretchUpDown.Location = new System.Drawing.Point(130, 129);
 			this.StretchUpDown.Maximum = new decimal(new int[] {
             10,
             0,
@@ -265,7 +266,7 @@
 			// 
 			this.AdjustTempoCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.AdjustTempoCheckBox.AutoSize = true;
-			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(202, 131);
+			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(211, 131);
 			this.AdjustTempoCheckBox.Name = "AdjustTempoCheckBox";
 			this.AdjustTempoCheckBox.Size = new System.Drawing.Size(91, 17);
 			this.AdjustTempoCheckBox.TabIndex = 20;
@@ -276,7 +277,7 @@
 			// 
 			this.StartLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.StartLabel.AutoSize = true;
-			this.StartLabel.Location = new System.Drawing.Point(86, 81);
+			this.StartLabel.Location = new System.Drawing.Point(95, 81);
 			this.StartLabel.Name = "StartLabel";
 			this.StartLabel.Size = new System.Drawing.Size(29, 13);
 			this.StartLabel.TabIndex = 22;
@@ -291,7 +292,7 @@
             "Beginning",
             "First Downbeat",
             "First Note"});
-			this.StartCombo.Location = new System.Drawing.Point(121, 78);
+			this.StartCombo.Location = new System.Drawing.Point(130, 78);
 			this.StartCombo.Name = "StartCombo";
 			this.StartCombo.Size = new System.Drawing.Size(75, 21);
 			this.StartCombo.TabIndex = 21;
@@ -302,7 +303,7 @@
 			this.CopyTimingPatchCheckBox.AutoSize = true;
 			this.CopyTimingPatchCheckBox.Checked = true;
 			this.CopyTimingPatchCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.CopyTimingPatchCheckBox.Location = new System.Drawing.Point(202, 77);
+			this.CopyTimingPatchCheckBox.Location = new System.Drawing.Point(211, 77);
 			this.CopyTimingPatchCheckBox.Name = "CopyTimingPatchCheckBox";
 			this.CopyTimingPatchCheckBox.Size = new System.Drawing.Size(117, 17);
 			this.CopyTimingPatchCheckBox.TabIndex = 23;
@@ -313,7 +314,7 @@
 			// 
 			this.ResampleLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.ResampleLabel.AutoSize = true;
-			this.ResampleLabel.Location = new System.Drawing.Point(84, 157);
+			this.ResampleLabel.Location = new System.Drawing.Point(93, 157);
 			this.ResampleLabel.Name = "ResampleLabel";
 			this.ResampleLabel.Size = new System.Drawing.Size(54, 13);
 			this.ResampleLabel.TabIndex = 25;
@@ -322,7 +323,7 @@
 			// ResampleUpDown
 			// 
 			this.ResampleUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.ResampleUpDown.Location = new System.Drawing.Point(142, 154);
+			this.ResampleUpDown.Location = new System.Drawing.Point(151, 154);
 			this.ResampleUpDown.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -346,7 +347,7 @@
 			// 
 			this.NormalizeCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.NormalizeCheckBox.AutoSize = true;
-			this.NormalizeCheckBox.Location = new System.Drawing.Point(202, 181);
+			this.NormalizeCheckBox.Location = new System.Drawing.Point(211, 181);
 			this.NormalizeCheckBox.Name = "NormalizeCheckBox";
 			this.NormalizeCheckBox.Size = new System.Drawing.Size(72, 17);
 			this.NormalizeCheckBox.TabIndex = 26;
@@ -357,7 +358,7 @@
 			// 
 			this.LevelsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.LevelsLabel.AutoSize = true;
-			this.LevelsLabel.Location = new System.Drawing.Point(86, 182);
+			this.LevelsLabel.Location = new System.Drawing.Point(95, 182);
 			this.LevelsLabel.Name = "LevelsLabel";
 			this.LevelsLabel.Size = new System.Drawing.Size(38, 13);
 			this.LevelsLabel.TabIndex = 27;
@@ -372,7 +373,7 @@
             0,
             0,
             65536});
-			this.LevelsUpDown.Location = new System.Drawing.Point(130, 180);
+			this.LevelsUpDown.Location = new System.Drawing.Point(139, 180);
 			this.LevelsUpDown.Maximum = new decimal(new int[] {
             10,
             0,
@@ -395,7 +396,7 @@
 			// TransposeUpDown
 			// 
 			this.TransposeUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.TransposeUpDown.Location = new System.Drawing.Point(142, 206);
+			this.TransposeUpDown.Location = new System.Drawing.Point(151, 206);
 			this.TransposeUpDown.Maximum = new decimal(new int[] {
             127,
             0,
@@ -414,7 +415,7 @@
 			// 
 			this.TransposeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.TransposeLabel.AutoSize = true;
-			this.TransposeLabel.Location = new System.Drawing.Point(86, 208);
+			this.TransposeLabel.Location = new System.Drawing.Point(95, 208);
 			this.TransposeLabel.Name = "TransposeLabel";
 			this.TransposeLabel.Size = new System.Drawing.Size(57, 13);
 			this.TransposeLabel.TabIndex = 29;
@@ -424,18 +425,30 @@
 			// 
 			this.WrapCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.WrapCheckBox.AutoSize = true;
-			this.WrapCheckBox.Location = new System.Drawing.Point(202, 207);
+			this.WrapCheckBox.Location = new System.Drawing.Point(211, 207);
 			this.WrapCheckBox.Name = "WrapCheckBox";
-			this.WrapCheckBox.Size = new System.Drawing.Size(83, 17);
+			this.WrapCheckBox.Size = new System.Drawing.Size(52, 17);
 			this.WrapCheckBox.TabIndex = 31;
-			this.WrapCheckBox.Text = "Wrap Notes";
+			this.WrapCheckBox.Text = "Wrap";
 			this.WrapCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// DrumsCheckBox
+			// 
+			this.DrumsCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.DrumsCheckBox.AutoSize = true;
+			this.DrumsCheckBox.Location = new System.Drawing.Point(261, 206);
+			this.DrumsCheckBox.Name = "DrumsCheckBox";
+			this.DrumsCheckBox.Size = new System.Drawing.Size(56, 17);
+			this.DrumsCheckBox.TabIndex = 32;
+			this.DrumsCheckBox.Text = "Drums";
+			this.DrumsCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(320, 263);
+			this.ClientSize = new System.Drawing.Size(329, 263);
+			this.Controls.Add(this.DrumsCheckBox);
 			this.Controls.Add(this.WrapCheckBox);
 			this.Controls.Add(this.TransposeUpDown);
 			this.Controls.Add(this.TransposeLabel);
@@ -510,5 +523,6 @@
 		private System.Windows.Forms.NumericUpDown TransposeUpDown;
 		private System.Windows.Forms.Label TransposeLabel;
 		private System.Windows.Forms.CheckBox WrapCheckBox;
+		private System.Windows.Forms.CheckBox DrumsCheckBox;
 	}
 }
