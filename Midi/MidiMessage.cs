@@ -23,7 +23,7 @@
 		/// </summary>
 		public byte Status { get; private set; }
 		/// <summary>
-		/// Indicates the channel of the MIDI message
+		/// Indicates the channel of the MIDI message. Only applies to MIDI channel messages, not MIDI system messages
 		/// </summary>
 		public byte Channel { get { return unchecked((byte)(Status & 0xF)); } }
 		/// <summary>
@@ -496,6 +496,40 @@
 		protected override MidiMessage CloneImpl()
 		{
 			return new MidiMessageMetaCuePoint(Data);
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI program name meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaProgramName : MidiMessageMeta
+	{
+		internal MidiMessageMetaProgramName(byte[] data) : base(8, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified text
+		/// </summary>
+		/// <param name="text">The text</param>
+		public MidiMessageMetaProgramName(string text) : base(8, text ?? "")
+		{
+
+		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Program Name: " + Text;
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaProgramName(Data);
 		}
 	}
 	/// <summary>

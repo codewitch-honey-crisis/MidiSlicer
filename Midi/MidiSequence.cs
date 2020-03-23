@@ -288,6 +288,9 @@
 									case 7:
 										m = new MidiMessageMetaCuePoint(ba);
 										break;
+									case 8:
+										m = new MidiMessageMetaProgramName(ba);
+										break;
 									case 0x20:
 										m = new MidiMessageMetaChannelPrefix(ba);
 										break;
@@ -314,8 +317,6 @@
 							case 0x7:
 								if (i == -1) throw new EndOfStreamException();
 								l = _ReadVarlen(b,stream);
-								//if (BitConverter.IsLittleEndian)
-								//	l = _Swap(l);
 								ba = new byte[l];
 								if (l != stream.Read(ba, 0, ba.Length))
 									throw new EndOfStreamException();
@@ -357,8 +358,6 @@
 			foreach(var e in Events)
 			{
 				var pos = e.Position;
-				//if (BitConverter.IsLittleEndian)
-					//pos = _Swap(pos);
 				_WriteVarlen(stream, pos);
 				switch(e.Message.PayloadLength)
 				{
@@ -383,8 +382,6 @@
 						{
 							stream.WriteByte(mma.Data1);
 							int v = mma.Data.Length;
-							//if (BitConverter.IsLittleEndian)
-							//	v = _Swap(v);
 							_WriteVarlen(stream, v);
 							stream.Write(mma.Data, 0, mma.Data.Length);
 							break; 
@@ -478,7 +475,7 @@
 				if(0xFF==e.Message.Status && -1==e.Message.PayloadLength)
 				{
 					var mbs = e.Message as MidiMessageMeta;
-					// filter the midi end track sequences out, note if we found at least one
+					// filter the midi end track sequences out, note where if we found one
 					if (0x2F == mbs.Data1)
 					{
 						midiEnd = e.Position;
