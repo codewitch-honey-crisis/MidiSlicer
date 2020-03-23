@@ -98,21 +98,24 @@ namespace MidiSlicer
 				WrapCheckBox.Enabled = true;
 				DrumsCheckBox.Enabled = true;
 				SaveAsButton.Enabled = true;
+				
 				StretchUpDown.Value = 1;
 				UnitsCombo.SelectedIndex = 0;
 				StartCombo.SelectedIndex = 0;
 				ResampleUpDown.Value = _file.TimeBase;
-				if (0 == UnitsCombo.SelectedIndex) // beats
-				{
-					LengthUpDown.Maximum = _file.Length / (decimal)_file.TimeBase;
-					OffsetUpDown.Maximum = LengthUpDown.Maximum - 1;
-				}
-				else // ticks
-				{
-					LengthUpDown.Maximum = _file.Length;
-					OffsetUpDown.Maximum = LengthUpDown.Maximum - 1;
-				}
+				UnitsCombo.SelectedIndex = 0;
+				LengthUpDown.Maximum = _file.Length / (decimal)_file.TimeBase;
+				OffsetUpDown.Maximum = LengthUpDown.Maximum - 1;
 				LengthUpDown.Value = LengthUpDown.Maximum;
+				OffsetUpDown.Value = 0;
+				AdjustTempoCheckBox.Checked = false;
+				MergeTracksCheckBox.Checked = false;
+				CopyTimingPatchCheckBox.Checked = true;
+				LevelsUpDown.Value = 1;
+				TransposeUpDown.Value = 0;
+				WrapCheckBox.Checked = false;
+				DrumsCheckBox.Checked = false;
+				
 			}
 		}
 

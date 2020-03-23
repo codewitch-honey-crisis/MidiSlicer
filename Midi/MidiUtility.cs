@@ -14,7 +14,7 @@ namespace M
 #endif
 	static partial class MidiUtility
 	{
-		const string _Notes = "C C#D D# E F F#G G#A A#B ";
+		const string _Notes = "C C#D D#E F F#G G#A A#B ";
 		/// <summary>
 		/// Converts a MIDI note id into a string note representation
 		/// </summary>
