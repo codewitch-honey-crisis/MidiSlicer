@@ -199,6 +199,14 @@
 		{
 			return new MidiMessageMeta(Type, Data);
 		}
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Meta: " + Type.ToString("x2") + ", Length: " + Data.Length;
+		}
 	}
 	/// <summary>
 	/// Represents a MIDI system exclusive message with an arbitrary length payload

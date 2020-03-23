@@ -272,14 +272,15 @@
 		/// </summary>
 		/// <param name="start">The start in ticks</param>
 		/// <param name="length">The length, in ticks</param>
+		/// <param name="copyTimingAndPatchInfo">True to copy the current timing and patch info, otherwise false</param>
 		/// <param name="eliminateEmptyTracks">True to eliminate tracks that end up with no events, otherwise false</param>
 		/// <returns></returns>
-		public MidiFile GetRange(int start,int length,bool eliminateEmptyTracks = true)
+		public MidiFile GetRange(int start,int length,bool copyTimingAndPatchInfo=false,bool eliminateEmptyTracks = true)
 		{
 			var result = new MidiFile(Type, TimeBase);
 			foreach (var trk in Tracks)
 			{
-				var t = trk.GetRange(start, length);
+				var t = trk.GetRange(start, length,copyTimingAndPatchInfo);
 				if(!eliminateEmptyTracks || 0<t.Events.Count)
 					result.Tracks.Add(t);
 			}

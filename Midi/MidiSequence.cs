@@ -91,11 +91,41 @@
 		/// </summary>
 		/// <param name="start">The start of the range to retrieve in pulses/ticks</param>
 		/// <param name="length">The length of the range to retrieve in pulses/ticks</param>
+		/// <param name="copyTimingAndPatchInfo">True to copy the current patch and timing info to the range, otherwise false</param>
 		/// <returns>A new MIDI sequence with the specified range of events</returns>
-		public MidiSequence GetRange(int start,int length)
+		public MidiSequence GetRange(int start,int length, bool copyTimingAndPatchInfo=false)
 		{
 			var result = new MidiSequence();
 			var last = start;
+			if (copyTimingAndPatchInfo && 0 != start)
+			{
+				var ctx = GetContext(start - 1);
+				if(0!=ctx.MicroTempo)
+				{
+					var ba = BitConverter.IsLittleEndian ?
+								new byte[] { unchecked((byte)(ctx.MicroTempo >> 16)), unchecked((byte)((ctx.MicroTempo >> 8) & 0xFF)), unchecked((byte)(ctx.MicroTempo & 0xFF)) } :
+								new byte[] { unchecked((byte)(ctx.MicroTempo & 0xFF)),unchecked((byte)((ctx.MicroTempo >> 8) & 0xFF)), unchecked((byte)(ctx.MicroTempo >> 16)) };
+					result.Events.Add(new MidiEvent(0, new MidiMessageMeta(0x51, ba)));
+				}
+				if(0!=ctx.TimeSignature.Numerator)
+				{
+					var ba = new byte[] { 
+						ctx.TimeSignature.Numerator, 
+						unchecked((byte)(Math.Log(ctx.TimeSignature.Denominator)/Math.Log(2))),
+						ctx.TimeSignature.MidiTicksPerMetronomeTick, 
+						ctx.TimeSignature.ThirtySecondNotesPerQuarterNote };
+					result.Events.Add(new MidiEvent(0, new MidiMessageMeta(0x58, ba)));
+				}
+				for (var i = 0; i < ctx.Channels.Length; i++) {
+					var ch = ctx.Channels[i];
+					if (0x80 > ch.Patch)
+					{
+						result.Events.Add(new MidiEvent(0, new MidiMessagePatchChange(ch.Patch, unchecked((byte)i))));
+					}
+				}
+
+			}
+
 			foreach (var e in AbsoluteEvents)
 			{
 				if(e.Position>=start)

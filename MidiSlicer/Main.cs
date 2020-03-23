@@ -281,7 +281,7 @@ namespace MidiSlicer
 			}
 			var hasTrack0 = TrackList.GetItemChecked(0);
 			if (0!=ofs || result.Length!=len)
-				result = result.GetRange((int)ofs, (int)len,false);
+				result = result.GetRange((int)ofs, (int)len,CopyTimingPatchCheckBox.Checked,false);
 			
 			var l = new List<MidiSequence>(result.Tracks);
 			result.Tracks.Clear();
