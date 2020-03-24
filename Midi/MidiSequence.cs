@@ -314,6 +314,9 @@
 									case 0x20:
 										m = new MidiMessageMetaChannelPrefix(ba);
 										break;
+									case 0x21:
+										m = new MidiMessageMetaPort(ba);
+										break;
 									case 0x2F:
 										m = new MidiMessageMetaEndOfTrack(ba);
 										break;

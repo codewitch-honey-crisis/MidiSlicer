@@ -605,6 +605,44 @@
 		}
 	}
 	/// <summary>
+	/// Represents a MIDI port meta message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	partial class MidiMessageMetaPort : MidiMessageMeta
+	{
+		internal MidiMessageMetaPort(byte[] data) : base(0x21, data) { }
+		/// <summary>
+		/// Creates a new instance with the specified port
+		/// </summary>
+		/// <param name="port">The port (0-127)</param>
+		public MidiMessageMetaPort(byte port) : base(0x21, new byte[] { unchecked((byte)(port & 0x7F)) })
+		{
+
+		}
+		/// <summary>
+		/// Indicates the port
+		/// </summary>
+		public byte Port { get { return Data[0]; } }
+		/// <summary>
+		/// Retrieves a string representation of the message
+		/// </summary>
+		/// <returns>A string representing the message</returns>
+		public override string ToString()
+		{
+			return "Port: " + Port.ToString();
+		}
+		/// <summary>
+		/// When overridden in a derived class, implements Clone()
+		/// </summary>
+		/// <returns>The cloned MIDI message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageMetaPort(Data);
+		}
+	}
+	/// <summary>
 	/// Represents a MIDI end of track meta message
 	/// </summary>
 #if MIDILIB
