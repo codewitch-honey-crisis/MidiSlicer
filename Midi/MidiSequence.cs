@@ -1058,15 +1058,11 @@
 										tickspertick = ticksusec / (tpm / 1000) * 100;
 										end = (long)(Length * tickspertick + tickStart);
 									}
-									/*else if (0x2F == mbs.Data1)
-									{
-										done = true;
-										end = 0;
-									}*/
+									// we ignore the end marker. it's possible this will render invalid with an invalid sequence
+									// such that there are notes after the end marker. this will play them instead of exiting
 								}
 								else
 								{
-									//System.Diagnostics.Debug.WriteLine("Tick at " + ce.ToString());
 									MidiUtility.Send(handle, e.Current.Message);
 								}
 								if (!e.MoveNext())

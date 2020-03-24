@@ -6,8 +6,6 @@
 
 	static partial class MidiUtility
 	{
-		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
-		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
 		internal static DateTime PreciseUtcNow {
 			get {
 				long filetime;
@@ -27,6 +25,8 @@
 		#region Win32
 		// Represents the method that handles messages from Windows.
 		internal delegate void MidiInProc(IntPtr handle, int msg, int instance, int param1, int param2);
+		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
+		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
 
 		[DllImport("winmm.dll")]
 		static extern int midiInOpen(ref IntPtr handle, int deviceID,
@@ -287,7 +287,6 @@
 				case 0xD0:
 					var mcm = message as MidiMessageByte;
 					m = mcm.Status;
-					//m |= mcmdw.Data2 << 0;
 					m |= mcm.Data1 << 8;
 					Send(deviceHandle, m);
 					break;
