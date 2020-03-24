@@ -340,9 +340,9 @@
 			var timeBase = BitConverter.ToInt16(chunk.Value, 4);
 			if(BitConverter.IsLittleEndian)
 			{
-				type = _Swap(type);
-				trackCount = _Swap(trackCount);
-				timeBase = _Swap(timeBase);
+				type = MidiUtility.Swap(type);
+				trackCount = MidiUtility.Swap(trackCount);
+				timeBase = MidiUtility.Swap(timeBase);
 			}
 			var result = new MidiFile(type,timeBase);
 			while(_TryReadChunk(stream,out chunk))
@@ -383,16 +383,16 @@
 			stream.Write(buf, 0, 4);
 			var len = 6;
 			if (BitConverter.IsLittleEndian)
-				len=_Swap(len);
+				len=MidiUtility.Swap(len);
 			stream.Write(BitConverter.GetBytes(len),0,4);
 			var type = Type;
 			var trackCount = (short)Tracks.Count;
 			var timeBase = TimeBase;
 			if (BitConverter.IsLittleEndian)
 			{
-				type = _Swap(type);
-				trackCount = _Swap(trackCount);
-				timeBase = _Swap(timeBase);
+				type = MidiUtility.Swap(type);
+				trackCount = MidiUtility.Swap(trackCount);
+				timeBase = MidiUtility.Swap(timeBase);
 			}
 			stream.Write(BitConverter.GetBytes(type), 0, 2);
 			stream.Write(BitConverter.GetBytes(trackCount), 0, 2);
@@ -406,7 +406,7 @@
 				tstm.Position = 0;
 				len = (int)tstm.Length;
 				if (BitConverter.IsLittleEndian)
-					len = _Swap(len);
+					len = MidiUtility.Swap(len);
 				stream.Write(BitConverter.GetBytes(len), 0, 4);
 				tstm.CopyTo(stream); 
 				tstm.Close();
@@ -430,25 +430,12 @@
 			if (4 != stream.Read(buf, 0, 4)) throw new EndOfStreamException();
 			var len = BitConverter.ToInt32(buf, 0);
 			if (BitConverter.IsLittleEndian)
-				len = _Swap(len);
+				len = MidiUtility.Swap(len);
 			buf = new byte[len];
 			if(len!=stream.Read(buf,0,len)) throw new EndOfStreamException();
 			chunk = new KeyValuePair<string, byte[]>(name, buf);
 			return true;
 		}
-		private static ushort _Swap(ushort x) { return (ushort)((ushort)((x & 0xff) << 8) | ((x >> 8) & 0xff)); }
-		private static uint _Swap(uint x) { return ((x & 0x000000ff) << 24) + ((x & 0x0000ff00) << 8) + ((x & 0x00ff0000) >> 8) + ((x & 0xff000000) >> 24); }
-		private static ulong _Swap(ulong x)
-		{
-			return (
-				   (0x00000000000000FF) & (x >> 56) | (0x000000000000FF00) & (x >> 40)
-				 | (0x0000000000FF0000) & (x >> 24) | (0x00000000FF000000) & (x >> 8)
-				 | (0x000000FF00000000) & (x << 8) | (0x0000FF0000000000) & (x << 24)
-				 | (0x00FF000000000000) & (x << 40) | (0xFF00000000000000) & (x << 56)
-				 );
-		}
-		private static short _Swap(short x) => unchecked((short)_Swap(unchecked((ushort)x)));
-		private static int _Swap(int x) => unchecked((int)_Swap(unchecked((uint)x)));
-		private static long _Swap(long value) => unchecked((long)_Swap(unchecked((ulong)value)));
+		
 	}
 }
