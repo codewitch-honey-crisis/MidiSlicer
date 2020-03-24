@@ -218,10 +218,6 @@ namespace MidiSlicer
 				result = result.Transpose((sbyte)TransposeUpDown.Value, WrapCheckBox.Checked,!DrumsCheckBox.Checked);
 			if (ResampleUpDown.Value != _file.TimeBase)
 				result = result.Resample(unchecked((short)ResampleUpDown.Value));
-			if (NormalizeCheckBox.Checked)
-				result = result.NormalizeVelocities();
-			if(1m!=LevelsUpDown.Value)
-				result = result.ScaleVelocities((double)LevelsUpDown.Value);
 			var ofs = OffsetUpDown.Value;
 			var len = LengthUpDown.Value;
 			if (0 == UnitsCombo.SelectedIndex) // beats
@@ -286,7 +282,11 @@ namespace MidiSlicer
 			var hasTrack0 = TrackList.GetItemChecked(0);
 			if (0!=ofs || result.Length!=len)
 				result = result.GetRange((int)ofs, (int)len,CopyTimingPatchCheckBox.Checked,false);
-			
+			if (NormalizeCheckBox.Checked)
+				result = result.NormalizeVelocities();
+			if (1m != LevelsUpDown.Value)
+				result = result.ScaleVelocities((double)LevelsUpDown.Value);
+
 			var l = new List<MidiSequence>(result.Tracks);
 			result.Tracks.Clear();
 			for(int ic=l.Count,i=0;i<ic;++i)
