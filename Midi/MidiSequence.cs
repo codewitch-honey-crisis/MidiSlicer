@@ -290,7 +290,7 @@
 			var rs = (byte)0;
 			var delta = _ReadVarlen(stream);
 			if (BitConverter.IsLittleEndian)
-				delta = _Swap(delta);
+				delta = MidiUtility.Swap(delta);
 			var i = stream.ReadByte();
 			while (-1 != i)
 			{
@@ -1097,10 +1097,7 @@
 		{
 			return Clone();
 		}
-		private static uint _Swap(uint x) { return ((x & 0x000000ff) << 24) + ((x & 0x0000ff00) << 8) + ((x & 0x00ff0000) >> 8) + ((x & 0xff000000) >> 24); }
 		
-		private static int _Swap(int x) => unchecked((int)_Swap(unchecked((uint)x)));
-
 		private static int _ReadVarlen(Stream stream)
 		{
 			var b = stream.ReadByte();
@@ -1122,7 +1119,7 @@
 					if (BitConverter.IsLittleEndian)
 						return result;
 					else
-						return _Swap(result);
+						return MidiUtility.Swap(result);
 				}
 				// int
 				result <<= 7;
@@ -1133,7 +1130,7 @@
 					if (BitConverter.IsLittleEndian)
 						return result;
 					else
-						return _Swap(result << 7);
+						return MidiUtility.Swap(result << 7);
 				}
 				// int (4 len)
 				result <<= 7;
@@ -1144,7 +1141,7 @@
 					if (BitConverter.IsLittleEndian)
 						return result;
 					else
-						return _Swap(result << 7);
+						return MidiUtility.Swap(result << 7);
 				}
 				throw new OverflowException("MIDI Variable length quantity can't be greater than 28 bits.");
 			}
@@ -1169,7 +1166,7 @@
 					if (BitConverter.IsLittleEndian)
 						return result;
 					else
-						return _Swap(result);
+						return MidiUtility.Swap(result);
 				}
 				// int
 				result <<= 7;
@@ -1180,7 +1177,7 @@
 					if (BitConverter.IsLittleEndian)
 						return result;
 					else
-						return _Swap(result << 7);
+						return MidiUtility.Swap(result << 7);
 				}
 				// int (4 len)
 				result <<= 7;
@@ -1191,7 +1188,7 @@
 					if (BitConverter.IsLittleEndian)
 						return result;
 					else
-						return _Swap(result << 7);
+						return MidiUtility.Swap(result << 7);
 				}
 				throw new OverflowException("MIDI Variable length quantity can't be greater than 28 bits.");
 			}
