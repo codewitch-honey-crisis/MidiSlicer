@@ -76,7 +76,7 @@
 			this.TrackList.FormattingEnabled = true;
 			this.TrackList.Location = new System.Drawing.Point(1, 52);
 			this.TrackList.Name = "TrackList";
-			this.TrackList.Size = new System.Drawing.Size(88, 184);
+			this.TrackList.Size = new System.Drawing.Size(88, 199);
 			this.TrackList.TabIndex = 0;
 			// 
 			// TracksLabel
