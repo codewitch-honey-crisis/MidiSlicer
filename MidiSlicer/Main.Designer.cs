@@ -118,6 +118,11 @@
 			this.BrowseButton.UseVisualStyleBackColor = true;
 			this.BrowseButton.Click += new System.EventHandler(this.BrowseButton_Click);
 			// 
+			// OpenMidiFile
+			// 
+			this.OpenMidiFile.DefaultExt = "mid";
+			this.OpenMidiFile.Filter = "MIDI files|*.mid|All files|*.*";
+			// 
 			// PreviewButton
 			// 
 			this.PreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -211,6 +216,11 @@
 			this.SaveAsButton.Text = "Save As...";
 			this.SaveAsButton.UseVisualStyleBackColor = true;
 			this.SaveAsButton.Click += new System.EventHandler(this.SaveAsButton_Click);
+			// 
+			// SaveMidiFile
+			// 
+			this.SaveMidiFile.DefaultExt = "mid";
+			this.SaveMidiFile.Filter = "MIDI files|*.mid|All files|*.*";
 			// 
 			// MergeTracksCheckBox
 			// 
