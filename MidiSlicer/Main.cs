@@ -110,6 +110,7 @@ namespace MidiSlicer
 				OffsetUpDown.Value = 0;
 				AdjustTempoCheckBox.Checked = false;
 				MergeTracksCheckBox.Checked = false;
+				NormalizeCheckBox.Checked = false;
 				CopyTimingPatchCheckBox.Checked = true;
 				LevelsUpDown.Value = 1;
 				TransposeUpDown.Value = 0;
