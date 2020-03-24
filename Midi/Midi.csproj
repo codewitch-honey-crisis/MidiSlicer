@@ -54,6 +54,7 @@
     <Compile Include="MidiFile.cs" />
     <Compile Include="MidiKeySignature.cs" />
     <Compile Include="MidiMessage.cs" />
+    <Compile Include="MidiNote.cs" />
     <Compile Include="MidiSequence.cs" />
     <Compile Include="MidiTimeSignature.cs" />
     <Compile Include="MidiUtility.cs" />

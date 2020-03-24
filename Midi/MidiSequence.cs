@@ -215,6 +215,75 @@
 				return null;
 			}
 		}
+		/// <summary>
+		/// Retrieves a note map for the sequence
+		/// </summary>
+		/// <returns>A list of <see cref="MidiNote"/> instances representing the note map</returns>
+		public IList<MidiNote> ToNoteMap() {
+			var result = new List<MidiNote>();
+			var dic = new Dictionary<(byte NoteId, byte Channel), IList<(int Position, byte Velocity)>>();
+			for(int ic=Events.Count,i=0;i<ic;++i)
+			{
+				var ev = Events[i];
+				var m = ev.Message;
+				if(0x90 == (m.Status&0xF0))
+				{
+					var mw = m as MidiMessageWord;
+					var key = (NoteId: mw.Data1, Channel: mw.Channel);
+					IList<(int Position, byte Velocity)> l;
+					if(!dic.TryGetValue(key,out l))
+					{
+						l = new List<(int Position, byte Velocity)>();
+						dic.Add(key, l);
+					}
+					l.Add((ev.Position,mw.Data2));
+				} else if(0x80==(m.Status&0xF)) 
+				{
+					var mw = m as MidiMessageWord;
+					var key = (NoteId: mw.Data1, Channel: mw.Channel);
+					IList<(int Position, byte Velocity)> l;
+					if (dic.TryGetValue(key,out l))
+					{
+						for(int jc = l.Count,j=0;j<jc;++j)
+						{
+							var mn = l[j];
+							result.Add(new MidiNote(mn.Position, mw.Channel, mw.Data1, mn.Velocity, ev.Position - mn.Position));
+							l.RemoveAt(j);
+							--jc;
+							--j;
+							if (0 == l.Count)
+								dic.Remove(key);
+						}
+					}
+				}
+			}
+			result.Sort((x, y) => { return x.Position.CompareTo(y.Position); });
+			return result;
+		}
+		/// <summary>
+		/// Retrieves a new MIDI sequence given the specified note map
+		/// </summary>
+		/// <param name="noteMap">The MIDI note map</param>
+		/// <returns>A new MIDI sequence from the specified note map</returns>
+		public static MidiSequence FromNoteMap(IEnumerable<MidiNote> noteMap)
+		{
+			var l = new List<MidiEvent>();
+			foreach(var note in noteMap)
+			{
+				l.Add(new MidiEvent(note.Position, new MidiMessageNoteOn(note.NoteId, note.Velocity, note.Channel)));
+				l.Add(new MidiEvent(note.Position+note.Length, new MidiMessageNoteOff(note.NoteId, 0, note.Channel)));
+			}
+			l.Sort((x, y) => { return x.Position.CompareTo(y.Position); });
+			var result = new MidiSequence();
+			var oldPos = 0;
+			for(int ic=l.Count,i=0;i<ic;++i)
+			{
+				var ev = l[i];
+				result.Events.Add(new MidiEvent(ev.Position - oldPos, ev.Message));
+				oldPos = ev.Position;
+			}
+			return result;
+		}
 		internal static MidiSequence ReadFrom(Stream stream)
 		{
 			MidiSequence result = new MidiSequence();
