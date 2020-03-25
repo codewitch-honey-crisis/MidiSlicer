@@ -689,11 +689,7 @@
 			}
 			return result;
 		}
-		/// <summary>
-		/// Scales all note velocities such that the highest velocity is now 127
-		/// </summary>
-		/// <returns>A new MIDI sequence with the velocities scaled</returns>
-		public MidiSequence NormalizeVelocities()
+		internal int GetMaxVelocity()
 		{
 			var maxvel = 0;
 			foreach (var e in Events)
@@ -704,12 +700,20 @@
 					case 0x90:
 						var non = e.Message as MidiMessageWord;
 						if (maxvel < non.Data2)
-							maxvel=non.Data2;
+							maxvel = non.Data2;
 						break;
 				}
 			}
-			var mult = 0!=maxvel?128d/maxvel:0;
-			return ScaleVelocities(mult);
+			return maxvel;
+		}
+		/// <summary>
+		/// Scales all note velocities such that the highest velocity is now 127
+		/// </summary>
+		/// <returns>A new MIDI sequence with the velocities scaled</returns>
+		public MidiSequence NormalizeVelocities()
+		{
+			var maxvel = GetMaxVelocity();
+			return ScaleVelocities(0 != maxvel ? 128d / maxvel : 0);
 		}
 		/// <summary>
 		/// Scales note velocities by the specified value

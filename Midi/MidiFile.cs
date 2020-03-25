@@ -305,8 +305,15 @@
 		public MidiFile NormalizeVelocities()
 		{
 			var result = new MidiFile(Type, TimeBase);
+			var maxvel = 0;
 			foreach (var trk in Tracks)
-				result.Tracks.Add(trk.NormalizeVelocities());
+			{
+				var v = trk.GetMaxVelocity();
+				if (maxvel < v)
+					maxvel = v;
+			}
+			foreach(var trk in Tracks)
+				result.Tracks.Add(trk.ScaleVelocities(0 != maxvel ? 128d / maxvel : 0));
 			return result;
 		}
 		/// <summary>
