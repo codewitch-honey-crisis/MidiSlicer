@@ -1025,11 +1025,12 @@
 			var handle = MidiUtility.OpenOutputDevice(deviceIndex);
 			var ppq = timeBase;
 			var mt = MidiUtility.TempoToMicroTempo(120d);
-
+			var first = true;
 			try
 			{
-				while (loop)
+				while (loop || first)
 				{
+					first = false;
 					var ticksusec = mt / (double)timeBase;
 					var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
 					var tickStart = MidiUtility.PreciseUtcNowTicks;
