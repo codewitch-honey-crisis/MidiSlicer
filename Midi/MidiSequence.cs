@@ -265,6 +265,7 @@
 		/// </summary>
 		/// <param name="noteMap">The MIDI note map</param>
 		/// <returns>A new MIDI sequence from the specified note map</returns>
+		/// <remarks>The note map must be ordered by position</remarks>
 		public static MidiSequence FromNoteMap(IEnumerable<MidiNote> noteMap)
 		{
 			var l = new List<MidiEvent>();
