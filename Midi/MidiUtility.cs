@@ -27,6 +27,7 @@ namespace M
 				return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd() + ((int)(noteId / 12)).ToString();
 			return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd();
 		}
+	
 		/// <summary>
 		/// Converts a microtempo to a tempo
 		/// </summary>

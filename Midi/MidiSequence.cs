@@ -37,7 +37,7 @@
 					if (0x99 == m.Status) // note down, percussion track
 					{
 						var mcm = m as MidiMessageWord;
-						if (0!=mcm.Data2 && 35 == mcm.Data1) // bass drum
+						if (0!=mcm.Data2 && (35 == mcm.Data1 || 36==mcm.Data1) ) // bass drum or accoustic bass drum
 						{
 							return e.Position;
 						}
