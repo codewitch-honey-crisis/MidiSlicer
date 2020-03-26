@@ -282,6 +282,7 @@
 				result.Events.Add(new MidiEvent(ev.Position - oldPos, ev.Message));
 				oldPos = ev.Position;
 			}
+			result.Events.Add(new MidiEvent(0, new MidiMessageMetaEndOfTrack()));
 			return result;
 		}
 		internal static MidiSequence ReadFrom(Stream stream)
