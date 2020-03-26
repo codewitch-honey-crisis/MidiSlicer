@@ -30,13 +30,14 @@
 		{
 			this.SuspendLayout();
 			// 
-			// BeatControl
+			// StepControl
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.MinimumSize = new System.Drawing.Size(272, 26);
-			this.Name = "BeatControl";
-			this.Size = new System.Drawing.Size(272, 26);
+			this.AutoSize = true;
+			this.MinimumSize = new System.Drawing.Size(543, 26);
+			this.Name = "StepControl";
+			this.Size = new System.Drawing.Size(543, 26);
 			this.ResumeLayout(false);
 
 		}

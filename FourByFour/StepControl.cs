@@ -19,21 +19,25 @@ namespace FourByFour
 			InitializeComponent();
 			CheckBox ch;
 			var left = 0;
-			for(var i = 0;i<4;++i)
+			for (var k = 0; k < 2; ++k)
 			{
-				for (var j = 0; j < 4; ++j)
+				for (var i = 0; i < 4; ++i)
 				{
-					ch = new CheckBox();
-					Controls.Add(ch);
-					ch.Appearance = Appearance.Button;
-					ch.Size = new Size(16, Height);
-					ch.Location = new Point(left, 0);
-					ch.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-					left += ch.Size.Width;
+					for (var j = 0; j < 4; ++j)
+					{
+						ch = new CheckBox();
+						Controls.Add(ch);
+						ch.Appearance = Appearance.Button;
+						ch.Size = new Size(16, Height);
+						ch.Location = new Point(left, 0);
+						ch.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+						left += ch.Size.Width;
+					}
+					left += 4;
 				}
-				left += 4;
 			}
 			_steps = new _StepList(Controls);
+			MinimumSize = new Size(left, MinimumSize.Height);
 		}
 		public IList<bool> Steps { get { return _steps; } }
 		private sealed class _StepList : IList<bool>

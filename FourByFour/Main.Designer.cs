@@ -78,7 +78,7 @@
 			this.BeatsPanel.AutoScroll = true;
 			this.BeatsPanel.Location = new System.Drawing.Point(1, 33);
 			this.BeatsPanel.Name = "BeatsPanel";
-			this.BeatsPanel.Size = new System.Drawing.Size(406, 127);
+			this.BeatsPanel.Size = new System.Drawing.Size(701, 129);
 			this.BeatsPanel.TabIndex = 2;
 			// 
 			// AddButton
@@ -119,14 +119,14 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(409, 161);
+			this.ClientSize = new System.Drawing.Size(704, 163);
 			this.Controls.Add(this.SaveAsButton);
 			this.Controls.Add(this.PlayButton);
 			this.Controls.Add(this.AddButton);
 			this.Controls.Add(this.BeatsPanel);
 			this.Controls.Add(this.TempoUpDown);
 			this.Controls.Add(this.TempoLabel);
-			this.MinimumSize = new System.Drawing.Size(425, 120);
+			this.MinimumSize = new System.Drawing.Size(720, 120);
 			this.Name = "Main";
 			this.Text = "4x4 Beats";
 			((System.ComponentModel.ISupportInitialize)(this.TempoUpDown)).EndInit();

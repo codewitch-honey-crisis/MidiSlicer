@@ -29,8 +29,8 @@
 		private void InitializeComponent()
 		{
 			this.Instrument = new System.Windows.Forms.ComboBox();
-			this.StepControl = new FourByFour.StepControl();
 			this.DeleteButton = new System.Windows.Forms.Button();
+			this.StepControl = new FourByFour.StepControl();
 			this.SuspendLayout();
 			// 
 			// Instrument
@@ -42,17 +42,8 @@
 			this.Instrument.FormattingEnabled = true;
 			this.Instrument.Location = new System.Drawing.Point(28, 6);
 			this.Instrument.Name = "Instrument";
-			this.Instrument.Size = new System.Drawing.Size(93, 21);
+			this.Instrument.Size = new System.Drawing.Size(105, 21);
 			this.Instrument.TabIndex = 0;
-			// 
-			// StepControl
-			// 
-			this.StepControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.StepControl.Location = new System.Drawing.Point(127, 4);
-			this.StepControl.MinimumSize = new System.Drawing.Size(272, 26);
-			this.StepControl.Name = "StepControl";
-			this.StepControl.Size = new System.Drawing.Size(275, 26);
-			this.StepControl.TabIndex = 1;
 			// 
 			// DeleteButton
 			// 
@@ -64,6 +55,15 @@
 			this.DeleteButton.UseVisualStyleBackColor = true;
 			this.DeleteButton.Click += new System.EventHandler(this.DeleteButton_Click);
 			// 
+			// StepControl
+			// 
+			this.StepControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.StepControl.AutoSize = true;
+			this.StepControl.Location = new System.Drawing.Point(139, 4);
+			this.StepControl.Name = "StepControl";
+			this.StepControl.Size = new System.Drawing.Size(543, 26);
+			this.StepControl.TabIndex = 1;
+			// 
 			// BeatControl
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -71,10 +71,11 @@
 			this.Controls.Add(this.DeleteButton);
 			this.Controls.Add(this.StepControl);
 			this.Controls.Add(this.Instrument);
-			this.MinimumSize = new System.Drawing.Size(394, 36);
+			this.MinimumSize = new System.Drawing.Size(686, 36);
 			this.Name = "BeatControl";
-			this.Size = new System.Drawing.Size(394, 36);
+			this.Size = new System.Drawing.Size(686, 36);
 			this.ResumeLayout(false);
+			this.PerformLayout();
 
 		}
 

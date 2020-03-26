@@ -214,11 +214,18 @@ namespace MidiSlicer
 		}
 		MidiFile _ProcessFile()
 		{
+			// first we clone the file to be safe
+			// that way in case there's no modifications
+			// specified in the UI we'll still return 
+			// a copy.
 			var result = _file.Clone();
+			// transpose it if specified
 			if(0!=TransposeUpDown.Value)
 				result = result.Transpose((sbyte)TransposeUpDown.Value, WrapCheckBox.Checked,!DrumsCheckBox.Checked);
+			// resample if specified
 			if (ResampleUpDown.Value != _file.TimeBase)
 				result = result.Resample(unchecked((short)ResampleUpDown.Value));
+			// compute our offset and length in ticks or beats/quarter-notes
 			var ofs = OffsetUpDown.Value;
 			var len = LengthUpDown.Value;
 			if (0 == UnitsCombo.SelectedIndex) // beats
@@ -235,13 +242,18 @@ namespace MidiSlicer
 					ofs += result.FirstNoteOn;
 					break;
 			}
-			
+			// nseq holds our patch and timing info
 			var nseq = new MidiSequence();
 			if(0!=ofs && CopyTimingPatchCheckBox.Checked)
 			{
+				// we only want to scan until the
+				// first note on
+				// we need to check all tracks so
+				// we merge them into mtrk and scan
+				// that
 				var mtrk = MidiSequence.Merge(result.Tracks);
 				var end = mtrk.FirstNoteOn;
-				if (0 == end)
+				if (0 == end) // break later:
 					end = mtrk.Length;
 				var ins = 0;
 				for (int ic = mtrk.Events.Count, i = 0; i < ic; ++i)
@@ -252,12 +264,16 @@ namespace MidiSlicer
 					var m = ev.Message;
 					switch (m.Status)
 					{
+						// the reason we don't check for MidiMessageMetaTempo
+						// is a user might have specified MidiMessageMeta for
+						// it instead. we want to handle both
 						case 0xFF:
 							var mm = m as MidiMessageMeta;
 							switch (mm.Data1)
 							{
-								case 0x51:
-								case 0x54:
+
+								case 0x51: // tempo
+								case 0x54: // smpte
 									if (0 == nseq.Events.Count)
 										nseq.Events.Add(new MidiEvent(0,ev.Message.Clone()));
 									else
@@ -267,31 +283,43 @@ namespace MidiSlicer
 							}
 							break;
 						default:
+							// check if it's a patch change
 							if (0xC0 == (ev.Message.Status & 0xF0))
 							{
 								if (0 == nseq.Events.Count)
 									nseq.Events.Add(new MidiEvent(0, ev.Message.Clone()));
 								else
 									nseq.Events.Insert(ins, new MidiEvent(0, ev.Message.Clone()));
+								// increment the instrument count
 								++ins;
 							}
 							break;
 					}
 				}
+				// set the track to the loop length
 				nseq.Events.Add(new MidiEvent((int)len, new MidiMessageMetaEndOfTrack()));
 			}
+			// see if track 0 is checked
 			var hasTrack0 = TrackList.GetItemChecked(0);
+			// slice our loop out of it
 			if (0!=ofs || result.Length!=len)
 				result = result.GetRange((int)ofs, (int)len,CopyTimingPatchCheckBox.Checked,false);
+			// normalize it!
 			if (NormalizeCheckBox.Checked)
 				result = result.NormalizeVelocities();
+			// scale levels
 			if (1m != LevelsUpDown.Value)
 				result = result.ScaleVelocities((double)LevelsUpDown.Value);
 
+			// create a temporary copy of our
+			// track list
 			var l = new List<MidiSequence>(result.Tracks);
+			// now clear the result
 			result.Tracks.Clear();
 			for(int ic=l.Count,i=0;i<ic;++i)
 			{
+				// if the track is checked in the list
+				// add it back to result
 				if(TrackList.GetItemChecked(i))
 				{
 					result.Tracks.Add(l[i]);
@@ -299,17 +327,26 @@ namespace MidiSlicer
 			}
 			if (0 < nseq.Events.Count)
 			{
+				// if we don't have track zero we insert
+				// one.
 				if(!hasTrack0)
 					result.Tracks.Insert(0,nseq);
 				else
 				{
+					// otherwise we merge with track 0
 					result.Tracks[0] = MidiSequence.Merge(nseq, result.Tracks[0]);
 					
 				}
 			}
+			// stretch the result. we do this
+			// here so the track lengths are
+			// correct and we don't need ofs
+			// or len anymore
 			if (1m != StretchUpDown.Value)
 				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 
+			// if merge is checked merge the
+			// tracks
 			if (MergeTracksCheckBox.Checked)
 			{
 				var trk = MidiSequence.Merge(result.Tracks);
