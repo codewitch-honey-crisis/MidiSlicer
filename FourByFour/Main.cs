@@ -94,7 +94,7 @@ namespace FourByFour
 					// if the step is pressed create 
 					// a note for it
 					if (beat.Steps[i])
-						noteMap.Add(new MidiNote(i * (file.TimeBase / 4), 9, note, 127, file.TimeBase / 4));
+						noteMap.Add(new MidiNote(i * (file.TimeBase / 4), 9, note, 127, file.TimeBase / 4-1));
 				}
 				// convert the note map to a sequence
 				// and add it to our working tracks
