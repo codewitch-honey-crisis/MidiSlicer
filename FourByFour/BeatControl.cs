@@ -14,6 +14,7 @@ namespace FourByFour
 	public partial class BeatControl : UserControl
 	{
 		static readonly object _DeleteKey = new object();
+		static readonly object _BarsChangedKey = new object();
 		public BeatControl()
 		{
 			InitializeComponent();
@@ -75,6 +76,24 @@ namespace FourByFour
 			get {
 				return ((Ins)Instrument.SelectedItem).Value;
 			}
+		}
+		public int Bars {
+			get {
+				return StepControl.Bars;
+			}
+			set {
+				StepControl.Bars = value;
+				OnBarsChanged(EventArgs.Empty);
+				StepControl.Size = new Size(StepControl.Width, Height);
+			}
+		}
+		protected void OnBarsChanged(EventArgs args)
+		{
+			(Events[_BarsChangedKey] as EventHandler)?.Invoke(this, args);
+		}
+		public event EventHandler BarsChanged {
+			add { Events.AddHandler(_BarsChangedKey, value); }
+			remove { Events.RemoveHandler(_BarsChangedKey, value); }
 		}
 		public IList<bool> Steps {
 			get { return StepControl.Steps; }

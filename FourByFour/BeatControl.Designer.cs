@@ -59,9 +59,11 @@
 			// 
 			this.StepControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.StepControl.AutoSize = true;
+			this.StepControl.Bars = 1;
 			this.StepControl.Location = new System.Drawing.Point(139, 4);
+			this.StepControl.MinimumSize = new System.Drawing.Size(272, 16);
 			this.StepControl.Name = "StepControl";
-			this.StepControl.Size = new System.Drawing.Size(543, 26);
+			this.StepControl.Size = new System.Drawing.Size(544, 29);
 			this.StepControl.TabIndex = 1;
 			// 
 			// BeatControl

@@ -13,13 +13,21 @@ namespace FourByFour
 {
 	public partial class StepControl : UserControl
 	{
+		static readonly object _BarsChangedKey = new object();
 		_StepList _steps;
+		int _bars;
 		public StepControl()
 		{
+			_bars = 1;
+			_BuildSteps(_bars);
 			InitializeComponent();
+		}
+		void _BuildSteps(int bars)
+		{
+			Controls.Clear();
 			CheckBox ch;
 			var left = 0;
-			for (var k = 0; k < 2; ++k)
+			for (var k = 0; k < bars; ++k)
 			{
 				for (var i = 0; i < 4; ++i)
 				{
@@ -37,7 +45,26 @@ namespace FourByFour
 				}
 			}
 			_steps = new _StepList(Controls);
-			MinimumSize = new Size(left, MinimumSize.Height);
+			Size = new Size(left, 16);
+			MinimumSize = new Size(left, 16);
+		}
+		public int Bars {
+			get {
+				return _bars;
+			}
+			set {
+				_bars = value;
+				_BuildSteps(_bars);
+				OnBarsChanged(EventArgs.Empty);
+			}
+		}
+		protected void OnBarsChanged(EventArgs args)
+		{
+			(Events[_BarsChangedKey] as EventHandler)?.Invoke(this, args);
+		}
+		public event EventHandler BarsChanged {
+			add { Events.AddHandler(_BarsChangedKey, value); }
+			remove { Events.RemoveHandler(_BarsChangedKey, value); }
 		}
 		public IList<bool> Steps { get { return _steps; } }
 		private sealed class _StepList : IList<bool>

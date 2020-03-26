@@ -24,7 +24,6 @@ namespace FourByFour
 		{
 			var beats = new BeatControl();
 			BeatsPanel.Controls.Add(beats);
-			beats.Dock = DockStyle.Top;
 			beats.Delete += Beats_Delete;
 		}
 
@@ -59,7 +58,7 @@ namespace FourByFour
 			// set the tempo at the first position
 			track0.Events.Add(new MidiEvent(0, new MidiMessageMetaTempo((double)TempoUpDown.Value)));
 			// compute the length of our loop
-			var len = 8 * file.TimeBase;
+			var len = ((int)BarsUpDown.Value) * 4 * file.TimeBase;
 			// add an end of track marker just so all
 			// of our tracks will be the loop length
 			track0.Events.Add(new MidiEvent(len, new MidiMessageMetaEndOfTrack()));
@@ -124,6 +123,16 @@ namespace FourByFour
 			{
 				var file = _CreateMidiFile();
 				file.WriteTo(SaveMidiFile.FileName);
+			}
+		}
+
+		private void BarsUpDown_ValueChanged(object sender, EventArgs e)
+		{
+			foreach(var ctl in BeatsPanel.Controls)
+			{
+				var beat = ctl as BeatControl;
+				if (null != beat) // sanity
+					beat.Bars = (int)BarsUpDown.Value;
 			}
 		}
 	}
