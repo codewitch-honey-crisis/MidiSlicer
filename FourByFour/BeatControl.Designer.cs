@@ -35,14 +35,12 @@
 			// 
 			// Instrument
 			// 
-			this.Instrument.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
 			this.Instrument.DisplayMember = "Key";
 			this.Instrument.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.Instrument.FormattingEnabled = true;
 			this.Instrument.Location = new System.Drawing.Point(28, 6);
 			this.Instrument.Name = "Instrument";
-			this.Instrument.Size = new System.Drawing.Size(105, 21);
+			this.Instrument.Size = new System.Drawing.Size(127, 21);
 			this.Instrument.TabIndex = 0;
 			// 
 			// DeleteButton
@@ -57,25 +55,25 @@
 			// 
 			// StepControl
 			// 
-			this.StepControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.StepControl.AutoSize = true;
 			this.StepControl.Bars = 1;
-			this.StepControl.Location = new System.Drawing.Point(139, 4);
+			this.StepControl.Location = new System.Drawing.Point(161, 4);
 			this.StepControl.MinimumSize = new System.Drawing.Size(272, 16);
 			this.StepControl.Name = "StepControl";
-			this.StepControl.Size = new System.Drawing.Size(544, 29);
+			this.StepControl.Size = new System.Drawing.Size(272, 29);
 			this.StepControl.TabIndex = 1;
 			// 
 			// BeatControl
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.AutoSize = true;
 			this.Controls.Add(this.DeleteButton);
 			this.Controls.Add(this.StepControl);
 			this.Controls.Add(this.Instrument);
-			this.MinimumSize = new System.Drawing.Size(686, 36);
+			this.MinimumSize = new System.Drawing.Size(0, 36);
 			this.Name = "BeatControl";
-			this.Size = new System.Drawing.Size(686, 36);
+			this.Size = new System.Drawing.Size(437, 36);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
