@@ -884,11 +884,29 @@
 
 		}
 		/// <summary>
+		/// Creates a new MIDI note on message
+		/// </summary>
+		/// <param name="note">The MIDI note</param>
+		/// <param name="velocity">The MIDI velocity (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessageNoteOn(string note, byte velocity, byte channel) : this(MidiUtility.NoteToNoteId(note),velocity,channel)
+		{
+
+		}
+		/// <summary>
 		/// Indicates the MIDI note id to play
 		/// </summary>
 		public byte NoteId {
 			get {
 				return Data1;
+			}
+		}
+		/// <summary>
+		/// Indicates the note for the message
+		/// </summary>
+		public string Note {
+			get {
+				return MidiUtility.NoteIdToNote(NoteId, true);
 			}
 		}
 		/// <summary>
@@ -913,7 +931,7 @@
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return "Note On: " + MidiUtility.NoteIdToNote(NoteId) + ", Velocity: " + Velocity.ToString() + ", Channel: " + Channel.ToString();
+			return "Note On: " + Note + ", Velocity: " + Velocity.ToString() + ", Channel: " + Channel.ToString();
 		}
 		
 	}
@@ -939,11 +957,30 @@
 
 		}
 		/// <summary>
+		/// Creates a new MIDI note off message
+		/// </summary>
+		/// <param name="note">The MIDI note</param>
+		/// <param name="velocity">The MIDI velocity (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		/// <remarks><paramref name="velocity"/> is not used</remarks>
+		public MidiMessageNoteOff(string note, byte velocity, byte channel) : this(MidiUtility.NoteToNoteId(note),velocity,channel)
+		{
+
+		}
+		/// <summary>
 		/// Indicates the MIDI note id to turn off
 		/// </summary>
 		public byte NoteId {
 			get {
 				return Data1;
+			}
+		}
+		/// <summary>
+		/// Indicates the note for the message
+		/// </summary>
+		public string Note {
+			get {
+				return MidiUtility.NoteIdToNote(NoteId, true);
 			}
 		}
 		/// <summary>
@@ -993,11 +1030,29 @@
 
 		}
 		/// <summary>
+		/// Creates a new MIDI key pressure/aftertouch message
+		/// </summary>
+		/// <param name="note">The MIDI note</param>
+		/// <param name="pressure">The MIDI pressure (0-127)</param>
+		/// <param name="channel">The MIDI channel (0-15)</param>
+		public MidiMessageKeyPressure(string note, byte pressure, byte channel) : this(MidiUtility.NoteToNoteId(note),pressure,channel)
+		{
+
+		}
+		/// <summary>
 		/// Indicates the assocated MIDI note id
 		/// </summary>
 		public byte NoteId {
 			get {
 				return Data1;
+			}
+		}
+		/// <summary>
+		/// Indicates the note for the message
+		/// </summary>
+		public string Note {
+			get {
+				return MidiUtility.NoteIdToNote(NoteId, true);
 			}
 		}
 		/// <summary>
@@ -1022,7 +1077,7 @@
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return "Key Pressure: " + MidiUtility.NoteIdToNote(NoteId) + ", Pressure: " + Pressure.ToString()+", Channel: "+Channel.ToString();
+			return "Key Pressure: " + Note + ", Pressure: " + Pressure.ToString()+", Channel: "+Channel.ToString();
 		}
 	}
 	/// <summary>
