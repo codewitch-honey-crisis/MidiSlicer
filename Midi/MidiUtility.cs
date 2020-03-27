@@ -133,46 +133,7 @@ namespace M
 		/// <param name="x">The dword</param>
 		/// <returns>A dword with swapped byte order</returns>
 		public static int Swap(int x) => unchecked((int)Swap(unchecked((uint)x)));
-		/// <summary>
-		/// Reads the specified number of bytes from a stream. If the specified number of bytes is not present, this routine throws
-		/// </summary>
-		/// <param name="stm">The stream to read</param>
-		/// <param name="buffer">The buffer that holds the data</param>
-		/// <param name="len">The number of bytes to read</param>
-		public static void ReadChecked(Stream stm, byte[] buffer, int len)
-		{
-			if (len > stm.Read(buffer, 0, len))
-				throw new EndOfStreamException();
-		}
-		/// <summary>
-		/// Reads a MIDI variable length value from the stream
-		/// </summary>
-		/// <param name="stm">The stream to read from</param>
-		/// <param name="val">The value read</param>
-		/// <param name="firstByte">The first byte of the value, if already read</param>
-		/// <returns>The number of bytes read</returns>
-		public static int ReadVariableLength(Stream stm, out int val, int firstByte = -1)
-		{
-			val = 0;
-			var read = 0;
-			var b = firstByte;
-			if (b == -1)
-			{
-				b=stm.ReadByte();
-				if (b == -1) return 0;
-				++read;
-			}
-			while (b > 0x7F)
-			{
-				val = (val << 8) | (b & 0x7F);
-				b = stm.ReadByte();
-				if (-1 == b)
-					return read;
-				++read;
-			}
-			val = (val << 8) | b;
-			return read;
-		}
+		
 		
 	}
 }
