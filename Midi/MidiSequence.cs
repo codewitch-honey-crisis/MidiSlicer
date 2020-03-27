@@ -69,9 +69,9 @@
 			}
 		}
 		/// <summary>
-		/// Gets the root note of the sequence or > 127 if not found
+		/// Gets the root note id of the sequence or > 127 if not found
 		/// </summary>
-		public byte RootNote {
+		public byte RootNoteId {
 			get {
 				foreach(var ev in Events)
 				{
