@@ -27,7 +27,39 @@ namespace M
 				return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd() + ((int)(noteId / 12)).ToString();
 			return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd();
 		}
-	
+		/// <summary>
+		/// Converts a string representation of a note to a MIDI note id
+		/// </summary>
+		/// <param name="note">The note</param>
+		/// <returns>A MIDI note id</returns>
+		public static byte NoteToNoteId(string note)
+		{
+			if (null == note)
+				throw new ArgumentNullException("note");
+			if (0 == note.Length)
+				throw new ArgumentException("The note must not be empty", "note");
+			var bn = "";
+			for(var i = 0;i<note.Length;++i)
+			{
+				var ch = note[i];
+				if (!char.IsLetter(ch) && '#'!=ch)
+					break;
+				bn += ch.ToString();
+			}
+			if (0 == bn.Length || 2 < bn.Length || '#' == bn[0])
+				throw new ArgumentException("Not a valid note", "note");
+			var j = _Notes.IndexOf(bn);
+			if (0 > j)
+				throw new ArgumentException("Note a valid note", "note");
+			var oct = 5;
+			if(note.Length>bn.Length)
+			{
+				var num = note.Substring(bn.Length);
+				if(!int.TryParse(num,out oct))
+					throw new ArgumentException("Note a valid note", "note");
+			}
+			return unchecked((byte)(12 * oct + (j/2)));
+		}
 		/// <summary>
 		/// Converts a microtempo to a tempo
 		/// </summary>
