@@ -290,7 +290,7 @@ namespace MidiSlicer
 									nseq.Events.Add(new MidiEvent(0, ev.Message.Clone()));
 								else
 									nseq.Events.Insert(ins, new MidiEvent(0, ev.Message.Clone()));
-								// increment the instrument count
+								// increment the insert count
 								++ins;
 							}
 							break;

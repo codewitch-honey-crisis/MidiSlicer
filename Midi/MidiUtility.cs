@@ -133,7 +133,5 @@ namespace M
 		/// <param name="x">The dword</param>
 		/// <returns>A dword with swapped byte order</returns>
 		public static int Swap(int x) => unchecked((int)Swap(unchecked((uint)x)));
-		
-		
 	}
 }
