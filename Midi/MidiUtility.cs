@@ -57,6 +57,8 @@ namespace M
 				var num = note.Substring(bn.Length);
 				if(!int.TryParse(num,out oct))
 					throw new ArgumentException("Note a valid note", "note");
+				if(10<oct)
+					throw new ArgumentException("Note a valid note", "note");
 			}
 			return unchecked((byte)(12 * oct + (j/2)));
 		}
