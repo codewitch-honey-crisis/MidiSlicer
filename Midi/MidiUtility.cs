@@ -44,7 +44,7 @@ namespace M
 				var ch = note[i];
 				if (!char.IsLetter(ch) && '#'!=ch)
 					break;
-				bn += ch.ToString();
+				bn += ch.ToString().ToUpperInvariant();
 			}
 			if (0 == bn.Length || 2 < bn.Length || '#' == bn[0])
 				throw new ArgumentException("Not a valid note", "note");
