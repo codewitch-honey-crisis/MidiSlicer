@@ -86,6 +86,17 @@
 			}
 		}
 		/// <summary>
+		/// Retrieves the root note of the sequence or null if not found
+		/// </summary>
+		public string RootNote {
+			get {
+				var noteId = RootNoteId;
+				if (0x7F < noteId)
+					return null;
+				return MidiUtility.NoteIdToNote(noteId,true);
+			}
+		}
+		/// <summary>
 		/// Gets the <see cref="MidiContext"/> at the specified position
 		/// </summary>
 		/// <param name="position">The position to retrieve the context from, in ticks</param>
