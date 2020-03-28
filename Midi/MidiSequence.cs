@@ -279,10 +279,23 @@
 		public static MidiSequence FromNoteMap(IEnumerable<MidiNote> noteMap)
 		{
 			var l = new List<MidiEvent>();
+			MidiNote oldNote=default(MidiNote);
+			var first = true;
 			foreach(var note in noteMap)
 			{
+				if (!first)
+				{
+					if (oldNote.Position + oldNote.Length < note.Position || (oldNote.NoteId!=note.NoteId || oldNote.Channel!=note.Channel))
+						l.Add(new MidiEvent(oldNote.Position + oldNote.Length, new MidiMessageNoteOff(oldNote.NoteId, 0, oldNote.Channel)));
+				}
+				else
+					first = false;
 				l.Add(new MidiEvent(note.Position, new MidiMessageNoteOn(note.NoteId, note.Velocity, note.Channel)));
-				l.Add(new MidiEvent(note.Position+note.Length, new MidiMessageNoteOff(note.NoteId, 0, note.Channel)));
+				oldNote = note;
+			}
+			if(!first)
+			{
+				l.Add(new MidiEvent(oldNote.Position + oldNote.Length, new MidiMessageNoteOff(oldNote.NoteId, 0, oldNote.Channel)));
 			}
 			l.Sort((x, y) => { return x.Position.CompareTo(y.Position); });
 			var result = new MidiSequence();
