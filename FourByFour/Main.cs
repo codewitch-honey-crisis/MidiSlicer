@@ -84,7 +84,7 @@ namespace FourByFour
 			{
 				var beat = ctl as BeatControl;
 				// get the note for the drum
-				var note = beat.Note;
+				var note = beat.NoteId;
 				// it's easier to use a note map
 				// to build the drum sequence
 				var noteMap = new List<MidiNote>();

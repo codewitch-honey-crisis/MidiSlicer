@@ -15,6 +15,7 @@ namespace FourByFour
 	{
 		static readonly object _DeleteKey = new object();
 		static readonly object _BarsChangedKey = new object();
+		static readonly object _NoteIdChangedKey = new object();
 		public BeatControl()
 		{
 			InitializeComponent();
@@ -72,10 +73,31 @@ namespace FourByFour
 			add { Events.AddHandler(_DeleteKey, value); }
 			remove { Events.RemoveHandler(_DeleteKey, value); }
 		}
-		public byte Note {
+		public byte NoteId {
 			get {
 				return ((Ins)Instrument.SelectedItem).Value;
 			}
+			set {
+				for(int ic = Instrument.Items.Count,i=0;i<ic;++i)
+				{
+					var item = (Ins)Instrument.Items[i];
+					if(item.Value==value)
+					{
+						Instrument.SelectedIndex = i;
+						OnNoteIdChanged(EventArgs.Empty);
+						return;
+					}
+				}
+				throw new InvalidOperationException("The note is not part of the kit");
+			}
+		}
+		protected void OnNoteIdChanged(EventArgs args)
+		{
+			(Events[_NoteIdChangedKey] as EventHandler)?.Invoke(this, args);
+		}
+		public event EventHandler NoteIdChanged {
+			add { Events.AddHandler(_NoteIdChangedKey, value); }
+			remove { Events.RemoveHandler(_NoteIdChangedKey, value); }
 		}
 		public int Bars {
 			get {
