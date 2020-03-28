@@ -23,6 +23,7 @@ namespace M
 		/// <returns>The string note</returns>
 		public static string NoteIdToNote(byte noteId, bool withOctave=true)
 		{
+			noteId = unchecked((byte)(noteId & 0x7F));
 			if(withOctave)
 				return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd() + ((int)(noteId / 12)).ToString();
 			return _Notes.Substring((noteId % 12) * 2, 2).TrimEnd();
