@@ -169,6 +169,7 @@
 			// 
 			this.PatternComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.PatternComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.PatternComboBox.FormattingEnabled = true;
 			this.PatternComboBox.Items.AddRange(new object[] {
             "(None)",

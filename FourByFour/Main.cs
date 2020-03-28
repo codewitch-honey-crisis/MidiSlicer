@@ -161,15 +161,10 @@ namespace FourByFour
 						beat = BeatsPanel.Controls[2] as BeatControl;
 						for (var j = 0; j < 16; ++j)
 							beat.Steps[j+(i*16)] = true;
-						beat.Steps[2 + (i * 16)] = false;
-						beat.Steps[6 + (i * 16)] = false;
-						beat.Steps[10 + (i * 16)] = false;
 						beat.Steps[14 + (i * 16)] = false;
 						beat = BeatsPanel.Controls[3] as BeatControl;
-						beat.Steps[2 + (i * 16)] = true;
-						beat.Steps[6 + (i * 16)] = true;
-						beat.Steps[10 + (i * 16)] = true;
 						beat.Steps[14 + (i * 16)] = true;
+						
 					}
 					break;
 				case 3: // house
