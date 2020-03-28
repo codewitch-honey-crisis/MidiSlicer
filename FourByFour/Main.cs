@@ -18,6 +18,7 @@ namespace FourByFour
 		public Main()
 		{
 			InitializeComponent();
+			PatternComboBox.SelectedIndex = 0;
 		}
 
 		private void AddButton_Click(object sender, EventArgs e)
@@ -134,6 +135,90 @@ namespace FourByFour
 				if (null != beat) // sanity
 					beat.Bars = (int)BarsUpDown.Value;
 			}
+		}
+
+		private void PatternComboBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			BeatsPanel.Controls.Clear();
+			switch(PatternComboBox.SelectedIndex)
+			{
+				case 0: // none
+					break;
+				case 1: // Basic Empty
+					_MakeBasicKit();
+					break;
+				case 2: // break
+					_MakeBasicKit();
+					for(int ic=(int)BarsUpDown.Value,i=0;i<ic;++i)
+					{
+						var beat = BeatsPanel.Controls[0] as BeatControl;
+						beat.Steps[0+(i*16)] = true;
+						beat.Steps[6 + (i * 16)] = true;
+						beat.Steps[10 + (i * 16)] = true;
+						beat = BeatsPanel.Controls[1] as BeatControl;
+						beat.Steps[4 + (i * 16)] = true;
+						beat.Steps[12 + (i * 16)] = true;
+						beat = BeatsPanel.Controls[2] as BeatControl;
+						for (var j = 0; j < 16; ++j)
+							beat.Steps[j+(i*16)] = true;
+						beat.Steps[2 + (i * 16)] = false;
+						beat.Steps[6 + (i * 16)] = false;
+						beat.Steps[10 + (i * 16)] = false;
+						beat.Steps[14 + (i * 16)] = false;
+						beat = BeatsPanel.Controls[3] as BeatControl;
+						beat.Steps[2 + (i * 16)] = true;
+						beat.Steps[6 + (i * 16)] = true;
+						beat.Steps[10 + (i * 16)] = true;
+						beat.Steps[14 + (i * 16)] = true;
+					}
+					break;
+				case 3: // house
+					_MakeBasicKit();
+					for (int ic = (int)BarsUpDown.Value, i = 0; i < ic; ++i)
+					{
+						var beat = BeatsPanel.Controls[0] as BeatControl;
+						beat.Steps[0 + (i * 16)] = true;
+						beat.Steps[4 + (i * 16)] = true;
+						beat.Steps[8 + (i * 16)] = true;
+						beat.Steps[12 + (i * 16)] = true;
+						beat = BeatsPanel.Controls[1] as BeatControl;
+						beat.Steps[4 + (i * 16)] = true;
+						beat.Steps[12 + (i * 16)] = true;
+						beat = BeatsPanel.Controls[2] as BeatControl;
+						for (var j = 0; j < 16; ++j)
+							beat.Steps[j + (i * 16)] = true;
+						beat.Steps[2 + (i * 16)] = false;
+						beat.Steps[6 + (i * 16)] = false;
+						beat.Steps[10 + (i * 16)] = false;
+						beat.Steps[14 + (i * 16)] = false;
+						beat.Steps[15 + (i * 16)] = false;
+						beat = BeatsPanel.Controls[3] as BeatControl;
+						beat.Steps[2 + (i * 16)] = true;
+						beat.Steps[6 + (i * 16)] = true;
+						beat.Steps[10 + (i * 16)] = true;
+						beat.Steps[14 + (i * 16)] = true;
+					}
+					break;
+			}
+		}
+		void _MakeBasicKit()
+		{
+			var beat = new BeatControl();
+			beat.NoteId = 36; // Bass Drum 1
+			beat.Bars = (int)BarsUpDown.Value;
+			BeatsPanel.Controls.Add(beat);
+			beat = new BeatControl();
+			beat.NoteId = 40; // Electric Snare 1
+			beat.Bars = (int)BarsUpDown.Value;
+			BeatsPanel.Controls.Add(beat);
+			beat = new BeatControl();
+			beat.NoteId = 42; // Closed Hat
+			beat.Bars = (int)BarsUpDown.Value;
+			BeatsPanel.Controls.Add(beat);
+			beat = new BeatControl();
+			beat.NoteId = 46; // Open Hat
+			beat.Bars = (int)BarsUpDown.Value;
+			BeatsPanel.Controls.Add(beat);
 		}
 	}
 }
