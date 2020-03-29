@@ -133,7 +133,16 @@ namespace FourByFour
 			{
 				var beat = ctl as BeatControl;
 				if (null != beat) // sanity
+				{
+					var steps = new List<bool>(beat.Steps);
 					beat.Bars = (int)BarsUpDown.Value;
+					for(int ic=steps.Count,i=0;i<ic;++i)
+					{
+						if (i >= beat.Steps.Count)
+							break;
+						beat.Steps[i] = steps[i];
+					}
+				}
 			}
 		}
 
