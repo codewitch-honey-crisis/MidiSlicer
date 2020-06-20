@@ -16,6 +16,11 @@ namespace MidiSlicer
 		public Main()
 		{
 			InitializeComponent();
+			var devs = MidiDevice.Outputs;
+			OutputComboBox.DisplayMember = "Name";
+			foreach (var dev in devs)
+				OutputComboBox.Items.Add(dev);
+			OutputComboBox.SelectedIndex = 0;
 			_tracksLabelFormat = TracksLabel.Text;
 			UnitsCombo.SelectedIndex = 0;
 			StartCombo.SelectedIndex = 0;
@@ -151,8 +156,8 @@ namespace MidiSlicer
 			if(System.Diagnostics.Debugger.IsAttached)
 				_DumpFile(f);
 #endif
-
-			_previewThread = new Thread(() => { f.Preview(0,true); });
+			var dev = OutputComboBox.SelectedItem as MidiOutputDevice;
+			_previewThread = new Thread(() => { f.Preview(dev,true); });
 			_previewThread.Start();
 		}
 #if DEBUG
@@ -354,6 +359,10 @@ namespace MidiSlicer
 				result.Tracks.Add(trk);
 			}
 			return result;
+		}
+
+		private void OutputComboBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
 		}
 	}
 }

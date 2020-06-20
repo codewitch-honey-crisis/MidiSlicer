@@ -1039,15 +1039,22 @@
 				}
 			}
 		}
+
 		/// <summary>
 		/// Plays the sequence to the specified MIDI device using the specified timebase
 		/// </summary>
 		/// <param name="timeBase">The timebase to use, in pulses/ticks per quarter note</param>
-		/// <param name="deviceIndex">The MIDI device to output to</param>
+		/// <param name="device">The MIDI output device to use</param>
 		/// <param name="loop">Indicates whether to loop playback or not</param>
-		public void Preview(short timeBase = 480, int deviceIndex = 0,bool loop=false)
+		public void Preview(short timeBase = 480, MidiOutputDevice device = null,bool loop=false)
 		{
-			var handle = MidiUtility.OpenOutputDevice(deviceIndex);
+			var isOpen = false;
+			if (null == device)
+				device = MidiDevice.Outputs[0];
+			if (device.IsOpen)
+				isOpen = true;
+			else
+				device.Open();
 			var ppq = timeBase;
 			var mt = MidiUtility.TempoToMicroTempo(120d);
 			var first = true;
@@ -1093,7 +1100,7 @@
 								}
 								else
 								{
-									MidiUtility.Send(handle, e.Current.Message);
+									device.Send(e.Current.Message);
 								}
 								if (!e.MoveNext())
 									done = true;
@@ -1105,7 +1112,8 @@
 			}
 			finally
 			{
-				MidiUtility.CloseOutputDevice(handle);
+				if (!isOpen)
+					device.Close();
 			}
 		}
 		/// <summary>

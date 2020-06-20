@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MidiContext.cs" />
+    <Compile Include="MidiDevice.cs" />
     <Compile Include="MidiEvent.cs" />
     <Compile Include="MidiFile.cs" />
     <Compile Include="MidiKeySignature.cs" />

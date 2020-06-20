@@ -2,13 +2,14 @@
 namespace M
 {
 	using System;
-	using System.IO;
+    using System.Runtime.InteropServices;
+    using System.Text;
 
-	/// <summary>
-	/// Represents a utility class for performing low level MIDI operations
-	/// </summary>
+    /// <summary>
+    /// Represents a utility class for performing low level MIDI operations
+    /// </summary>
 #if MIDILIB
-	public
+    public
 #else
 	internal
 #endif
@@ -110,6 +111,188 @@ namespace M
 		/// <param name="channel">The channel</param>
 		/// <returns>A MIDI note off message as a packed integer</returns>
 		public static int NoteOff(byte note, byte velocity, byte channel = 0) => PackMessage(0x80, note, velocity, channel);
+		/// <summary>
+		/// Retrieves the count of MIDI output devices
+		/// </summary>
+		/// <returns>The count of devices</returns>
+		public static int GetMidiOutputDeviceCount()
+		{
+			return midiOutGetNumDevs();
+		}
+		/// <summary>
+		/// Retrieves the count of MIDI input devices
+		/// </summary>
+		/// <returns>The count of devices</returns>
+		public static int GetMidiInputDeviceCount()
+		{
+			return midiInGetNumDevs();
+		}
+		/// <summary>
+		/// Retrieves the name of the MIDI output device
+		/// </summary>
+		/// <param name="index">The device index</param>
+		/// <returns>The device name</returns>
+		public static string GetOutputDeviceName(int index)
+		{
+			MidiOutCaps caps = default(MidiOutCaps);
+			_CheckOutResult(midiOutGetDevCaps(index, ref caps, Marshal.SizeOf(typeof(MidiOutCaps))));
+			return caps.name;
+		}
+		/// <summary>
+		/// Retrieves the name of the MIDI input device
+		/// </summary>
+		/// <param name="index">The device index</param>
+		/// <returns>The device name</returns>
+		public static string GetInputDeviceName(int index)
+		{
+			MidiInCaps caps = default(MidiInCaps);
+			_CheckOutResult(midiInGetDevCaps(index, ref caps, Marshal.SizeOf(typeof(MidiInCaps))));
+			return caps.name;
+		}
+		/// <summary>
+		/// Retrieves the error message for the specified error code
+		/// </summary>
+		/// <param name="errorCode">The error code</param>
+		/// <returns>A text error message for the error code</returns>
+		public static string GetMidiOutErrorMessage(int errorCode)
+		{
+			var result = new StringBuilder(256);
+			midiOutGetErrorText(errorCode, result, result.Capacity);
+			return result.ToString();
+		}
+		/// <summary>
+		/// Opens a MIDI output device
+		/// </summary>
+		/// <param name="deviceIndex">The device index</param>
+		/// <returns>A handle to the specified device</returns>
+		public static IntPtr OpenOutputDevice(int deviceIndex)
+		{
+			IntPtr handle = IntPtr.Zero;
+			_CheckOutResult(midiOutOpen(ref handle, deviceIndex, null, 0, 0));
+			return handle;
+		}
+		/// <summary>
+		/// Opens a MIDI input device
+		/// </summary>
+		/// <param name="deviceIndex">The device index</param>
+		/// <param name="callback">The callback method to use</param>
+		/// <returns>A handle to the specified device</returns>
+		public static IntPtr OpenInputDevice(int deviceIndex, MidiInProc callback)
+		{
+			IntPtr handle = IntPtr.Zero;
+			_CheckOutResult(midiInOpen(ref handle, deviceIndex, callback, 0, CALLBACK_FUNCTION));
+			return handle;
+		}
+		/// <summary>
+		/// Closes the specified MIDI output device
+		/// </summary>
+		/// <param name="handle">The handle of the device</param>
+		public static void CloseOutputDevice(IntPtr handle)
+		{
+			_CheckOutResult(midiOutClose(handle));
+		}
+		/// <summary>
+		/// Closes the specified MIDI input device
+		/// </summary>
+		/// <param name="handle">The handle of the device</param>
+		public static void CloseInputDevice(IntPtr handle)
+		{
+			_CheckOutResult(midiInClose(handle));
+		}
+		static void _CheckOutResult(int errorCode)
+		{
+			if (0 != errorCode)
+				throw new Exception(GetMidiOutErrorMessage(errorCode));
+		}
+		/// <summary>
+		/// Indicates the number of MIDI output devices
+		/// </summary>
+		public static int OutputDeviceCount { get { return midiOutGetNumDevs(); } }
+		/// <summary>
+		/// Sends a MIDI message to the specified device
+		/// </summary>
+		/// <param name="deviceHandle">The device handle</param>
+		/// <param name="message">The packed MIDI message</param>
+		public static void Send(IntPtr deviceHandle, int message)
+		{
+			_CheckOutResult(midiOutShortMsg(deviceHandle, message));
+		}
+		/// <summary>
+		/// Sends a MIDI message to the specified device
+		/// </summary>
+		/// <param name="deviceHandle">The device handle</param>
+		/// <param name="message">The MIDI message</param>
+		public static void Send(IntPtr deviceHandle, MidiMessage message)
+		{
+			var m = 0;
+			switch (message.Status & 0xF0)
+			{
+				case 0x80:
+				case 0x90:
+				case 0xA0:
+				case 0xB0:
+				case 0xE0:
+					var mcmdw = message as MidiMessageWord;
+					m = mcmdw.Status;
+					m |= mcmdw.Data2 << 16;
+					m |= mcmdw.Data1 << 8;
+					Send(deviceHandle, m);
+					break;
+				case 0xC0:
+				case 0xD0:
+					var mcm = message as MidiMessageByte;
+					m = mcm.Status;
+					m |= mcm.Data1 << 8;
+					Send(deviceHandle, m);
+					break;
+			}
+
+		}
+		/// <summary>
+		/// Packs a MIDI message as an int
+		/// </summary>
+		/// <param name="status">The status byte</param>
+		/// <param name="data1">The first data byte</param>
+		/// <param name="data2">The second data byte</param>
+		/// <param name="channel">The channel</param>
+		/// <returns>An integer representing the packed MIDI message</returns>
+		public static int PackMessage(byte status, byte data1, byte data2, byte channel = 0)
+		{
+			if (0 == channel)
+				return ((data2 & 0x7F) << 16) +
+				((data1 & 0x7F) << 8) + status;
+			return ((data2 & 0x7F) << 16) +
+			((data1 & 0x7F) << 8) + ((status & 0xF0) | (channel & 0xF));
+
+		}
+		/// <summary>
+		/// Unpacks a MIDI message from an int
+		/// </summary>
+		/// <returns>An integer representing the packed MIDI message</returns>
+		public static MidiMessage UnpackMessage(int message)
+		{
+			switch (message & 0xF0)
+			{
+				case 0x80:
+					return new MidiMessageNoteOff(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)((message >> 16) & 0xFF)), unchecked((byte)(message & 0xF)));
+				case 0x90:
+					return new MidiMessageNoteOn(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)((message >> 16) & 0xFF)), unchecked((byte)(message & 0xF)));
+				case 0xA0:
+					return new MidiMessageKeyPressure(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)((message >> 16) & 0xFF)), unchecked((byte)(message & 0xF)));
+				case 0xB0:
+					return new MidiMessageCC(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)((message >> 16) & 0xFF)), unchecked((byte)(message & 0xF)));
+				case 0xC0:
+					return new MidiMessagePatchChange(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)(message & 0xF)));
+				case 0xD0:
+					return new MidiMessageChannelPressure(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)(message & 0xF)));
+				case 0xE0:
+					return new MidiMessageChannelPitch(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)((message >> 16) & 0xFF)), unchecked((byte)(message & 0xF)));
+				default:
+					throw new NotSupportedException("The MIDI message is not recognized.");
+			}
+
+		}
+
 		/// <summary>
 		/// Swaps byte order
 		/// </summary>

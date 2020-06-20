@@ -84,13 +84,13 @@
 			this.BeatsPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
 			this.BeatsPanel.Location = new System.Drawing.Point(1, 33);
 			this.BeatsPanel.Name = "BeatsPanel";
-			this.BeatsPanel.Size = new System.Drawing.Size(481, 276);
+			this.BeatsPanel.Size = new System.Drawing.Size(612, 276);
 			this.BeatsPanel.TabIndex = 2;
 			// 
 			// AddButton
 			// 
 			this.AddButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.AddButton.Location = new System.Drawing.Point(311, 5);
+			this.AddButton.Location = new System.Drawing.Point(312, 4);
 			this.AddButton.Name = "AddButton";
 			this.AddButton.Size = new System.Drawing.Size(44, 23);
 			this.AddButton.TabIndex = 3;
@@ -101,7 +101,7 @@
 			// PlayButton
 			// 
 			this.PlayButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.PlayButton.Location = new System.Drawing.Point(361, 5);
+			this.PlayButton.Location = new System.Drawing.Point(362, 4);
 			this.PlayButton.Name = "PlayButton";
 			this.PlayButton.Size = new System.Drawing.Size(44, 23);
 			this.PlayButton.TabIndex = 4;
@@ -112,7 +112,7 @@
 			// SaveAsButton
 			// 
 			this.SaveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveAsButton.Location = new System.Drawing.Point(411, 5);
+			this.SaveAsButton.Location = new System.Drawing.Point(412, 4);
 			this.SaveAsButton.Name = "SaveAsButton";
 			this.SaveAsButton.Size = new System.Drawing.Size(68, 23);
 			this.SaveAsButton.TabIndex = 5;
@@ -184,7 +184,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(484, 310);
+			this.ClientSize = new System.Drawing.Size(615, 310);
 			this.Controls.Add(this.PatternComboBox);
 			this.Controls.Add(this.PatternLabel);
 			this.Controls.Add(this.BarsUpDown);

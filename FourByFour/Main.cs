@@ -48,7 +48,7 @@ namespace FourByFour
 			}
 			var file = _CreateMidiFile();
 			PlayButton.Text = "Stop";
-			_previewThread = new Thread(() => file.Preview(0, true));
+			_previewThread = new Thread(() => file.Preview(null, true));
 			_previewThread.Start();
 		}
 		MidiFile _CreateMidiFile()
@@ -173,7 +173,6 @@ namespace FourByFour
 						beat.Steps[14 + (i * 16)] = false;
 						beat = BeatsPanel.Controls[3] as BeatControl;
 						beat.Steps[14 + (i * 16)] = true;
-						
 					}
 					break;
 				case 3: // house

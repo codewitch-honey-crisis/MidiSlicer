@@ -23,8 +23,20 @@
 			}
 		}
 		#region Win32
+		// HACK: there's no easy way to wrap this so we have to expose it
 		// Represents the method that handles messages from Windows.
-		internal delegate void MidiInProc(IntPtr handle, int msg, int instance, int param1, int param2);
+		/// <summary>
+		/// Used by the framework and not intended for use by anything else
+		/// </summary>
+		/// <param name="handle">The handle</param>
+		/// <param name="msg">The message</param>
+		/// <param name="instance">The hWnd</param>
+		/// <param name="param1">The lparam</param>
+		/// <param name="param2">The wparam</param>
+#if MIDILIB
+		public
+#endif
+		delegate void MidiInProc(IntPtr handle, int msg, int instance, int param1, int param2);
 		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
 		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
 
@@ -215,101 +227,6 @@
 		const int CALLBACK_FUNCTION = 196608;
 
 		#endregion Win32
-		/// <summary>
-		/// Retrieves the error message for the specified error code
-		/// </summary>
-		/// <param name="errorCode">The error code</param>
-		/// <returns>A text error message for the error code</returns>
-		public static string GetMidiOutErrorMessage(int errorCode)
-		{
-			var result = new StringBuilder(256);
-			midiOutGetErrorText(errorCode, result, result.Capacity);
-			return result.ToString();
-		}
-		/// <summary>
-		/// Opens a MIDI output device
-		/// </summary>
-		/// <param name="deviceIndex">The device index</param>
-		/// <returns>A handle to the specified device</returns>
-		public static IntPtr OpenOutputDevice(int deviceIndex)
-		{
-			IntPtr handle = IntPtr.Zero;
-			_CheckOutResult(midiOutOpen(ref handle, deviceIndex, null, 0, 0));
-			return handle;
-		}
-		/// <summary>
-		/// Closes the specified MIDI output device
-		/// </summary>
-		/// <param name="handle">The handle of the device</param>
-		public static void CloseOutputDevice(IntPtr handle)
-		{
-			_CheckOutResult(midiOutClose(handle));
-		}
-		static void _CheckOutResult(int errorCode)
-		{
-			if (0 != errorCode)
-				throw new Exception(GetMidiOutErrorMessage(errorCode));
-		}
-		/// <summary>
-		/// Indicates the number of MIDI output devices
-		/// </summary>
-		public static int OutputDeviceCount { get { return midiOutGetNumDevs(); } }
-		/// <summary>
-		/// Sends a MIDI message to the specified device
-		/// </summary>
-		/// <param name="deviceHandle">The device handle</param>
-		/// <param name="message">The packed MIDI message</param>
-		public static void Send(IntPtr deviceHandle, int message)
-		{
-			_CheckOutResult(midiOutShortMsg(deviceHandle, message));
-		}
-		/// <summary>
-		/// Sends a MIDI message to the specified device
-		/// </summary>
-		/// <param name="deviceHandle">The device handle</param>
-		/// <param name="message">The MIDI message</param>
-		public static void Send(IntPtr deviceHandle,MidiMessage message)
-		{
-			var m = 0;
-			switch(message.Status & 0xF0) {
-				case 0x80:
-				case 0x90:
-				case 0xA0:
-				case 0xB0:
-				case 0xE0:
-					var mcmdw = message as MidiMessageWord;
-					m = mcmdw.Status;
-					m |= mcmdw.Data2 << 16;
-					m |= mcmdw.Data1 << 8;
-					Send(deviceHandle, m);
-					break;
-				case 0xC0:
-				case 0xD0:
-					var mcm = message as MidiMessageByte;
-					m = mcm.Status;
-					m |= mcm.Data1 << 8;
-					Send(deviceHandle, m);
-					break;
-			}
-
-		}
-		/// <summary>
-		/// Packs a MIDI message as an int
-		/// </summary>
-		/// <param name="status">The status byte</param>
-		/// <param name="data1">The first data byte</param>
-		/// <param name="data2">The second data byte</param>
-		/// <param name="channel">The channel</param>
-		/// <returns>An integer representing the packed MIDI message</returns>
-		public static int PackMessage(byte status, byte data1, byte data2,byte channel = 0)
-		{
-			if(0==channel)
-				return ((data2 & 0x7F) << 16) +
-				((data1 & 0x7F) << 8) + status;
-			return ((data2 & 0x7F) << 16) +
-			((data1 & 0x7F) << 8) + ((status&0xF0)|(channel&0xF));
-
-		}
-	
+		
 	}
 }

@@ -29,11 +29,11 @@
 		/// <summary>
 		/// Plays the file over the specified device
 		/// </summary>
-		/// <param name="deviceIndex">The index of the device to use</param>
+		/// <param name="device">The MIDI output device to use</param>
 		/// <param name="loop">Indicates whether to loop playback or not</param>
-		public void Preview(int deviceIndex=0,bool loop=false)
+		public void Preview(MidiOutputDevice device=null,bool loop=false)
 		{
-			MidiSequence.Merge(Tracks).Preview(TimeBase, deviceIndex,loop);
+			MidiSequence.Merge(Tracks).Preview(TimeBase, device,loop);
 		}
 		/// <summary>
 		/// Changes the timebase of the MIDI file

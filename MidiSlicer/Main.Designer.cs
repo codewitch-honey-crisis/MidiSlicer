@@ -59,6 +59,7 @@
 			this.TransposeLabel = new System.Windows.Forms.Label();
 			this.WrapCheckBox = new System.Windows.Forms.CheckBox();
 			this.DrumsCheckBox = new System.Windows.Forms.CheckBox();
+			this.OutputComboBox = new System.Windows.Forms.ComboBox();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
@@ -95,7 +96,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.MidiFileBox.Location = new System.Drawing.Point(30, 2);
 			this.MidiFileBox.Name = "MidiFileBox";
-			this.MidiFileBox.Size = new System.Drawing.Size(260, 20);
+			this.MidiFileBox.Size = new System.Drawing.Size(156, 20);
 			this.MidiFileBox.TabIndex = 2;
 			this.MidiFileBox.Leave += new System.EventHandler(this.MidiFileBox_Leave);
 			// 
@@ -111,7 +112,7 @@
 			// BrowseButton
 			// 
 			this.BrowseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.BrowseButton.Location = new System.Drawing.Point(296, 1);
+			this.BrowseButton.Location = new System.Drawing.Point(188, 1);
 			this.BrowseButton.Name = "BrowseButton";
 			this.BrowseButton.Size = new System.Drawing.Size(25, 22);
 			this.BrowseButton.TabIndex = 4;
@@ -454,11 +455,23 @@
 			this.DrumsCheckBox.Text = "Drums";
 			this.DrumsCheckBox.UseVisualStyleBackColor = true;
 			// 
+			// OutputComboBox
+			// 
+			this.OutputComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.OutputComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.OutputComboBox.FormattingEnabled = true;
+			this.OutputComboBox.Location = new System.Drawing.Point(219, 1);
+			this.OutputComboBox.Name = "OutputComboBox";
+			this.OutputComboBox.Size = new System.Drawing.Size(105, 21);
+			this.OutputComboBox.TabIndex = 33;
+			this.OutputComboBox.SelectedIndexChanged += new System.EventHandler(this.OutputComboBox_SelectedIndexChanged);
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(329, 263);
+			this.Controls.Add(this.OutputComboBox);
 			this.Controls.Add(this.DrumsCheckBox);
 			this.Controls.Add(this.WrapCheckBox);
 			this.Controls.Add(this.TransposeUpDown);
@@ -535,5 +548,6 @@
 		private System.Windows.Forms.Label TransposeLabel;
 		private System.Windows.Forms.CheckBox WrapCheckBox;
 		private System.Windows.Forms.CheckBox DrumsCheckBox;
+		private System.Windows.Forms.ComboBox OutputComboBox;
 	}
 }
