@@ -39,6 +39,7 @@
 			this.BarsUpDown = new System.Windows.Forms.NumericUpDown();
 			this.PatternLabel = new System.Windows.Forms.Label();
 			this.PatternComboBox = new System.Windows.Forms.ComboBox();
+			this.OutputComboBox = new System.Windows.Forms.ComboBox();
 			((System.ComponentModel.ISupportInitialize)(this.TempoUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.BarsUpDown)).BeginInit();
 			this.SuspendLayout();
@@ -90,7 +91,7 @@
 			// AddButton
 			// 
 			this.AddButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.AddButton.Location = new System.Drawing.Point(312, 4);
+			this.AddButton.Location = new System.Drawing.Point(312, 6);
 			this.AddButton.Name = "AddButton";
 			this.AddButton.Size = new System.Drawing.Size(44, 23);
 			this.AddButton.TabIndex = 3;
@@ -101,7 +102,7 @@
 			// PlayButton
 			// 
 			this.PlayButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.PlayButton.Location = new System.Drawing.Point(362, 4);
+			this.PlayButton.Location = new System.Drawing.Point(362, 6);
 			this.PlayButton.Name = "PlayButton";
 			this.PlayButton.Size = new System.Drawing.Size(44, 23);
 			this.PlayButton.TabIndex = 4;
@@ -112,7 +113,7 @@
 			// SaveAsButton
 			// 
 			this.SaveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveAsButton.Location = new System.Drawing.Point(412, 4);
+			this.SaveAsButton.Location = new System.Drawing.Point(412, 6);
 			this.SaveAsButton.Name = "SaveAsButton";
 			this.SaveAsButton.Size = new System.Drawing.Size(68, 23);
 			this.SaveAsButton.TabIndex = 5;
@@ -180,11 +181,22 @@
 			this.PatternComboBox.TabIndex = 9;
 			this.PatternComboBox.SelectedIndexChanged += new System.EventHandler(this.PatternComboBox_SelectedIndexChanged);
 			// 
+			// OutputComboBox
+			// 
+			this.OutputComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.OutputComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.OutputComboBox.FormattingEnabled = true;
+			this.OutputComboBox.Location = new System.Drawing.Point(484, 7);
+			this.OutputComboBox.Name = "OutputComboBox";
+			this.OutputComboBox.Size = new System.Drawing.Size(127, 21);
+			this.OutputComboBox.TabIndex = 10;
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(615, 310);
+			this.Controls.Add(this.OutputComboBox);
 			this.Controls.Add(this.PatternComboBox);
 			this.Controls.Add(this.PatternLabel);
 			this.Controls.Add(this.BarsUpDown);
@@ -195,7 +207,7 @@
 			this.Controls.Add(this.BeatsPanel);
 			this.Controls.Add(this.TempoUpDown);
 			this.Controls.Add(this.TempoLabel);
-			this.MinimumSize = new System.Drawing.Size(500, 140);
+			this.MinimumSize = new System.Drawing.Size(631, 140);
 			this.Name = "Main";
 			this.Text = "4x4 Beats";
 			((System.ComponentModel.ISupportInitialize)(this.TempoUpDown)).EndInit();
@@ -218,6 +230,7 @@
 		private System.Windows.Forms.NumericUpDown BarsUpDown;
 		private System.Windows.Forms.Label PatternLabel;
 		private System.Windows.Forms.ComboBox PatternComboBox;
+		private System.Windows.Forms.ComboBox OutputComboBox;
 	}
 }
 

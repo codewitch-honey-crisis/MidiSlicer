@@ -18,6 +18,11 @@ namespace FourByFour
 		public Main()
 		{
 			InitializeComponent();
+			var devs= MidiDevice.Outputs;
+			OutputComboBox.DisplayMember = "Name";
+			foreach (var dev in devs)
+				OutputComboBox.Items.Add(dev);
+			OutputComboBox.SelectedIndex = 0;
 			PatternComboBox.SelectedIndex = 0;
 		}
 
@@ -48,7 +53,8 @@ namespace FourByFour
 			}
 			var file = _CreateMidiFile();
 			PlayButton.Text = "Stop";
-			_previewThread = new Thread(() => file.Preview(null, true));
+			var dev = OutputComboBox.SelectedItem as MidiOutputDevice;
+			_previewThread = new Thread(() => file.Preview(dev, true));
 			_previewThread.Start();
 		}
 		MidiFile _CreateMidiFile()
