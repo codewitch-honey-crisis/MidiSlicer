@@ -14,7 +14,9 @@ namespace FourByFour
 {
 	public partial class Main : Form
 	{
+		AutoResetEvent _previewEvent;
 		Thread _previewThread;
+		MidiStream _play;
 		public Main()
 		{
 			InitializeComponent();
@@ -24,6 +26,7 @@ namespace FourByFour
 				OutputComboBox.Items.Add(dev);
 			OutputComboBox.SelectedIndex = 0;
 			PatternComboBox.SelectedIndex = 0;
+			
 		}
 
 		private void AddButton_Click(object sender, EventArgs e)
@@ -40,23 +43,67 @@ namespace FourByFour
 
 		private void PlayButton_Click(object sender, EventArgs e)
 		{
-			if("Stop"==PlayButton.Text)
+			if(null!=_previewThread)
 			{
-				if(null!=_previewThread)
-				{
-					_previewThread.Abort();
-					_previewThread.Join();
-					_previewThread = null;
-				}
+				
+				_previewThread.Abort();
+				_previewThread.Join();
+				_previewThread = null;
 				PlayButton.Text = "Play";
+				PatternComboBox.Enabled = true;
+				BarsUpDown.Enabled = true;
+				OutputComboBox.Enabled = true;
 				return;
 			}
-			var file = _CreateMidiFile();
+			PatternComboBox.Enabled = false;
+			BarsUpDown.Enabled = false;
+			OutputComboBox.Enabled = false;
 			PlayButton.Text = "Stop";
-			var dev = OutputComboBox.SelectedItem as MidiOutputDevice;
-			_previewThread = new Thread(() => file.Preview(dev, true));
+
+			_play = (OutputComboBox.SelectedItem as MidiOutputDevice).Stream;
+			_play.SendComplete += delegate (object s, EventArgs ea)
+			{
+				// wake the thread
+				_previewEvent.Set();
+			};
+			_previewEvent = new AutoResetEvent(false);
+			_previewThread = new Thread(() => {
+			_play.Open();
+			_play.Start();
+			try
+			{
+				MidiFile file = null;
+				while (true)
+				{
+					if (null == file)
+					{
+							Invoke(new Action(delegate()
+							{
+								file = _CreateMidiFile();
+							}));
+							_play.TimeBase = file.TimeBase;
+						} else
+						{
+							Invoke(new Action(delegate ()
+							{
+								file = _CreateMidiFile();
+							}));
+						}
+							
+						_play.Send(MidiSequence.Merge(file.Tracks).Events);
+						_previewEvent.WaitOne();
+					}
+				}
+				finally
+				{
+					_play.Close();
+					_previewEvent.Close();
+				}
+				
+			});
 			_previewThread.Start();
 		}
+
 		MidiFile _CreateMidiFile()
 		{
 			var file = new MidiFile();

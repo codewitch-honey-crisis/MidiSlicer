@@ -146,6 +146,14 @@ namespace M
 			else
 				MidiUtility.Send(_handle, message);
 		}
+		/// <summary>
+		/// Retrieves the MIDI stream associated with this output device
+		/// </summary>
+		public MidiStream Stream {
+			get {
+				return new MidiStream(Index);
+			}
+		}
 	}
 	/// <summary>
 	/// Represents the arguments for an incoming MIDI event
