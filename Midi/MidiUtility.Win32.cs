@@ -6,22 +6,7 @@
 
 	static partial class MidiUtility
 	{
-		internal static DateTime PreciseUtcNow {
-			get {
-				long filetime;
-				_GetSystemTimePreciseAsFileTime(out filetime);
-				return DateTime.FromFileTimeUtc(filetime);
 
-			}
-		}
-		internal static long PreciseUtcNowTicks {
-			get {
-				long filetime;
-				_GetSystemTimePreciseAsFileTime(out filetime);
-
-				return filetime + 504911232000000000;
-			}
-		}
 		#region Win32
 		// HACK: there's no easy way to wrap this so we have to expose it
 		// Represents the method that handles messages from Windows.
@@ -37,6 +22,20 @@
 		public
 #endif
 		delegate void MidiInProc(IntPtr handle, int msg, int instance, int param1, int param2);
+		
+		/// <summary>
+		/// Used by the framework and not intended for use by anything else
+		/// </summary>
+		/// <param name="handle">The handle</param>
+		/// <param name="msg">The message</param>
+		/// <param name="instance">The hWnd</param>
+		/// <param name="param1">The lparam</param>
+		/// <param name="param2">The wparam</param>
+#if MIDILIB
+		public
+#endif
+		delegate void MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2);
+
 		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
 		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
 
@@ -55,14 +54,6 @@
 
 		[DllImport("winmm.dll")]
 		static extern int midiInReset(IntPtr handle);
-
-		[DllImport("winmm.dll")]
-		static extern int midiInPrepareHeader(IntPtr handle,
-			IntPtr headerPtr, int sizeOfMidiHeader);
-
-		[DllImport("winmm.dll")]
-		static extern int midiInUnprepareHeader(IntPtr handle,
-			IntPtr headerPtr, int sizeOfMidiHeader);
 
 		[DllImport("winmm.dll")]
 		static extern int midiInAddBuffer(IntPtr handle,
@@ -86,18 +77,6 @@
 		static extern int midiOutShortMsg(IntPtr handle, int message);
 
 		[DllImport("winmm.dll")]
-		static extern int midiOutPrepareHeader(IntPtr handle,
-			IntPtr headerPtr, int sizeOfMidiHeader);
-
-		[DllImport("winmm.dll")]
-		static extern int midiOutUnprepareHeader(IntPtr handle,
-			IntPtr headerPtr, int sizeOfMidiHeader);
-
-		[DllImport("winmm.dll")]
-		static extern int midiOutLongMsg(IntPtr handle,
-			IntPtr headerPtr, int sizeOfMidiHeader);
-
-		[DllImport("winmm.dll")]
 		static extern int midiOutGetDevCaps(int deviceIndex,
 			ref MidiOutCaps caps, int sizeOfMidiOutCaps);
 
@@ -108,22 +87,111 @@
 		[DllImport("winmm.dll")]
 		static extern int midiOutOpen(ref IntPtr handle, int deviceID,
 			MidiOutProc proc, int instance, int flags);
-
+		[DllImport("winmm.dll")]
+		static extern int midiStreamOpen(ref IntPtr handle, ref int deviceID,int cMidi,
+			MidiOutProc proc, int instance, int flags);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamProperty(IntPtr handle, ref MidiPropTempo tempo, int dwProperty);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamProperty(IntPtr handle, ref MidiPropTimeDiv timeDiv, int dwProperty);
 		[DllImport("winmm.dll")]
 		static extern int midiOutClose(IntPtr handle);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamOut(IntPtr handle, ref MidiHdr lpMidiOutHdr, int uSize);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamOut(IntPtr handle, IntPtr lpMidiOutHdr, int uSize);
 
+		[DllImport("winmm.dll")]
+		static extern int midiStreamClose(IntPtr handle);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamRestart(IntPtr handle);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamPause(IntPtr handle);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamStop(IntPtr handle);
+		[DllImport("winmm.dll")]
+		static extern int midiStreamPosition(IntPtr handle, ref MMTime lpMMTime, int uSize);
+
+		[DllImport("winmm.dll")]
+		static extern int midiOutLongMsg(IntPtr hMidiOut, ref MidiHdr lpMidiOutHdr, int uSize);
+
+		[DllImport("winmm.dll")]
+		static extern int midiOutPrepareHeader(IntPtr hMidiOut, ref MidiHdr lpMidiOutHdr, int uSize);
+		[DllImport("winmm.dll")]
+		static extern int midiOutPrepareHeader(IntPtr hMidiOut, IntPtr lpMidiOutHdr, int uSize);
+
+		[DllImport("winmm.dll")]
+		static extern int midiOutUnprepareHeader(IntPtr hMidiOut, ref MidiHdr lpMidiOutHdr, int uSize);
+
+		[DllImport("winmm.dll")]
+		static extern int midiOutUnprepareHeader(IntPtr hMidiOut, IntPtr lpMidiOutHdr, int uSize);
+
+		[StructLayout(LayoutKind.Sequential)]
+		struct MidiHdr
+		{
+			public IntPtr lpData;          // offset  0- 3
+			public uint dwBufferLength;  // offset  4- 7
+			public uint dwBytesRecorded; // offset  8-11
+			public IntPtr dwUser;          // offset 12-15
+			public uint dwFlags;         // offset 16-19
+			public IntPtr lpNext;          // offset 20-23
+			public IntPtr reserved;        // offset 24-27
+			public uint dwOffset;        // offset 28-31
+			public IntPtr dwReserved0;
+			public IntPtr dwReserved1;
+			public IntPtr dwReserved2;
+			public IntPtr dwReserved3;
+			public IntPtr dwReserved4;
+			public IntPtr dwReserved5;
+			public IntPtr dwReserved6;
+			public IntPtr dwReserved7;
+		}
+
+		
+		const int MHDR_DONE = 1;
+		const int MHDR_PREPARED = 2;
+		const int MHDR_INQUEUE = 4;
+		const int MHDR_ISSTRM = 8;
+		
 		const int MOM_OPEN = 0x3C7;
 		const int MOM_CLOSE = 0x3C8;
 		const int MOM_DONE = 0x3C9;
+		const int MEVT_LONGMSG = 128;
+		const int MEVT_F_LONG = unchecked((int)0x80000000);
+		const int MEVT_SHORTMSG = 0x00;
+		const int MEVT_TEMPO = 0x01;
+		const int MEVT_NOP = 0x02;
+		const int MEVT_COMMENT = 0x82;
+		private const byte MEVT_VERSION = 0x84;
+		const int TIME_MS = 0x0001;
+		const int TIME_SAMPLES = 0x0002;
+		const int TIME_BYTES = 0x0004;
+		const int TIME_SMPTE = 0x0008;
+		const int TIME_MIDI = 0x0010;
+		const int TIME_TICKS = 0x0020;
+		const int MIDIPROP_SET = unchecked((int)0x80000000);
+		const int MIDIPROP_GET = 0x40000000;
 
-		// Represents the method that handles messages from Windows.
-		internal delegate void MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2);
+		const int MIDIPROP_TIMEDIV = 1;
+		const int MIDIPROP_TEMPO = 2;
 
+		[StructLayout(LayoutKind.Sequential)]
+		struct MidiPropTimeDiv
+		{
+			public int cbStruct;
+			public int dwTimeDiv;
+		}
+		[StructLayout(LayoutKind.Sequential)]
+		struct MidiPropTempo
+		{
+			public int cbStruct;
+			public int dwTempo;
+		}
 		/// <summary>
 		/// Represents MIDI output device capabilities.
 		/// </summary>
 		[StructLayout(LayoutKind.Sequential)]
-		internal struct MidiOutCaps
+		struct MidiOutCaps
 		{
 			#region MidiOutCaps Members
 
@@ -189,7 +257,7 @@
 		/// Represents MIDI input device capabilities.
 		/// </summary>
 		[StructLayout(LayoutKind.Sequential)]
-		internal struct MidiInCaps
+		struct MidiInCaps
 		{
 			#region MidiInCaps Members
 
@@ -224,9 +292,34 @@
 
 			#endregion
 		}
+		[StructLayout(LayoutKind.Sequential)]
+		struct MidiShortEvent
+		{
+			public int deltaTime;
+			public int streamId;
+			public int @event;
+		}
+		[StructLayout(LayoutKind.Explicit)]
+		struct MMTime
+		{
+			[FieldOffset(0)] public int wType;
+			[FieldOffset(4)] public int ms;
+			[FieldOffset(4)] public int sample;
+			[FieldOffset(4)] public int cb;
+			[FieldOffset(4)] public int ticks;
+			[FieldOffset(4)] public Byte smpteHour;
+			[FieldOffset(5)] public Byte smpteMin;
+			[FieldOffset(6)] public Byte smpteSec;
+			[FieldOffset(7)] public Byte smpteFrame;
+			[FieldOffset(8)] public Byte smpteFps;
+			[FieldOffset(9)] public Byte smpteDummy;
+			[FieldOffset(10)] public Byte pad0;
+			[FieldOffset(11)] public Byte pad1;
+			[FieldOffset(4)] public int midiSongPtrPos;
+		}
 		const int CALLBACK_FUNCTION = 196608;
-
+		const int MIDI_IO_STATUS = 32;
 		#endregion Win32
-		
+
 	}
 }

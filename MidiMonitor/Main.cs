@@ -1,8 +1,5 @@
 ﻿using M;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace MidiMonitor
@@ -17,9 +14,8 @@ namespace MidiMonitor
 			var inputs = MidiDevice.Inputs;
 
 			foreach(var input in inputs)
-			{
 				InputsComboBox.Items.Add(input);
-			}
+			
 			InputsComboBox.SelectedIndex = 0;
 		}
 
@@ -30,6 +26,7 @@ namespace MidiMonitor
 			_device = InputsComboBox.SelectedItem as MidiInputDevice;
 			_device.Input +=device_Input;
 			_device.Open();
+			_device.Start();
 		}
 
 		private void device_Input(object sender, MidiEventArgs args)

@@ -16,7 +16,7 @@ namespace M
 		/// </summary>
 		public static IList<MidiOutputDevice> Outputs {
 			get {
-				var count = MidiUtility.GetMidiOutputDeviceCount();
+				var count = MidiUtility.GetOutputDeviceCount();
 				var result = new List<MidiOutputDevice>(count);
 				for (var i = 0;i<count;++i)
 					result.Add(new MidiOutputDevice(i));
@@ -28,10 +28,24 @@ namespace M
 		/// </summary>
 		public static IList<MidiInputDevice> Inputs {
 			get {
-				var count = MidiUtility.GetMidiInputDeviceCount();
+				var count = MidiUtility.GetInputDeviceCount();
 				var result = new List<MidiInputDevice>(count);
 				for (var i = 0; i < count; ++i)
 					result.Add(new MidiInputDevice(i));
+				return result;
+			}
+		}
+		/// <summary>
+		/// Indicates the available MIDI streaming devices
+		/// </summary>
+		public static IList<MidiStream> Streams {
+			get {
+				var count = MidiUtility.GetInputDeviceCount();
+				var result = new List<MidiStream>(count);
+				for (var i = 0; i < count; ++i)
+				{
+					result.Add(new MidiStream(i));
+				}
 				return result;
 			}
 		}
@@ -127,7 +141,10 @@ namespace M
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The MIDI output device is not open.");
-			MidiUtility.Send(_handle, message);
+			if (0xF0 == (message.Status & 0xF0))
+				MidiUtility.SendLong(_handle, message);
+			else
+				MidiUtility.Send(_handle, message);
 		}
 	}
 	/// <summary>
@@ -214,11 +231,44 @@ namespace M
 				_handle = IntPtr.Zero;
 			}
 		}
-		
+		/// <summary>
+		/// Starts the MIDI input device
+		/// </summary>
+		public void Start()
+		{
+			if (IntPtr.Zero == _handle)
+				throw new InvalidOperationException("The MIDI input device is closed.");
+			MidiUtility.StartInput(_handle);
+		}
+		/// <summary>
+		/// Stops the MIDI input device
+		/// </summary>
+		public void Stop()
+		{
+			if (IntPtr.Zero == _handle)
+				throw new InvalidOperationException("The MIDI input device is closed.");
+			MidiUtility.StopInput(_handle);
+		}
+		/// <summary>
+		/// Resets the MIDI input device
+		/// </summary>
+		public void Reset()
+		{
+			if (IntPtr.Zero == _handle)
+				throw new InvalidOperationException("The MIDI input device is closed.");
+			MidiUtility.ResetInput(_handle);
+		}
 		void _MidiInProc(IntPtr handle, int msg, int instance, int param1, int param2)
 		{
-			var m = MidiUtility.UnpackMessage(msg);
-			Input?.Invoke(this, new MidiEventArgs(m));
+			const int MIM_DATA = 963;
+			switch (msg)
+			{
+				case MIM_DATA:
+					var m = MidiUtility.UnpackMessage(param1);
+					Input?.Invoke(this, new MidiEventArgs(m));
+					break;
+			}
+			
 		}
 	}
 }
