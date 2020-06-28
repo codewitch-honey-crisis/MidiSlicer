@@ -299,6 +299,8 @@ namespace M
 			{
 				if (MidiInputDeviceState.Started == _state)
 					Stop();
+				// flush any pending events
+				Reset();
 				var sz = Marshal.SizeOf(typeof(MIDIHDR));
 				var ptr = _inHeader.lpData;
 				_CheckOutResult(midiInUnprepareHeader(_handle, ref _inHeader, sz));

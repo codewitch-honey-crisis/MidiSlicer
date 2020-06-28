@@ -9,18 +9,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			// select the LoopBE device
-			using (var dev = MidiDevice.Outputs[1])
-			{
-				dev.Open();
-				var sysex = new MidiMessageSysex(0xF0, new byte[] { 1, 2, 3, 4, 5 });
-				// send sysex message
-				while (true)
-				{
-					dev.Send(sysex);
-					Thread.Sleep(100);
-				}
-			}
+			StreamingDemo();
 		}
 		static void StreamingDemo()
 		{
@@ -48,13 +37,12 @@ namespace scratch
 			var eventList = new List<MidiEvent>(EVENT_COUNT);
 			// just grab the first output stream
 			// should be the wavetable synth
-			using (var stm = MidiDevice.Streams[0])
+			using (var stm = MidiDevice.Streams[1])
 			{
 				// open the stream
 				stm.Open();
 				// start it
 				stm.Start();
-				stm.Volume = new MidiVolume(255, 255);
 				// first set the timebase
 				stm.TimeBase = mf.TimeBase;
 				
@@ -99,6 +87,21 @@ namespace scratch
 				Console.ReadKey();
 				// close the stream
 				stm.Close();
+			}
+		}
+		static void TestBrokenSysex()
+		{
+			// select the LoopBE device
+			using (var dev = MidiDevice.Outputs[1])
+			{
+				dev.Open();
+				var sysex = new MidiMessageSysex(0xF0, new byte[] { 1, 2, 3, 4, 5,0xE0 });
+				// send sysex message
+				while (true)
+				{
+					dev.Send(sysex);
+					Thread.Sleep(100);
+				}
 			}
 		}
 	}
