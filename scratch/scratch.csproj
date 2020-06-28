@@ -55,6 +55,9 @@
     <Content Include="Bohemian-Rhapsody-1.mid" />
     <Content Include="Feel_good_4beatsBass.mid" />
     <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
+    <Content Include="Peter-Gunn-1.mid" />
+    <Content Include="sabo_8.mid" />
+    <Content Include="THE BEASTIE BOYS.Sabotage.mid" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

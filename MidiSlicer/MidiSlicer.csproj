@@ -56,8 +56,23 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="A-Warm-Place.mid" />
+    <Content Include="Beethoven-Moonlight-Sonata.mid" />
+    <Content Include="Feel_good_4beatsBass.mid" />
     <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
+    <Content Include="moonlight_16.mid" />
+    <Content Include="moonlight_sonata.mid" />
+    <Content Include="moonlight_test.mid" />
+    <Content Include="Peter-Gunn-1.mid" />
+    <Content Include="sabo_8.mid" />
+    <Content Include="sabo_8_copy.mid" />
+    <Content Include="sabo_8_wdm.mid" />
     <Content Include="test.mid" />
+    <Content Include="test2.mid" />
+    <Content Include="test3.mid" />
+    <Content Include="test4.mid" />
+    <Content Include="test5.mid" />
+    <Content Include="THE BEASTIE BOYS.Sabotage.mid" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Midi\Midi.csproj">
