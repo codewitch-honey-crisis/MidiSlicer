@@ -176,6 +176,8 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiInStop(IntPtr handle);
 		[DllImport("winmm.dll")]
+		static extern int midiInReset(IntPtr handle);
+		[DllImport("winmm.dll")]
 		static extern int midiInAddBuffer(IntPtr handle, ref MIDIHDR lpMidiHeader, int wSize);
 		[DllImport("winmm.dll")]
 		static extern int midiInPrepareHeader(IntPtr handle, ref MIDIHDR lpMidiHeader, int wSize);
@@ -320,6 +322,15 @@ namespace M
 				throw new InvalidOperationException("The device is closed.");
 			_CheckOutResult(midiInStop(_handle));
 			_state = MidiInputDeviceState.Stopped;
+		}
+		/// <summary>
+		/// Resets the MIDI input device
+		/// </summary>
+		public void Reset()
+		{
+			if (IntPtr.Zero == _handle)
+				throw new InvalidOperationException("The device is closed.");
+			_CheckOutResult(midiInReset(_handle));
 		}
 		void _MidiInProc(IntPtr handle, int msg, int instance, int lparam, int wparam)
 		{
