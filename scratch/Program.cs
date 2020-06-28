@@ -95,6 +95,9 @@ namespace scratch
 		{
 			using (var dev = MidiDevice.Inputs[0])
 			{
+				// TODO: currently this doesn't let you
+				// change the tempo in the middle of recording
+
 				// match these two variables to your input rate
 				short timeBase = 480;
 				var microTempo = MidiUtility.TempoToMicroTempo(139.000217767008);
@@ -104,27 +107,46 @@ namespace scratch
 				// our seq for recording
 				var seq = new MidiSequence();
 				var pos = 0;
+				// set this to _PreciseUtcNowTicks in order
+				// to start recording now. Otherwise it will
+				// not record until the first message is 
+				// recieved:
 				var startTicks = 0L;
+
+				// recompute our timing based on current microTempo and timeBase
+				var ticksusec = microTempo / (double)timeBase;
+				var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+
+				// hook up the delegate
 				dev.Input += delegate (object s, MidiInputEventArgs ea)
 				{
+					// initialize start ticks with the current time in ticks
 					if (0 == startTicks)
 						startTicks = _PreciseUtcNowTicks;
-					var ticksusec = microTempo / (double)timeBase;
-					var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+					// compute our current MIDI ticks
 					var midiTicks = (int)Math.Round((_PreciseUtcNowTicks - startTicks) / tickspertick);
+
 					// HACK: technically the sequence isn't threadsafe but as long as this event
 					// is not reentrant and the MidiSequence isn't touched outside this it should
 					// be fine
 					seq.Events.Add(new MidiEvent(midiTicks - pos, ea.Message));
+					// this is to track our old position
+					// so we can compute deltas
 					pos = midiTicks;
 				};
+				// open the device
 				dev.Open();
+				// add our tempo to the beginning of track 0
 				tr0.Events.Add(new MidiEvent(0, new MidiMessageMetaTempo(microTempo)));
+				// start listening
 				dev.Start();
 				Console.Error.WriteLine("Recording started.");
+				// wait
 				Console.Error.WriteLine("Press any key to stop recording...");
 				Console.ReadKey();
+				// build a type 1 midi file and preview it
 				var mf = new MidiFile(1, timeBase);
+				// add both tracks
 				mf.Tracks.Add(tr0);
 				mf.Tracks.Add(seq);
 				mf.Preview();
