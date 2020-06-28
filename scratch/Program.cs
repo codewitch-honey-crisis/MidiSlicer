@@ -14,9 +14,9 @@ namespace scratch
 			// this replays the events in a loop
 			var mf = MidiFile
 			//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
-			//.ReadFrom(@"..\..\A-Warm-Place.mid");
+			.ReadFrom(@"..\..\A-Warm-Place.mid");
 			//.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid");
-			.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 
 			// we use 100 events, which should be safe and allow
 			// for some measure of SYSEX messages in the stream

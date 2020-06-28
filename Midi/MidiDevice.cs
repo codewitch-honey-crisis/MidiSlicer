@@ -111,6 +111,8 @@ namespace M
 		static extern int midiOutGetVolume(IntPtr handle, out int volume);
 		[DllImport("winmm.dll")]
 		static extern int midiOutSetVolume(IntPtr handle, int volume);
+		[DllImport("winmm.dll")]
+		static extern int midiOutReset(IntPtr handle);
 		
 		[StructLayout(LayoutKind.Sequential)]
 		struct MIDIHDR
@@ -276,6 +278,16 @@ namespace M
 				return new MidiStream(Index);
 			}
 		}
+		/// <summary>
+		/// Resets the MIDI output.
+		/// </summary>
+		/// <remarks>Terminates any sysex messages and sends note offs to all channels, as well as turning off the sustain controller for each channel</remarks>
+		public void Reset()
+		{
+			if (IntPtr.Zero == _handle)
+				throw new InvalidOperationException("The stream is closed.");
+			_CheckOutResult(midiOutReset(_handle));
+		}
 		static string _GetMidiOutErrorMessage(int errorCode)
 		{
 			var result = new StringBuilder(256);
@@ -288,27 +300,6 @@ namespace M
 			if (0 != errorCode)
 				throw new Exception(_GetMidiOutErrorMessage(errorCode));
 		}
+		
 	}
-	/// <summary>
-	/// Represents the arguments for an incoming MIDI event
-	/// </summary>
-#if MIDILIB
-	public
-#endif
-	sealed class MidiEventArgs : EventArgs
-	{
-		/// <summary>
-		/// Constructs a new MIDI event arguments instance
-		/// </summary>
-		/// <param name="message">The associated MIDI message</param>
-		public MidiEventArgs(MidiMessage message)
-		{
-			Message = message;
-		}
-		/// <summary>
-		/// Indicates the MIDI message associated with the event
-		/// </summary>
-		public MidiMessage Message { get;  }
-	}
-	
 }

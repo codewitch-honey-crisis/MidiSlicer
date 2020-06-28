@@ -82,6 +82,8 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiOutSetVolume(IntPtr handle, int volume);
 		[DllImport("winmm.dll")]
+		static extern int midiOutReset(IntPtr handle);
+		[DllImport("winmm.dll")]
 		static extern int midiOutGetErrorText(int errCode,
 		   StringBuilder message, int sizeOfMessage);
 
@@ -478,6 +480,16 @@ namespace M
 					_state = MidiStreamState.Paused;
 					break;
 			}
+		}
+		/// <summary>
+		/// Resets the MIDI output.
+		/// </summary>
+		/// <remarks>Terminates any sysex messages and sends note offs to all channels, as well as turning off the sustain controller for each channel</remarks>
+		public void Reset()
+		{
+			if (IntPtr.Zero == _handle)
+				throw new InvalidOperationException("The stream is closed.");
+			_CheckOutResult(midiOutReset(_handle));
 		}
 		/// <summary>
 		/// Indicates the position in ticks
