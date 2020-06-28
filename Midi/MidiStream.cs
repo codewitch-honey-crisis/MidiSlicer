@@ -78,6 +78,10 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiOutLongMsg(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
 		[DllImport("winmm.dll")]
+		static extern int midiOutGetVolume(IntPtr handle, out int volume);
+		[DllImport("winmm.dll")]
+		static extern int midiOutSetVolume(IntPtr handle, int volume);
+		[DllImport("winmm.dll")]
 		static extern int midiOutGetErrorText(int errCode,
 		   StringBuilder message, int sizeOfMessage);
 
@@ -636,6 +640,23 @@ namespace M
 				tb.cbStruct = Marshal.SizeOf(typeof(MIDIPROPTIMEDIV));
 				tb.dwTimeDiv = value;
 				_CheckOutResult(midiStreamProperty(_handle, ref tb, MIDIPROP_SET | MIDIPROP_TIMEDIV));
+			}
+		}
+		/// <summary>
+		/// Indicates the volume of the device
+		/// </summary>
+		public MidiVolume Volume {
+			get {
+				if (IntPtr.Zero == _handle)
+					throw new InvalidOperationException("The device is closed.");
+				int vol;
+				_CheckOutResult(midiOutGetVolume(_handle, out vol));
+				return new MidiVolume(unchecked((byte)(vol & 0xFF)), unchecked((byte)(vol >> 8)));
+			}
+			set {
+				if (IntPtr.Zero == _handle)
+					throw new InvalidOperationException("The device is closed.");
+				_CheckOutResult(midiOutSetVolume(_handle, value.Right << 8 | value.Left));
 			}
 		}
 		static string _GetMidiOutErrorMessage(int errorCode)

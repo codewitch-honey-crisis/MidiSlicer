@@ -61,6 +61,7 @@
     <Compile Include="MidiSmpteTime.cs" />
     <Compile Include="MidiTimeSignature.cs" />
     <Compile Include="MidiUtility.cs" />
+    <Compile Include="MidiVolume.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

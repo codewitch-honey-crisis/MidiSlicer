@@ -107,6 +107,11 @@ namespace M
 			IntPtr proc, int instance, int flags);
 		[DllImport("winmm.dll")]
 		static extern int midiOutClose(IntPtr handle);
+		[DllImport("winmm.dll")]
+		static extern int midiOutGetVolume(IntPtr handle, out int volume);
+		[DllImport("winmm.dll")]
+		static extern int midiOutSetVolume(IntPtr handle, int volume);
+		
 		[StructLayout(LayoutKind.Sequential)]
 		struct MIDIHDR
 		{
@@ -132,7 +137,7 @@ namespace M
 		{
 			public ushort wMid;
 			public ushort wPid;
-			public uint vDriverVersion;     //MMVERSION
+			public int vDriverVersion;     //MMVERSION
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
 			public string szPname;
 			public ushort wTechnology;
@@ -157,6 +162,31 @@ namespace M
 		/// Indicates the name of the MIDI output device
 		/// </summary>
 		public override string Name => _caps.szPname;
+		/// <summary>
+		/// Indicates the version of the driver associated with the device
+		/// </summary>
+		public Version Version {
+			get {
+				return new Version(_caps.vDriverVersion >> 16, _caps.vDriverVersion & 0xFFFF);
+			}
+		}
+		/// <summary>
+		/// Indicates the volume of the device
+		/// </summary>
+		public MidiVolume Volume {
+			get {
+				if (IntPtr.Zero == _handle)
+					throw new InvalidOperationException("The device is closed.");
+				int vol;
+				_CheckOutResult(midiOutGetVolume(_handle, out vol));
+				return new MidiVolume(unchecked((byte)(vol & 0xFF)), unchecked((byte)(vol >> 8)));
+			}
+			set {
+				if (IntPtr.Zero == _handle)
+					throw new InvalidOperationException("The device is closed.");
+				_CheckOutResult(midiOutSetVolume(_handle, value.Right<<8|value.Left));
+			}
+		}
 		/// <summary>
 		/// Indicates the device index of the MIDI output device
 		/// </summary>
