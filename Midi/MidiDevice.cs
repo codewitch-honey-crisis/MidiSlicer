@@ -257,6 +257,10 @@ namespace M
 		/// </summary>
 		public event MidiInputEventHandler Input;
 		/// <summary>
+		/// Raised when incoming messages occur
+		/// </summary>
+		public event MidiInputEventHandler Error;
+		/// <summary>
 		/// Indicates the state of the device
 		/// </summary>
 		public MidiInputDeviceState State => _state;
@@ -293,8 +297,8 @@ namespace M
 		{
 			if(MidiInputDeviceState.Closed!=_state)
 			{
-				//if (MidiInputDeviceState.Started == _state)
-				//	Stop();
+				if (MidiInputDeviceState.Started == _state)
+					Stop();
 				var sz = Marshal.SizeOf(typeof(MIDIHDR));
 				var ptr = _inHeader.lpData;
 				_CheckOutResult(midiInUnprepareHeader(_handle, ref _inHeader, sz));
@@ -345,23 +349,26 @@ namespace M
 				case MIM_DATA:
 					Input?.Invoke(this,new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), MidiUtility.UnpackMessage(lparam)));
 					break;
+				case MIM_ERROR:
+					Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), MidiUtility.UnpackMessage(lparam)));
+					break;
 				case MIM_LONGDATA:
+				case MIM_LONGERROR:
 					// Not tested because I can't get this to fire
 					var hdr = (MIDIHDR)Marshal.PtrToStructure(new IntPtr(lparam), typeof(MIDIHDR));
 					if (0 == hdr.dwBytesRecorded)
 						return; // no message
 					var status = Marshal.ReadByte(hdr.lpData, 0);
-					if (0xF0 != (status & 0xF0))
-						return; // not a sysex message - not sure what to do 
+					//if (0xF0 != (status & 0xF0))
+					//	return; // not a sysex message - not sure what to do 
 					var payload = new byte[hdr.dwBytesRecorded - 1];
 					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
-					Input?.Invoke(this,new MidiInputEventArgs(new TimeSpan(0,0,0,0,wparam), new MidiMessageSysex(status, payload)));
+					if(MIM_LONGDATA==msg)
+						Input?.Invoke(this,new MidiInputEventArgs(new TimeSpan(0,0,0,0,wparam), new MidiMessageSysex(status, payload)));
+					else
+						Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), new MidiMessageSysex(status, payload)));
 					break;
 				case MIM_MOREDATA:
-					break;
-				case MIM_ERROR:
-					break;
-				case MIM_LONGERROR:
 					break;
 				default:
 					break;
