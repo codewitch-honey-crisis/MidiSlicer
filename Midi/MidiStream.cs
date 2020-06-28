@@ -40,10 +40,10 @@ namespace M
 	class MidiStream : IDisposable
 	{
 		#region Win32
-		delegate void MIDIOUTPROC(IntPtr handle, int msg, int instance, int param1, int param2);
+		delegate void MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamOpen(ref IntPtr handle, ref int deviceID, int cMidi,
-			MIDIOUTPROC proc, int instance, int flags);
+			MidiOutProc proc, int instance, int flags);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamProperty(IntPtr handle, ref MIDIPROPTEMPO tempo, int dwProperty);
 		[DllImport("winmm.dll")]
@@ -167,7 +167,7 @@ namespace M
 
 		int _deviceIndex;
 		IntPtr _handle;
-		MIDIOUTPROC _callback;
+		MidiOutProc _callback;
 		IntPtr _headerBuffer;
 		IntPtr _eventBuffer;
 		MidiStreamState _state = MidiStreamState.Closed;
@@ -179,7 +179,7 @@ namespace M
 			_handle = IntPtr.Zero;
 			_headerBuffer= IntPtr.Zero;
 			_eventBuffer= IntPtr.Zero;
-			_callback = new MIDIOUTPROC(_MidiOutProc);
+			_callback = new MidiOutProc(_MidiOutProc);
 		}
 		/// <summary>
 		/// Raised when a Send() operation has completed. This only applies to sending MidiEvent items
