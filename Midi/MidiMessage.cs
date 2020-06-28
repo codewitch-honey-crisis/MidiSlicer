@@ -862,6 +862,19 @@
 		{
 			return new MidiMessageSysex(Status, Data);
 		}
+		/// <summary>
+		/// Returns a string representation of the message
+		/// </summary>
+		/// <returns>The string representation of the message</returns>
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+			sb.Append("Sysex: ");
+			sb.Append(Status.ToString("X2"));
+			for (var i = 0; i < Data.Length; i++)
+				sb.Append(Data[i].ToString("X2"));
+			return sb.ToString();
+		}
 	}
 	/// <summary>
 	/// Represents a MIDI note on message

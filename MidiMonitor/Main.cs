@@ -31,12 +31,22 @@ namespace MidiMonitor
 
 		private void device_Input(object sender, MidiInputEventArgs args)
 		{
-			MessagesTextBox.AppendText(args.Message.ToString()+Environment.NewLine);
+			try
+			{
+				Invoke(new Action(delegate () { MessagesTextBox.AppendText(args.Message.ToString() + Environment.NewLine); }));
+			}
+			catch
+			{
+
+			}
+			
 		}
 		protected override void OnClosed(EventArgs e)
 		{
-			if (null != _device)
-				_device.Close();
+			// for some reason Close() is freezing up
+			// or throwing on an invalid handle
+			//if (null != _device)
+			//	_device.Close();
 			base.OnClosed(e);
 		}
 	}

@@ -176,26 +176,37 @@ namespace MidiSlicer
 			// set up our send complete handler
 			stm.SendComplete += delegate (object s, EventArgs ea)
 			{
-				// clear the list	
-				eventList.Clear();
-				mf = _ProcessFile();
-				seq = MidiSequence.Merge(mf.Tracks);
-				len = seq.Events.Count;
-				// iterate through the next events
-				var next = pos + EVENT_COUNT;
-				for (; pos < next; ++pos)
+				try
 				{
-					// if it's past the end, loop it
-					if (len <= pos)
+					Invoke(new Action(delegate ()
 					{
-						pos = 0;
-						break;
-					}
-					// otherwise add the next event
-					eventList.Add(seq.Events[pos]);
+						// clear the list	
+						eventList.Clear();
+						mf = _ProcessFile();
+						seq = MidiSequence.Merge(mf.Tracks);
+						len = seq.Events.Count;
+						// iterate through the next events
+						var next = pos + EVENT_COUNT;
+						for (; pos < next; ++pos)
+						{
+							// if it's past the end, loop it
+							if (len <= pos)
+							{
+								pos = 0;
+								break;
+							}
+							// otherwise add the next event
+							eventList.Add(seq.Events[pos]);
+						}
+						// send the list of events
+						stm.Send(eventList);
+					}));
 				}
-				// send the list of events
-				stm.Send(eventList);
+				catch
+				{
+
+				}
+				
 			};
 			// add the first events
 			for (pos = 0; pos < EVENT_COUNT; ++pos)

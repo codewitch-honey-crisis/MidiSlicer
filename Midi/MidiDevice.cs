@@ -208,7 +208,7 @@ namespace M
 			_handle = IntPtr.Zero;
 			_callback = new MidiInProc(_MidiInProc);
 			_index = deviceIndex;
-			_state = MidiInputDeviceState.Stopped;
+			_state = MidiInputDeviceState.Closed;
 			_CheckOutResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
 		}
 		/// <summary>
@@ -245,8 +245,10 @@ namespace M
 		/// </summary>
 		public override void Close()
 		{
-			if(IntPtr.Zero!=_handle)
+			if(MidiInputDeviceState.Closed!=_state)
 			{
+				//if (MidiInputDeviceState.Started == _state)
+				//	Stop();
 				_CheckOutResult(midiInClose(_handle));
 				_state = MidiInputDeviceState.Closed;
 			}
