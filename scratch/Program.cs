@@ -38,7 +38,7 @@ namespace scratch
 			var eventList = new List<MidiEvent>(EVENT_COUNT);
 			// just grab the first output stream
 			// should be the wavetable synth
-			using (var stm = MidiDevice.Streams[0])
+			using (var stm = MidiDevice.Streams[1])
 			{
 				// open the stream
 				stm.Open();
@@ -84,10 +84,47 @@ namespace scratch
 				stm.Send(eventList);
 				
 				// loop until a key is pressed
-				Console.WriteLine("Press a key...");
+				Console.Error.WriteLine("Press any key to exit...");
 				Console.ReadKey();
 				// close the stream
 				stm.Close();
+			}
+		}
+		static void SendDemo()
+		{
+			// just grab the first output device
+			using(var dev = MidiDevice.Outputs[0])
+			{
+				// open the device
+				dev.Open();
+				// send a C5 major chord
+				dev.Send(new MidiMessageNoteOn("C5", 127, 0));
+				dev.Send(new MidiMessageNoteOn("E5", 127, 0));
+				dev.Send(new MidiMessageNoteOn("G5", 127, 0));
+				Console.Error.WriteLine("Press any key to exit...");
+				Console.ReadKey();
+				// note offs
+				dev.Send(new MidiMessageNoteOff("C5", 127, 0));
+				dev.Send(new MidiMessageNoteOff("E5", 127, 0));
+				dev.Send(new MidiMessageNoteOff("G5", 127, 0));
+			}
+		}
+		static void MonitorDemo()
+		{
+			// just grab the first input device
+			using(var dev = MidiDevice.Inputs[0])
+			{
+				Console.Error.WriteLine("Press any key to exit...");
+				// hook the input
+				dev.Input += delegate(object s,MidiInputEventArgs ea) {
+					Console.WriteLine(ea.Message);
+				};
+				// open the device
+				dev.Open();
+				// start capturing
+				dev.Start();
+				// wait for keypress
+				Console.ReadKey();
 			}
 		}
 		static void TestBrokenSysex()
