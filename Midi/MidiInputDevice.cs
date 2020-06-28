@@ -152,8 +152,10 @@ namespace M
 			_index = deviceIndex;
 			_state = MidiInputDeviceState.Closed;
 			_bufferSize = bufferSize;
+
 			_CheckOutResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
 		}
+		
 		/// <summary>
 		/// Raised when the device is opened
 		/// </summary>
@@ -275,6 +277,7 @@ namespace M
 		}
 		void _MidiInProc(IntPtr handle, int msg, int instance, int lparam, int wparam)
 		{
+
 			switch (msg)
 			{
 				case MIM_OPEN:
@@ -291,7 +294,7 @@ namespace M
 					break;
 				case MIM_LONGDATA:
 				case MIM_LONGERROR:
-					// Not tested because I can't get this to fire
+					// Semi tested, it has fired once but I can't get this to fire multiple times - not sure where the problem is
 					var hdr = (MIDIHDR)Marshal.PtrToStructure(new IntPtr(lparam), typeof(MIDIHDR));
 					if (0 == hdr.dwBytesRecorded)
 						return; // no message
@@ -301,9 +304,9 @@ namespace M
 					var payload = new byte[hdr.dwBytesRecorded - 1];
 					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
 					if (MIM_LONGDATA == msg)
-						Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), new MidiMessageSysex(status, payload)));
+						Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam),new MidiMessageSysex(status, payload)));
 					else
-						Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), new MidiMessageSysex(status, payload)));
+						Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam),new MidiMessageSysex(status, payload)));
 					break;
 				case MIM_MOREDATA:
 					break;

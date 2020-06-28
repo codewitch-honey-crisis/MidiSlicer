@@ -1,6 +1,7 @@
 ﻿using M;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace scratch
@@ -9,7 +10,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			TestBrokenSysex();
+			StreamingDemo();
 		}
 		static void StreamingDemo()
 		{
@@ -88,6 +89,45 @@ namespace scratch
 				Console.ReadKey();
 				// close the stream
 				stm.Close();
+			}
+		}
+		static void RecordingDemo()
+		{
+			using (var dev = MidiDevice.Inputs[0])
+			{
+				// match these two variables to your input rate
+				short timeBase = 480;
+				var microTempo = MidiUtility.TempoToMicroTempo(139.000217767008);
+
+				// track 0 - meta track for tempo info
+				var tr0 = new MidiSequence();
+				// our seq for recording
+				var seq = new MidiSequence();
+				var pos = 0;
+				var startTicks = 0L;
+				dev.Input += delegate (object s, MidiInputEventArgs ea)
+				{
+					if (0 == startTicks)
+						startTicks = _PreciseUtcNowTicks;
+					var ticksusec = microTempo / (double)timeBase;
+					var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+					var midiTicks = (int)Math.Round((_PreciseUtcNowTicks - startTicks) / tickspertick);
+					// HACK: technically the sequence isn't threadsafe but as long as this event
+					// is not reentrant and the MidiSequence isn't touched outside this it should
+					// be fine
+					seq.Events.Add(new MidiEvent(midiTicks - pos, ea.Message));
+					pos = midiTicks;
+				};
+				dev.Open();
+				tr0.Events.Add(new MidiEvent(0, new MidiMessageMetaTempo(microTempo)));
+				dev.Start();
+				Console.Error.WriteLine("Recording started.");
+				Console.Error.WriteLine("Press any key to stop recording...");
+				Console.ReadKey();
+				var mf = new MidiFile(1, timeBase);
+				mf.Tracks.Add(tr0);
+				mf.Tracks.Add(seq);
+				mf.Preview();
 			}
 		}
 		static void SendDemo()
@@ -169,6 +209,7 @@ namespace scratch
 				Console.ReadKey();
 			}
 		}
+
 		static void TestBrokenSysex()
 		{
 			// select the LoopBE device
@@ -182,6 +223,18 @@ namespace scratch
 					dev.Send(sysex);
 					Thread.Sleep(100);
 				}
+			}
+		}
+		#region Win32
+		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
+		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
+		#endregion
+		static long _PreciseUtcNowTicks {
+			get {
+				long filetime;
+				_GetSystemTimePreciseAsFileTime(out filetime);
+
+				return filetime + 504911232000000000;
 			}
 		}
 	}
