@@ -181,6 +181,7 @@ namespace M
 			_eventBuffer= IntPtr.Zero;
 			_callback = new MidiOutProc(_MidiOutProc);
 		}
+		
 		/// <summary>
 		/// Raised when a Send() operation has completed. This only applies to sending MidiEvent items
 		/// </summary>

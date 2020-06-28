@@ -1,6 +1,7 @@
 ﻿using M;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace scratch
 {
@@ -8,8 +9,23 @@ namespace scratch
 	{
 		static void Main()
 		{
+			// select the LoopBE device
+			using (var dev = MidiDevice.Outputs[1])
+			{
+				dev.Open();
+				var sysex = new MidiMessageSysex(0xF0, new byte[] { 1, 2, 3, 4, 5 });
+				// send sysex message
+				while (true)
+				{
+					dev.Send(sysex);
+					Thread.Sleep(100);
+				}
+			}
+		}
+		static void StreamingDemo()
+		{
 			// demonstrate streaming a midi file 100 events at a time
-			// this allows you to handle files with more than 64k
+			// this allows you to handle files with more than 64kb
 			// of in-memory events (not the same as "on disk" size)
 			// this replays the events in a loop
 			var mf = MidiFile

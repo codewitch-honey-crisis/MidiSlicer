@@ -175,7 +175,12 @@ namespace M
 		static extern int midiInStart(IntPtr handle);
 		[DllImport("winmm.dll")]
 		static extern int midiInStop(IntPtr handle);
-
+		[DllImport("winmm.dll")]
+		static extern int midiInAddBuffer(IntPtr handle, ref MIDIHDR lpMidiHeader, int wSize);
+		[DllImport("winmm.dll")]
+		static extern int midiInPrepareHeader(IntPtr handle, ref MIDIHDR lpMidiHeader, int wSize);
+		[DllImport("winmm.dll")]
+		static extern int midiInUnprepareHeader(IntPtr handle, ref MIDIHDR lpMidiHeader, int wSize);
 		[StructLayout(LayoutKind.Sequential)]
 		struct MIDIINCAPS
 		{
@@ -185,6 +190,26 @@ namespace M
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
 			public string szPname;
 			public uint dwSupport;
+		}
+		[StructLayout(LayoutKind.Sequential)]
+		struct MIDIHDR
+		{
+			public IntPtr lpData;          // offset  0- 3
+			public uint dwBufferLength;  // offset  4- 7
+			public uint dwBytesRecorded; // offset  8-11
+			public IntPtr dwUser;          // offset 12-15
+			public uint dwFlags;         // offset 16-19
+			public IntPtr lpNext;          // offset 20-23
+			public IntPtr reserved;        // offset 24-27
+			public uint dwOffset;        // offset 28-31
+			public IntPtr dwReserved0;
+			public IntPtr dwReserved1;
+			public IntPtr dwReserved2;
+			public IntPtr dwReserved3;
+			public IntPtr dwReserved4;
+			public IntPtr dwReserved5;
+			public IntPtr dwReserved6;
+			public IntPtr dwReserved7;
 		}
 		const int CALLBACK_FUNCTION = 196608;
 		const int MIM_OPEN = 961;
@@ -200,17 +225,31 @@ namespace M
 		readonly int _index;
 		MIDIINCAPS _caps;
 		IntPtr _handle;
+		MIDIHDR _inHeader;
+		int _bufferSize;
 		MidiInputDeviceState _state;
-		internal MidiInputDevice(int deviceIndex)
+		internal MidiInputDevice(int deviceIndex,int bufferSize=65536)
 		{
+			if (0 > bufferSize)
+				bufferSize = 65536;
 			if (0 > deviceIndex)
 				throw new ArgumentOutOfRangeException("deviceIndex");
 			_handle = IntPtr.Zero;
 			_callback = new MidiInProc(_MidiInProc);
 			_index = deviceIndex;
 			_state = MidiInputDeviceState.Closed;
+			_bufferSize = bufferSize;
 			_CheckOutResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
 		}
+		/// <summary>
+		/// Raised when the device is opened
+		/// </summary>
+		public event EventHandler Opened;
+		/// <summary>
+		/// Raised when the device is closed
+		/// </summary>
+		public event EventHandler Closed;
+
 		/// <summary>
 		/// Raised when incoming messages occur
 		/// </summary>
@@ -238,6 +277,11 @@ namespace M
 		{
 			Close();
 			_CheckOutResult(midiInOpen(out _handle, _index, _callback, 0, CALLBACK_FUNCTION));
+			var sz = Marshal.SizeOf(typeof(MIDIHDR));
+			_inHeader.dwBufferLength = _inHeader.dwBytesRecorded= unchecked((uint)_bufferSize);
+			_inHeader.lpData = Marshal.AllocHGlobal(_bufferSize);
+			_CheckOutResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
+			_CheckOutResult(midiInAddBuffer(_handle, ref _inHeader, sz));
 			_state = MidiInputDeviceState.Stopped;
 		}
 		/// <summary>
@@ -249,7 +293,11 @@ namespace M
 			{
 				//if (MidiInputDeviceState.Started == _state)
 				//	Stop();
+				var sz = Marshal.SizeOf(typeof(MIDIHDR));
+				var ptr = _inHeader.lpData;
+				_CheckOutResult(midiInUnprepareHeader(_handle, ref _inHeader, sz));
 				_CheckOutResult(midiInClose(_handle));
+				Marshal.FreeHGlobal(ptr);
 				_state = MidiInputDeviceState.Closed;
 			}
 		}
@@ -278,13 +326,25 @@ namespace M
 			switch(msg)
 			{
 				case MIM_OPEN:
+					Opened?.Invoke(this, EventArgs.Empty);
 					break;
 				case MIM_CLOSE:
+					Closed?.Invoke(this, EventArgs.Empty);
 					break;
 				case MIM_DATA:
 					Input?.Invoke(this,new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), MidiUtility.UnpackMessage(lparam)));
 					break;
 				case MIM_LONGDATA:
+					// Not tested because I can't get this to fire
+					var hdr = (MIDIHDR)Marshal.PtrToStructure(new IntPtr(lparam), typeof(MIDIHDR));
+					if (0 == hdr.dwBytesRecorded)
+						return; // no message
+					var status = Marshal.ReadByte(hdr.lpData, 0);
+					if (0xF0 != (status & 0xF0))
+						return; // not a sysex message - not sure what to do 
+					var payload = new byte[hdr.dwBytesRecorded - 1];
+					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
+					Input?.Invoke(this,new MidiInputEventArgs(new TimeSpan(0,0,0,0,wparam), new MidiMessageSysex(status, payload)));
 					break;
 				case MIM_MOREDATA:
 					break;
