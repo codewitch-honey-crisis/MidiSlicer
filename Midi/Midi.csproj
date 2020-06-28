@@ -53,9 +53,11 @@
     <Compile Include="MidiDevice.cs" />
     <Compile Include="MidiEvent.cs" />
     <Compile Include="MidiFile.cs" />
+    <Compile Include="MidiInputDevice.cs" />
     <Compile Include="MidiKeySignature.cs" />
     <Compile Include="MidiMessage.cs" />
     <Compile Include="MidiNote.cs" />
+    <Compile Include="MidiOutputDevice.cs" />
     <Compile Include="MidiStream.cs" />
     <Compile Include="MidiSequence.cs" />
     <Compile Include="MidiSmpteTime.cs" />

@@ -9,7 +9,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			StreamingDemo();
+			TestBrokenSysex();
 		}
 		static void StreamingDemo()
 		{
@@ -19,12 +19,11 @@ namespace scratch
 			// this replays the events in a loop
 			var mf = MidiFile
 			//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
-			//.ReadFrom(@"..\..\A-Warm-Place.mid");
+			.ReadFrom(@"..\..\A-Warm-Place.mid");
 			//.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid");
-			.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 			//.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
 			//.ReadFrom(@"..\..\Peter-Gunn-1.mid");
-			mf.Tempo = 160;
 			// we use 100 events, which should be safe and allow
 			// for some measure of SYSEX messages in the stream
 			// without bypassing the 64kb limit
@@ -110,6 +109,48 @@ namespace scratch
 				dev.Send(new MidiMessageNoteOff("G5", 127, 0));
 			}
 		}
+		static void DeviceListDemo()
+		{
+			Console.WriteLine("Output devices:");
+			Console.WriteLine();
+			foreach (var dev in MidiDevice.Outputs)
+			{
+				var kind = "";
+				switch (dev.Kind)
+				{
+					case MidiOutputDeviceKind.MidiPort:
+						kind = "MIDI Port";
+						break;
+					case MidiOutputDeviceKind.Synthesizer:
+						kind = "Synthesizer";
+						break;
+					case MidiOutputDeviceKind.SquareWaveSynthesizer:
+						kind = "Square wave synthesizer";
+						break;
+					case MidiOutputDeviceKind.FMSynthesizer:
+						kind = "FM synthesizer";
+						break;
+					case MidiOutputDeviceKind.WavetableSynthesizer:
+						kind = "Wavetable synthesizer";
+						break;
+					case MidiOutputDeviceKind.SoftwareSynthesizer:
+						kind = "Software synthesizer";
+						break;
+					case MidiOutputDeviceKind.MidiMapper:
+						kind = "MIDI Mapper";
+						break;
+				}
+				Console.WriteLine(dev.Name + " " + dev.Version + " " + kind);
+			}
+			Console.WriteLine();
+			Console.WriteLine();
+			Console.WriteLine("Input devices:");
+			Console.WriteLine();
+			foreach (var dev in MidiDevice.Inputs)
+			{
+				Console.WriteLine(dev.Name + " " + dev.Version);
+			}
+		}
 		static void MonitorDemo()
 		{
 			// just grab the first input device
@@ -134,7 +175,7 @@ namespace scratch
 			using (var dev = MidiDevice.Outputs[1])
 			{
 				dev.Open();
-				var sysex = new MidiMessageSysex(0xF0, new byte[] { 1, 2, 3, 4, 5,0xE0 });
+				var sysex = new MidiMessageSysex(0xF0, new byte[] { 1, 2, 3, 4, 5,0xF7 });
 				// send sysex message
 				while (true)
 				{
