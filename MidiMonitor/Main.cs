@@ -33,13 +33,16 @@ namespace MidiMonitor
 		{
 			try
 			{
-				Invoke(new Action(delegate () { MessagesTextBox.AppendText(args.Message.ToString() + Environment.NewLine); }));
+				Invoke(new Action(delegate () 
+				{ 
+					MessagesTextBox.AppendText(
+						args.Message.ToString() + 
+						Environment.NewLine);
+				}));
 			}
 			catch
 			{
-
 			}
-			
 		}
 		protected override void OnClosed(EventArgs e)
 		{

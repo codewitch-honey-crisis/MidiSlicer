@@ -21,9 +21,10 @@ namespace scratch
 			//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
 			//.ReadFrom(@"..\..\A-Warm-Place.mid");
 			//.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid");
-			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+			.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 			//.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
-			.ReadFrom(@"..\..\Peter-Gunn-1.mid");
+			//.ReadFrom(@"..\..\Peter-Gunn-1.mid");
+			mf.Tempo = 160;
 			// we use 100 events, which should be safe and allow
 			// for some measure of SYSEX messages in the stream
 			// without bypassing the 64kb limit
@@ -38,7 +39,7 @@ namespace scratch
 			var eventList = new List<MidiEvent>(EVENT_COUNT);
 			// just grab the first output stream
 			// should be the wavetable synth
-			using (var stm = MidiDevice.Streams[1])
+			using (var stm = MidiDevice.Streams[0])
 			{
 				// open the stream
 				stm.Open();

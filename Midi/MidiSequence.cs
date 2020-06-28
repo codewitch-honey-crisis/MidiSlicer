@@ -813,6 +813,38 @@
 				}
 				return 500000;
 			}
+			set {
+				var toRemove = -1;
+				var i = 0;
+				foreach (var e in AbsoluteEvents)
+				{
+					switch (e.Message.Status & 0xF0)
+					{
+						case 0x80:
+						case 0x90:
+							Events.Insert(0, new MidiEvent(0,new MidiMessageMetaTempo(value)));
+							return;
+					}
+					if (e.Message.Status == 0xFF)
+					{
+						var mm = e.Message as MidiMessageMeta;
+						if (0x51 == mm.Data1)
+						{
+
+							toRemove = i;
+							break;
+						}
+					}
+					++i;
+				}
+				if(-1==toRemove)
+				{
+					Events.Insert(0, new MidiEvent(0, new MidiMessageMetaTempo(value)));
+					return;
+				}
+				Events.RemoveAt(toRemove);
+				Events.Insert(toRemove, new MidiEvent(0, new MidiMessageMetaTempo(value)));
+			}
 		}
 		/// <summary>
 		/// Indicates all of the MicroTempos in the sequence
@@ -840,6 +872,9 @@
 		public double Tempo {
 			get {
 				return MidiUtility.MicroTempoToTempo(MicroTempo);
+			}
+			set {
+				MicroTempo = MidiUtility.TempoToMicroTempo(value);
 			}
 		}
 		/// <summary>

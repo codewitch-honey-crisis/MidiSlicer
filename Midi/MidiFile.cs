@@ -77,6 +77,12 @@
 				if (0 == Tracks.Count) return 500000;
 				return Tracks[0].MicroTempo;
 			}
+			set {
+				if (0 == Tracks.Count)
+					throw new InvalidOperationException("There are no tracks");
+				Tracks[0].MicroTempo = value;
+
+			}
 		}
 		/// <summary>
 		/// Indicates all of the MicroTempos of the MIDI file
@@ -95,6 +101,9 @@
 		public double Tempo {
 			get {
 				return MidiUtility.MicroTempoToTempo(MicroTempo);
+			}
+			set {
+				MicroTempo = MidiUtility.TempoToMicroTempo(value);
 			}
 		}
 		/// <summary>
