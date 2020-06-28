@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scratch", "scratch\scratch.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scratch_cpp", "scratch_cpp\scratch_cpp.vcxproj", "{E3D521FE-CA11-4D09-8012-694A90DEE229}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiMonitor", "MidiMonitor\MidiMonitor.csproj", "{55256B98-8D56-4607-8313-A6200D6339B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{E3D521FE-CA11-4D09-8012-694A90DEE229}.Release|x64.Build.0 = Release|x64
 		{E3D521FE-CA11-4D09-8012-694A90DEE229}.Release|x86.ActiveCfg = Release|Win32
 		{E3D521FE-CA11-4D09-8012-694A90DEE229}.Release|x86.Build.0 = Release|Win32
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Debug|x64.Build.0 = Debug|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Debug|x86.Build.0 = Debug|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Release|x64.ActiveCfg = Release|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Release|x64.Build.0 = Release|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Release|x86.ActiveCfg = Release|Any CPU
+		{55256B98-8D56-4607-8313-A6200D6339B3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
