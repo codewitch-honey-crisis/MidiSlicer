@@ -59,6 +59,19 @@ namespace FourByFour
 			_play = (OutputComboBox.SelectedItem as MidiOutputDevice).Stream;
 			var mf = _CreateMidiFile();
 			var stm = _play;
+			// we use 100 events, which should be safe and allow
+			// for some measure of SYSEX messages in the stream
+			// without bypassing the 64kb limit
+			const int EVENT_COUNT = 100;
+			// our current cursor pos
+			int pos = 0;
+			// merge our file for playback
+			var seq = MidiSequence.Merge(mf.Tracks);
+			// the number of events in the seq
+			int len = seq.Events.Count;
+			// stores the next set of events
+			var eventList = new List<MidiEvent>(EVENT_COUNT);
+
 			// open the stream
 			stm.Open();
 			// start it
@@ -70,17 +83,43 @@ namespace FourByFour
 			// set up our send complete handler
 			stm.SendComplete += delegate (object s, EventArgs ea)
 			{
-				Invoke(new Action(delegate ()
+				// clear the list	
+				eventList.Clear();
+				mf = _CreateMidiFile();
+				seq = MidiSequence.Merge(mf.Tracks);
+				len = seq.Events.Count;
+				// iterate through the next events
+				var next = pos + EVENT_COUNT;
+				for (; pos < next; ++pos)
 				{
-					mf = _CreateMidiFile();
-					stm.Send(MidiSequence.Merge(mf.Tracks).Events);
-				}));
-				
+					// if it's past the end, loop it
+					if (len <= pos)
+					{
+						pos = 0;
+						break;
+					}
+					// otherwise add the next event
+					eventList.Add(seq.Events[pos]);
+				}
+				// send the list of events
+				stm.Send(eventList);
 			};
-			stm.Send(MidiSequence.Merge(mf.Tracks).Events);
-			
+			// add the first events
+			for (pos = 0; pos < EVENT_COUNT; ++pos)
+			{
+				// if it's past the end, loop it
+				if (len <= pos)
+				{
+					pos = 0;
+					break;
+				}
+				// otherwise add the next event
+				eventList.Add(seq.Events[pos]);
+			}
+			// send the list of events
+			stm.Send(eventList);
 
-			
+
 		}
 
 		MidiFile _CreateMidiFile()
