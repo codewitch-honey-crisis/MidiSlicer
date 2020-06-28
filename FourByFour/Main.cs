@@ -14,8 +14,6 @@ namespace FourByFour
 {
 	public partial class Main : Form
 	{
-		AutoResetEvent _previewEvent;
-		Thread _previewThread;
 		MidiStream _play;
 		public Main()
 		{
@@ -43,12 +41,10 @@ namespace FourByFour
 
 		private void PlayButton_Click(object sender, EventArgs e)
 		{
-			if(null!=_previewThread)
+			if("Stop"==PlayButton.Text)
 			{
-				
-				_previewThread.Abort();
-				_previewThread.Join();
-				_previewThread = null;
+				if(null!=_play) // sanity check
+					_play.Close();
 				PlayButton.Text = "Play";
 				PatternComboBox.Enabled = true;
 				BarsUpDown.Enabled = true;
@@ -61,47 +57,30 @@ namespace FourByFour
 			PlayButton.Text = "Stop";
 
 			_play = (OutputComboBox.SelectedItem as MidiOutputDevice).Stream;
-			_play.SendComplete += delegate (object s, EventArgs ea)
+			var mf = _CreateMidiFile();
+			var stm = _play;
+			// open the stream
+			stm.Open();
+			// start it
+			stm.Start();
+
+			// first set the timebase
+			stm.TimeBase = mf.TimeBase;
+
+			// set up our send complete handler
+			stm.SendComplete += delegate (object s, EventArgs ea)
 			{
-				// wake the thread
-				_previewEvent.Set();
-			};
-			_previewEvent = new AutoResetEvent(false);
-			_previewThread = new Thread(() => {
-			_play.Open();
-			_play.Start();
-			try
-			{
-				MidiFile file = null;
-				while (true)
+				Invoke(new Action(delegate ()
 				{
-					if (null == file)
-					{
-							Invoke(new Action(delegate()
-							{
-								file = _CreateMidiFile();
-							}));
-							_play.TimeBase = file.TimeBase;
-						} else
-						{
-							Invoke(new Action(delegate ()
-							{
-								file = _CreateMidiFile();
-							}));
-						}
-							
-						_play.Send(MidiSequence.Merge(file.Tracks).Events);
-						_previewEvent.WaitOne();
-					}
-				}
-				finally
-				{
-					_play.Close();
-					_previewEvent.Close();
-				}
+					mf = _CreateMidiFile();
+					stm.Send(MidiSequence.Merge(mf.Tracks).Events);
+				}));
 				
-			});
-			_previewThread.Start();
+			};
+			stm.Send(MidiSequence.Merge(mf.Tracks).Events);
+			
+
+			
 		}
 
 		MidiFile _CreateMidiFile()
@@ -163,11 +142,9 @@ namespace FourByFour
 		}
 		protected override void OnClosing(CancelEventArgs e)
 		{
-			if(null!=_previewThread)
+			if(null!=_play && MidiStreamState.Closed!=_play.State)
 			{
-				_previewThread.Abort();
-				_previewThread.Join();
-				_previewThread = null;
+				_play.Close();
 			}
 		}
 

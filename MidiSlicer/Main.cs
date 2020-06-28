@@ -10,6 +10,7 @@ namespace MidiSlicer
 {
 	public partial class Main : Form
 	{
+		MidiStream _play;
 		MidiFile _file;
 		Thread _previewThread;
 		string _tracksLabelFormat;
@@ -134,46 +135,84 @@ namespace MidiSlicer
 		{
 			if("Stop"==PreviewButton.Text)
 			{
-				if (null != _previewThread)
+				if (null != _play)
 				{
-					_previewThread.Abort();
-					_previewThread.Join();
-					_previewThread = null;
+					_play.Close();
 				}
 				PreviewButton.Text = "Preview";
 				return;
 			}
 			
-			if (null != _previewThread)
+			if (null != _play)
 			{
-				_previewThread.Abort();
-				_previewThread.Join();
-				_previewThread = null;
+				_play.Close();
 			}
 			PreviewButton.Text = "Stop";
-			var f = _ProcessFile();
-#if DEBUG
-			if(System.Diagnostics.Debugger.IsAttached)
-				_DumpFile(f);
-#endif
-			var dev = OutputComboBox.SelectedItem as MidiOutputDevice;
-			_previewThread = new Thread(() => { f.Preview(dev,true); });
-			_previewThread.Start();
-		}
-#if DEBUG
-		void _DumpFile(MidiFile f)
-		{
-			for(var i = 0;i<f.Tracks.Count;++i)
+			var mf = _ProcessFile();
+
+			_play = (OutputComboBox.SelectedItem as MidiOutputDevice).Stream;
+			var stm = _play;
+			// we use 100 events, which should be safe and allow
+			// for some measure of SYSEX messages in the stream
+			// without bypassing the 64kb limit
+			const int EVENT_COUNT = 100;
+			// our current cursor pos
+			int pos = 0;
+			// merge our file for playback
+			var seq = MidiSequence.Merge(mf.Tracks);
+			// the number of events in the seq
+			int len = seq.Events.Count;
+			// stores the next set of events
+			var eventList = new List<MidiEvent>(EVENT_COUNT);
+			
+			// open the stream
+			stm.Open();
+			// start it
+			stm.Start();
+
+			// first set the timebase
+			stm.TimeBase = mf.TimeBase;
+
+			// set up our send complete handler
+			stm.SendComplete += delegate (object s, EventArgs ea)
 			{
-				System.Diagnostics.Debug.WriteLine("Track #" + i.ToString());
-				foreach(var ev in f.Tracks[i].AbsoluteEvents)
+				// clear the list	
+				eventList.Clear();
+				mf = _ProcessFile();
+				seq = MidiSequence.Merge(mf.Tracks);
+				len = seq.Events.Count;
+				// iterate through the next events
+				var next = pos + EVENT_COUNT;
+				for (; pos < next; ++pos)
 				{
-					System.Diagnostics.Debug.WriteLine(ev.Position.ToString() + ": " + ev.Message.ToString());
+					// if it's past the end, loop it
+					if (len <= pos)
+					{
+						pos = 0;
+						break;
+					}
+					// otherwise add the next event
+					eventList.Add(seq.Events[pos]);
 				}
-				System.Diagnostics.Debug.WriteLine("");
+				// send the list of events
+				stm.Send(eventList);
+			};
+			// add the first events
+			for (pos = 0; pos < EVENT_COUNT; ++pos)
+			{
+				// if it's past the end, loop it
+				if (len <= pos)
+				{
+					pos = 0;
+					break;
+				}
+				// otherwise add the next event
+				eventList.Add(seq.Events[pos]);
 			}
+			// send the list of events
+			stm.Send(eventList);
 		}
-#endif
+
 		protected override void OnClosing(CancelEventArgs e)
 		{
 			if (null != _previewThread)

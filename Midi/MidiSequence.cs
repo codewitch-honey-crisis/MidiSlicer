@@ -3,18 +3,33 @@
 
 	using System;
 	using System.Collections.Generic;
-	using System.IO;
-	/// <summary>
-	/// Represents a MIDI sequence
-	/// </summary>
-	/// <remarks>Each of these corresponds to one MIDI track</remarks>
+    using System.Diagnostics;
+    using System.IO;
+    using System.Runtime.InteropServices;
+
+    /// <summary>
+    /// Represents a MIDI sequence
+    /// </summary>
+    /// <remarks>Each of these corresponds to one MIDI track</remarks>
 #if MIDILIB
-	public
+    public
 #else
 	internal
 #endif
 	sealed partial class MidiSequence : ICloneable
 	{
+		#region Win32
+		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
+		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
+		#endregion
+		static long _PreciseUtcNowTicks {
+			get {
+				long filetime;
+				_GetSystemTimePreciseAsFileTime(out filetime);
+
+				return filetime + 504911232000000000;
+			}
+		}
 		/// <summary>
 		/// Creates a new MIDI sequence
 		/// </summary>
@@ -1065,7 +1080,7 @@
 					first = false;
 					var ticksusec = mt / (double)timeBase;
 					var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
-					var tickStart = MidiUtility.PreciseUtcNowTicks;
+					var tickStart = _PreciseUtcNowTicks;
 					var tickCurrent = tickStart;
 
 					var end = (long)(Length * tickspertick + tickStart);
@@ -1078,7 +1093,7 @@
 						var done = false;
 						while (!done && tickCurrent <= end)
 						{
-							tickCurrent = MidiUtility.PreciseUtcNowTicks;
+							tickCurrent = _PreciseUtcNowTicks;
 							var ce = (long)((tickCurrent - tickStart) / tickspertick);
 							while (!done && e.Current.Position <= ce)
 							{

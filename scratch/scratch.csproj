@@ -39,8 +39,6 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Test.cs" />
-    <Compile Include="Test2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -54,6 +52,7 @@
   <ItemGroup>
     <Content Include="A-Warm-Place.mid" />
     <Content Include="Beethoven-Moonlight-Sonata.mid" />
+    <Content Include="Bohemian-Rhapsody-1.mid" />
     <Content Include="Feel_good_4beatsBass.mid" />
     <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
   </ItemGroup>

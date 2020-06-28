@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
 
 namespace M
 {
@@ -11,36 +14,29 @@ namespace M
 #endif
 	abstract class MidiDevice : IDisposable
 	{
+		#region Win32
+		[DllImport("winmm.dll")]
+		static extern int midiOutGetNumDevs();
+		#endregion
 		/// <summary>
 		/// Indicates the available MIDI output devices
 		/// </summary>
 		public static IList<MidiOutputDevice> Outputs {
 			get {
-				var count = MidiUtility.GetOutputDeviceCount();
+				var count = midiOutGetNumDevs();
 				var result = new List<MidiOutputDevice>(count);
 				for (var i = 0;i<count;++i)
 					result.Add(new MidiOutputDevice(i));
 				return result;
 			}
 		}
-		/// <summary>
-		/// Indicates the available MIDI input devices
-		/// </summary>
-		public static IList<MidiInputDevice> Inputs {
-			get {
-				var count = MidiUtility.GetInputDeviceCount();
-				var result = new List<MidiInputDevice>(count);
-				for (var i = 0; i < count; ++i)
-					result.Add(new MidiInputDevice(i));
-				return result;
-			}
-		}
+		
 		/// <summary>
 		/// Indicates the available MIDI streaming devices
 		/// </summary>
 		public static IList<MidiStream> Streams {
 			get {
-				var count = MidiUtility.GetInputDeviceCount();
+				var count = midiOutGetNumDevs();
 				var result = new List<MidiStream>(count);
 				for (var i = 0; i < count; ++i)
 				{
@@ -91,19 +87,76 @@ namespace M
 #endif
 	sealed class MidiOutputDevice : MidiDevice
 	{
-		readonly string _name;
+		#region Win32
+		[DllImport("winmm.dll")]
+		static extern int midiOutGetDevCaps(int deviceIndex,
+			ref MIDIOUTCAPS caps, int uSize);
+		[DllImport("winmm.dll")]
+		static extern int midiOutGetErrorText(int errCode,
+		   StringBuilder message, int sizeOfMessage);
+		[DllImport("winmm.dll")]
+		static extern int midiOutShortMsg(IntPtr handle, int message);
+		[DllImport("winmm.dll")]
+		static extern int midiOutLongMsg(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
+		[DllImport("winmm.dll")]
+		static extern int midiOutPrepareHeader(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
+		[DllImport("winmm.dll")]
+		static extern int midiOutUnprepareHeader(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
+		[DllImport("winmm.dll")]
+		static extern int midiOutOpen(ref IntPtr handle, int deviceID,
+			IntPtr proc, int instance, int flags);
+		[DllImport("winmm.dll")]
+		static extern int midiOutClose(IntPtr handle);
+		[StructLayout(LayoutKind.Sequential)]
+		struct MIDIHDR
+		{
+			public IntPtr lpData;          // offset  0- 3
+			public uint dwBufferLength;  // offset  4- 7
+			public uint dwBytesRecorded; // offset  8-11
+			public IntPtr dwUser;          // offset 12-15
+			public uint dwFlags;         // offset 16-19
+			public IntPtr lpNext;          // offset 20-23
+			public IntPtr reserved;        // offset 24-27
+			public uint dwOffset;        // offset 28-31
+			public IntPtr dwReserved0;
+			public IntPtr dwReserved1;
+			public IntPtr dwReserved2;
+			public IntPtr dwReserved3;
+			public IntPtr dwReserved4;
+			public IntPtr dwReserved5;
+			public IntPtr dwReserved6;
+			public IntPtr dwReserved7;
+		}
+		[StructLayout(LayoutKind.Sequential)]
+		struct MIDIOUTCAPS
+		{
+			public ushort wMid;
+			public ushort wPid;
+			public uint vDriverVersion;     //MMVERSION
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+			public string szPname;
+			public ushort wTechnology;
+			public ushort wVoices;
+			public ushort wNotes;
+			public ushort wChannelMask;
+			public uint dwSupport;
+		}
+		const int MHDR_DONE = 1;
+		const int MHDR_PREPARED = 2;
+		#endregion
 		readonly int _index;
+		readonly MIDIOUTCAPS _caps;
 		IntPtr _handle;
 		internal MidiOutputDevice(int index)
 		{
 			_index = index;
-			_name = MidiUtility.GetOutputDeviceName(index);
+			_CheckOutResult(midiOutGetDevCaps(index, ref _caps, Marshal.SizeOf(typeof(MIDIOUTCAPS))));
 			_handle = IntPtr.Zero;
 		}
 		/// <summary>
 		/// Indicates the name of the MIDI output device
 		/// </summary>
-		public override string Name => _name;
+		public override string Name => _caps.szPname;
 		/// <summary>
 		/// Indicates the device index of the MIDI output device
 		/// </summary>
@@ -118,7 +171,7 @@ namespace M
 		public override void Open()
 		{
 			Close();
-			_handle = MidiUtility.OpenOutputDevice(Index);
+			_CheckOutResult(midiOutOpen(ref _handle, _index, IntPtr.Zero, 0, 0));
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("Unable to open MIDI output device");
 		}
@@ -129,22 +182,61 @@ namespace M
 		{
 			if(IntPtr.Zero !=_handle)
 			{
-				MidiUtility.CloseOutputDevice(_handle);
+				midiOutClose(_handle);
 				_handle = IntPtr.Zero;
 			}
 		}
 		/// <summary>
-		/// Sends a MIDI message to the device
+		/// Sends a message out immediately
 		/// </summary>
-		/// <param name="message"></param>
+		/// <param name="message">The message to send</param>
 		public void Send(MidiMessage message)
 		{
 			if (IntPtr.Zero == _handle)
-				throw new InvalidOperationException("The MIDI output device is not open.");
+				throw new InvalidOperationException("The device is closed.");
+			if (null == message)
+				throw new ArgumentNullException("message");
 			if (0xF0 == (message.Status & 0xF0))
-				MidiUtility.SendLong(_handle, message);
+			{
+				if (0xF != message.Channel)
+				{
+					var data = MidiUtility.ToMessageBytes(message);
+					if (null == data)
+						return;
+					if (data.Length > (64 * 1024))
+						throw new InvalidOperationException("The buffer cannot exceed 64k");
+
+					var hdrSize = Marshal.SizeOf(typeof(MIDIHDR));
+					var hdr = new MIDIHDR();
+					var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+					try
+					{
+						hdr.lpData = handle.AddrOfPinnedObject();
+						hdr.dwBufferLength = (uint)data.Length;
+						hdr.dwFlags = 0;
+						_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, hdrSize));
+						while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)
+						{
+							Thread.Sleep(1);
+						}
+						_CheckOutResult(midiOutLongMsg(_handle, ref hdr, hdrSize));
+						while ((hdr.dwFlags & MHDR_DONE) != MHDR_DONE)
+						{
+							Thread.Sleep(1);
+						}
+						_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, hdrSize));
+					}
+					finally
+					{
+						handle.Free();
+
+					}
+				}
+			}
 			else
-				MidiUtility.Send(_handle, message);
+			{
+				_CheckOutResult(midiOutShortMsg(_handle, MidiUtility.PackMessage(message)));
+			}
 		}
 		/// <summary>
 		/// Retrieves the MIDI stream associated with this output device
@@ -153,6 +245,18 @@ namespace M
 			get {
 				return new MidiStream(Index);
 			}
+		}
+		static string _GetMidiOutErrorMessage(int errorCode)
+		{
+			var result = new StringBuilder(256);
+			midiOutGetErrorText(errorCode, result, result.Capacity);
+			return result.ToString();
+		}
+		[System.Diagnostics.DebuggerNonUserCode()]
+		static void _CheckOutResult(int errorCode)
+		{
+			if (0 != errorCode)
+				throw new Exception(_GetMidiOutErrorMessage(errorCode));
 		}
 	}
 	/// <summary>
@@ -176,107 +280,5 @@ namespace M
 		/// </summary>
 		public MidiMessage Message { get;  }
 	}
-	/// <summary>
-	/// Represents the event handler delegate for incoming MIDI messages
-	/// </summary>
-	/// <param name="sender">The sending object</param>
-	/// <param name="args">A <see cref="MidiEventArgs"/> instance</param>
-#if MIDILIB
-	public
-#endif
-	delegate void MidiEventHandler(object sender, MidiEventArgs args);
-	/// <summary>
-	/// Represents a MIDI input device
-	/// </summary>
-#if MIDILIB
-	public
-#endif
-	sealed class MidiInputDevice : MidiDevice
-	{
-		readonly string _name;
-		readonly int _index;
-		IntPtr _handle;
-		/// <summary>
-		/// Indicates the event that handles incoming MIDI messages
-		/// </summary>
-		public event MidiEventHandler Input;
-		internal MidiInputDevice(int index)
-		{
-			_index = index;
-			_name = MidiUtility.GetInputDeviceName(index);
-			_handle = IntPtr.Zero;
-		}
-		/// <summary>
-		/// Indicates the name of the MIDI output device
-		/// </summary>
-		public override string Name => _name;
-		/// <summary>
-		/// Indicates the device index of the MIDI output device
-		/// </summary>
-		public override int Index => _index;
-		/// <summary>
-		/// Indicates whether or not this device is open
-		/// </summary>
-		public override bool IsOpen => IntPtr.Zero != _handle;
-		/// <summary>
-		/// Opens the MIDI input device
-		/// </summary>
-		public override void Open()
-		{
-			Close();
-			_handle = MidiUtility.OpenInputDevice(Index, _MidiInProc);
-			if (IntPtr.Zero == _handle)
-				throw new InvalidOperationException("Unable to open MIDI input device");
-		}
-		/// <summary>
-		/// Closes the MIDI input device
-		/// </summary>
-		public override void Close()
-		{
-			if (IntPtr.Zero != _handle)
-			{
-				MidiUtility.CloseInputDevice(_handle);
-				_handle = IntPtr.Zero;
-			}
-		}
-		/// <summary>
-		/// Starts the MIDI input device
-		/// </summary>
-		public void Start()
-		{
-			if (IntPtr.Zero == _handle)
-				throw new InvalidOperationException("The MIDI input device is closed.");
-			MidiUtility.StartInput(_handle);
-		}
-		/// <summary>
-		/// Stops the MIDI input device
-		/// </summary>
-		public void Stop()
-		{
-			if (IntPtr.Zero == _handle)
-				throw new InvalidOperationException("The MIDI input device is closed.");
-			MidiUtility.StopInput(_handle);
-		}
-		/// <summary>
-		/// Resets the MIDI input device
-		/// </summary>
-		public void Reset()
-		{
-			if (IntPtr.Zero == _handle)
-				throw new InvalidOperationException("The MIDI input device is closed.");
-			MidiUtility.ResetInput(_handle);
-		}
-		void _MidiInProc(IntPtr handle, int msg, int instance, int param1, int param2)
-		{
-			const int MIM_DATA = 963;
-			switch (msg)
-			{
-				case MIM_DATA:
-					var m = MidiUtility.UnpackMessage(param1);
-					Input?.Invoke(this, new MidiEventArgs(m));
-					break;
-			}
-			
-		}
-	}
+	
 }

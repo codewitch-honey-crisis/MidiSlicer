@@ -74,9 +74,6 @@
 		static extern int midiOutReset(IntPtr handle);
 
 		[DllImport("winmm.dll")]
-		static extern int midiOutShortMsg(IntPtr handle, int message);
-
-		[DllImport("winmm.dll")]
 		static extern int midiOutGetDevCaps(int deviceIndex,
 			ref MidiOutCaps caps, int sizeOfMidiOutCaps);
 
@@ -85,15 +82,15 @@
 
 
 		[DllImport("winmm.dll")]
-		static extern int midiOutOpen(ref IntPtr handle, int deviceID,
-			MidiOutProc proc, int instance, int flags);
-		[DllImport("winmm.dll")]
 		static extern int midiStreamOpen(ref IntPtr handle, ref int deviceID,int cMidi,
 			MidiOutProc proc, int instance, int flags);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamProperty(IntPtr handle, ref MidiPropTempo tempo, int dwProperty);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamProperty(IntPtr handle, ref MidiPropTimeDiv timeDiv, int dwProperty);
+		[DllImport("winmm.dll")]
+		static extern int midiOutOpen(ref IntPtr handle, int deviceID,
+			MidiOutProc proc, int instance, int flags);
 		[DllImport("winmm.dll")]
 		static extern int midiOutClose(IntPtr handle);
 		[DllImport("winmm.dll")]
@@ -111,6 +108,8 @@
 		static extern int midiStreamStop(IntPtr handle);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamPosition(IntPtr handle, ref MMTime lpMMTime, int uSize);
+		[DllImport("winmm.dll")]
+		static extern int midiOutShortMsg(IntPtr handle, int message);
 
 		[DllImport("winmm.dll")]
 		static extern int midiOutLongMsg(IntPtr hMidiOut, ref MidiHdr lpMidiOutHdr, int uSize);
