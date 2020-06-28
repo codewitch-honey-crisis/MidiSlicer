@@ -88,7 +88,7 @@ namespace M
 		   StringBuilder message, int sizeOfMessage);
 
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIHDR
+		private struct MIDIHDR
 		{
 			public IntPtr lpData;          // offset  0- 3
 			public uint dwBufferLength;  // offset  4- 7
@@ -108,19 +108,19 @@ namespace M
 			public IntPtr dwReserved7;
 		}
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIPROPTIMEDIV
+		private struct MIDIPROPTIMEDIV
 		{
 			public int cbStruct;
 			public int dwTimeDiv;
 		}
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIPROPTEMPO
+		private struct MIDIPROPTEMPO
 		{
 			public int cbStruct;
 			public int dwTempo;
 		}
 		[StructLayout(LayoutKind.Explicit)]
-		struct MMTIME
+		private struct MMTIME
 		{
 			[FieldOffset(0)] public int wType;
 			[FieldOffset(4)] public int ms;
@@ -138,7 +138,7 @@ namespace M
 			[FieldOffset(4)] public int midiSongPtrPos;
 		}
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIEVENT_SHORT
+		private struct MIDIEVENT_SHORT
 		{
 			public int dwDeltaTime;
 			public int dwStreamId;

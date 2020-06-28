@@ -184,7 +184,7 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiInUnprepareHeader(IntPtr handle, ref MIDIHDR lpMidiHeader, int wSize);
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIINCAPS
+		private struct MIDIINCAPS
 		{
 			public ushort wMid;
 			public ushort wPid;
@@ -194,7 +194,7 @@ namespace M
 			public uint dwSupport;
 		}
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIHDR
+		private struct MIDIHDR
 		{
 			public IntPtr lpData;          // offset  0- 3
 			public uint dwBufferLength;  // offset  4- 7
@@ -425,7 +425,7 @@ namespace M
 		static extern int midiOutReset(IntPtr handle);
 		
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIHDR
+		private struct MIDIHDR
 		{
 			public IntPtr lpData;          // offset  0- 3
 			public uint dwBufferLength;  // offset  4- 7
@@ -445,7 +445,7 @@ namespace M
 			public IntPtr dwReserved7;
 		}
 		[StructLayout(LayoutKind.Sequential)]
-		struct MIDIOUTCAPS
+		private struct MIDIOUTCAPS
 		{
 			public ushort wMid;
 			public ushort wPid;
