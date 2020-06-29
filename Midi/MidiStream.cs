@@ -206,6 +206,9 @@ namespace M
 		/// </summary>
 		public void Open()
 		{
+			if (IntPtr.Zero!= _handle)
+				throw new InvalidOperationException("The device is already open");
+			_eventBuffer = Marshal.AllocHGlobal(64 * 1024);
 			var di = _deviceIndex;
 			_CheckOutResult(midiStreamOpen(ref _handle, ref di, 1, _callback, 0, CALLBACK_FUNCTION));
 			_state = MidiStreamState.Paused;
@@ -216,8 +219,12 @@ namespace M
 		public void Close()
 		{
 			if (IntPtr.Zero != _handle) {
+				Stop();
+				Reset();
 				_CheckOutResult(midiStreamClose(_handle));
 				_handle = IntPtr.Zero;
+				Marshal.FreeHGlobal(_eventBuffer);
+				_eventBuffer = IntPtr.Zero;
 				GC.SuppressFinalize(this);
 				_nextSend = -1;
 				if(null!=_eventQueue)
@@ -265,7 +272,7 @@ namespace M
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
-			if (IntPtr.Zero != _eventBuffer)
+			if (IntPtr.Zero != _header.lpData)
 				throw new InvalidOperationException("The stream is busy playing.");
 			if (null == events)
 				throw new ArgumentNullException("events");
@@ -302,7 +309,7 @@ namespace M
 			}
 			if (64 * 1024 <= blockSize)
 				throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
-			IntPtr eventPointer = Marshal.AllocHGlobal(blockSize);
+			IntPtr eventPointer = _eventBuffer;
 			var ofs = 0;
 			var ptrOfs = 0;
 			foreach (var @event in events)
@@ -364,7 +371,7 @@ namespace M
 				}			
 			}
 			_header = default(MIDIHDR);
-			_header.lpData = eventPointer;
+			Interlocked.Exchange(ref _header.lpData, eventPointer);
 			_header.dwBufferLength = _header.dwBytesRecorded = unchecked((uint)blockSize);
 			_eventBuffer = eventPointer;
 			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
@@ -448,12 +455,10 @@ namespace M
 					break;
 				case MOM_DONE:
 
-					if (IntPtr.Zero != _eventBuffer)
+					if (IntPtr.Zero != _header.lpData)
 					{
 						_CheckOutResult(midiOutUnprepareHeader(_handle, ref _header, Marshal.SizeOf(typeof(MIDIHDR))));
-						IntPtr ptr = _eventBuffer;
-						_eventBuffer= IntPtr.Zero;
-						Marshal.FreeHGlobal(ptr);
+						Interlocked.Exchange(ref _header.lpData,IntPtr.Zero);
 					}
 
 					if(-1==_nextSend)
