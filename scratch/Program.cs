@@ -10,7 +10,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			SimpleStreamingDemo();
+			RecordingDemo();
 		}
 		static void SimpleStreamingDemo()
 		{
@@ -131,7 +131,7 @@ namespace scratch
 
 				// match these two variables to your input rate
 				short timeBase = 480;
-				var microTempo = MidiUtility.TempoToMicroTempo(139.000217767008);
+				var microTempo = MidiUtility.TempoToMicroTempo(120);
 
 				// track 0 - meta track for tempo info
 				var tr0 = new MidiSequence();
@@ -185,12 +185,38 @@ namespace scratch
 					idev.Stop();
 					idev.Reset();
 				}
-				// build a type 1 midi file and preview it
+				// build a type 1 midi file
 				var mf = new MidiFile(1, timeBase);
 				// add both tracks
 				mf.Tracks.Add(tr0);
 				mf.Tracks.Add(seq);
-				mf.Preview();
+
+				// now stream the file to the output
+				// just grab the first output stream
+				using (var stm = MidiDevice.Streams[0])
+				{
+					// open it
+					stm.Open();
+					// merge the tracks for playback
+					seq = MidiSequence.Merge(mf.Tracks);
+					// set the stream timebase
+					stm.TimeBase = mf.TimeBase;
+					// start the playback
+					stm.Start();
+					Console.Error.WriteLine("Press any key to exit...");
+					// if we weren't looping
+					// we wouldn't need to
+					// hook this:
+					stm.SendComplete += delegate (object s, EventArgs e)
+					{
+						// loop
+						stm.Send(seq.Events);
+					};
+					// kick things off
+					stm.Send(seq.Events);
+					// wait for exit
+					Console.ReadKey();
+				}
 			}
 		}
 		static void SendDemo()
