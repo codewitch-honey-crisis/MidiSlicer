@@ -102,7 +102,7 @@ namespace FourByFour
 					eventList.Add(seq.Events[pos]);
 				}
 				// send the list of events
-				stm.Send(eventList);
+				stm.SendDirect(eventList);
 			};
 			// add the first events
 			for (pos = 0; pos < EVENT_COUNT; ++pos)
@@ -117,7 +117,7 @@ namespace FourByFour
 				eventList.Add(seq.Events[pos]);
 			}
 			// send the list of events
-			stm.Send(eventList);
+			stm.SendDirect(eventList);
 
 
 		}

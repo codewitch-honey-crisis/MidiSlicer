@@ -259,10 +259,14 @@ namespace M
 					break;
 				_eventQueueBuffer.Add(_eventQueue.Current);
 			}
-			_Send(_eventQueueBuffer);
+			SendDirect(_eventQueueBuffer);
 		}
-		
-		void _Send(IEnumerable<MidiEvent> events)
+		/// <summary>
+		/// Sends events directly to the event queue without buffering
+		/// </summary>
+		/// <param name="events">The events to send</param>
+		/// <remarks>The total size of the events must be less than 64kb</remarks>
+		public void SendDirect(IEnumerable<MidiEvent> events)
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
@@ -479,7 +483,7 @@ namespace M
 							}
 							_eventQueueBuffer.Add(_eventQueue.Current);
 						}
-						_Send(_eventQueueBuffer);
+						SendDirect(_eventQueueBuffer);
 						if (done)
 							Interlocked.Exchange(ref _nextSend, -1);
 					}

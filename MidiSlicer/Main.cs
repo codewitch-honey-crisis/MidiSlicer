@@ -199,7 +199,7 @@ namespace MidiSlicer
 							eventList.Add(seq.Events[pos]);
 						}
 						// send the list of events
-						stm.Send(eventList);
+						stm.SendDirect(eventList);
 					}));
 				}
 				catch
@@ -221,7 +221,7 @@ namespace MidiSlicer
 				eventList.Add(seq.Events[pos]);
 			}
 			// send the list of events
-			stm.Send(eventList);
+			stm.SendDirect(eventList);
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
