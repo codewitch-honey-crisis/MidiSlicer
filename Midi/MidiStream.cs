@@ -49,9 +49,9 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiStreamProperty(IntPtr handle, ref MIDIPROPTIMEDIV timeDiv, int dwProperty);
 		[DllImport("winmm.dll")]
-		static extern int midiOutClose(IntPtr handle);
+		static extern int midiStreamOut(IntPtr handle, ref MIDIHDR lpMidiOutHdr, int uSize);
 		[DllImport("winmm.dll")]
-		static extern int midiStreamOut(IntPtr handle, IntPtr lpMidiOutHdr, int uSize);
+		static extern int midiOutClose(IntPtr handle);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamClose(IntPtr handle);
 		[DllImport("winmm.dll")]
@@ -65,12 +65,7 @@ namespace M
 		static extern int midiOutPrepareHeader(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
 		[DllImport("winmm.dll")]
 		static extern int midiOutUnprepareHeader(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
-
-		[DllImport("winmm.dll")]
-		static extern int midiOutPrepareHeader(IntPtr hMidiOut, IntPtr lpMidiOutHdr, int uSize);
-		[DllImport("winmm.dll")]
-		static extern int midiOutUnprepareHeader(IntPtr hMidiOut, IntPtr lpMidiOutHdr, int uSize);
-
+		
 		[DllImport("winmm.dll")]
 		static extern int midiStreamPosition(IntPtr handle, ref MMTIME lpMMTime, int uSize);
 		[DllImport("winmm.dll")]
@@ -168,7 +163,7 @@ namespace M
 		int _deviceIndex;
 		IntPtr _handle;
 		MidiOutProc _callback;
-		IntPtr _headerBuffer;
+		MIDIHDR _header;
 		IntPtr _eventBuffer;
 		int _eventBlockSize;
 		int _nextSend;
@@ -181,7 +176,7 @@ namespace M
 				throw new ArgumentOutOfRangeException("deviceIndex");
 			_deviceIndex = deviceIndex;
 			_handle = IntPtr.Zero;
-			_headerBuffer= IntPtr.Zero;
+			_header= default(MIDIHDR);
 			_eventBuffer= IntPtr.Zero;
 			_nextSend = -1;
 			_eventQueue = null;
@@ -270,7 +265,7 @@ namespace M
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
-			if (IntPtr.Zero != _headerBuffer)
+			if (IntPtr.Zero != _eventBuffer)
 				throw new InvalidOperationException("The stream is busy playing.");
 			if (null == events)
 				throw new ArgumentNullException("events");
@@ -368,16 +363,13 @@ namespace M
 					ofs = 0;
 				}			
 			}
-			MIDIHDR header = default(MIDIHDR);
-			header.lpData = eventPointer;
-			header.dwBufferLength = header.dwBytesRecorded = unchecked((uint)blockSize);
+			_header = default(MIDIHDR);
+			_header.lpData = eventPointer;
+			_header.dwBufferLength = _header.dwBytesRecorded = unchecked((uint)blockSize);
 			_eventBuffer = eventPointer;
 			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
-			var headerBuffer = Marshal.AllocHGlobal(headerSize);
-			Marshal.StructureToPtr(header, headerBuffer, false);
-			_headerBuffer = headerBuffer;
-			_CheckOutResult(midiOutPrepareHeader(_handle, headerBuffer, headerSize));
-			_CheckOutResult(midiStreamOut(_handle, headerBuffer, headerSize));
+			_CheckOutResult(midiOutPrepareHeader(_handle, ref _header, headerSize));
+			_CheckOutResult(midiStreamOut(_handle, ref _header, headerSize));
 
 		}
 		/// <summary>
@@ -456,13 +448,10 @@ namespace M
 					break;
 				case MOM_DONE:
 
-					if (IntPtr.Zero != _headerBuffer)
+					if (IntPtr.Zero != _eventBuffer)
 					{
-						var ptr = _headerBuffer;
-						_headerBuffer = IntPtr.Zero;
-						_CheckOutResult(midiOutUnprepareHeader(_handle, ptr, Marshal.SizeOf(typeof(MIDIHDR))));
-						Marshal.FreeHGlobal(ptr);
-						ptr = _eventBuffer;
+						_CheckOutResult(midiOutUnprepareHeader(_handle, ref _header, Marshal.SizeOf(typeof(MIDIHDR))));
+						IntPtr ptr = _eventBuffer;
 						_eventBuffer= IntPtr.Zero;
 						Marshal.FreeHGlobal(ptr);
 					}

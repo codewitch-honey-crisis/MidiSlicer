@@ -10,8 +10,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			var mf = MidiFile.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid");
-			Console.WriteLine(mf.Tracks[0].GetTimeAt(mf.Length+1000,mf.TimeBase));
+			SimpleStreamingDemo();
 		}
 		
 		static void SimpleStreamingDemo()
@@ -386,6 +385,33 @@ namespace scratch
 				}
 			}
 		}
+		static void TestTiming()
+		{
+			var mf = MidiFile.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid");
+			var seq = MidiSequence.Merge(mf.Tracks);
+			Console.WriteLine(mf.Duration);
+			var st = _PreciseUtcNowTicks;
+			var et = 0L;
+			using (var stm = MidiDevice.Streams[0])
+			{
+				stm.SendComplete += delegate (object s, EventArgs ea)
+				{
+					Interlocked.Exchange(ref et, _PreciseUtcNowTicks);
+				};
+				stm.Open();
+				stm.TimeBase = mf.TimeBase;
+				stm.Start();
+				stm.Send(seq.Events);
+				while (0 == et)
+				{
+					Thread.Sleep(1);
+				}
+
+			}
+
+			Console.WriteLine(new TimeSpan(et - st));
+		}
+
 		#region Win32
 		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
 		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
