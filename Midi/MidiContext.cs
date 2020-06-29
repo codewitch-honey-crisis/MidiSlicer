@@ -6,8 +6,6 @@
 	/// </summary>
 #if MIDILIB
 	public
-#else
-	internal
 #endif
 	sealed partial class MidiContext
 	{
@@ -24,9 +22,25 @@
 		/// </summary>
 		public byte ChannelPrefix { get; private set; }
 		/// <summary>
-		/// Indicates the microtempo for the current MIDI context
+		/// Indicates the micro tempo for the current MIDI context
 		/// </summary>
 		public int MicroTempo { get; private set; }
+		/// <summary>
+		/// Indicates the time base for the current MIDI context
+		/// </summary>
+		public short TimeBase { get; private set; }
+		/// <summary>
+		/// Indicates the number of MIDI ticks that have elapsed
+		/// </summary>
+		public int Ticks { get; private set; }
+		/// <summary>
+		/// Indicates the number of system ticks that have elapsed
+		/// </summary>
+		public long SystemTicks { get; private set; }
+		/// <summary>
+		/// Indicates the time of the current position
+		/// </summary>
+		public TimeSpan Time { get { return new TimeSpan(SystemTicks); } }
 		/// <summary>
 		/// Indicates the time signature for the current MIDI context
 		/// </summary>
@@ -39,20 +53,39 @@
 				result[i] = new Channel();
 			return result;
 		}
-
-		internal MidiContext()
+		/// <summary>
+		/// Constructs a new instance of a MidiContext
+		/// </summary>
+		/// <param name="timeBase">the time base to use</param>
+		public MidiContext(short timeBase = 96)
 		{
 			Channels=_InitChannels();
 			RunningStatus = 0;
 			ChannelPrefix = 0xFF;
-			MicroTempo = 0;
+			MicroTempo = 500000;
+			TimeBase = timeBase;
 			TimeSignature = MidiTimeSignature.Default;
+		}
+		/// <summary>
+		/// Processes an event 
+		/// </summary>
+		/// <param name="event">The event to process. The event.Message member can be null in which case the message part is not processed</param>
+		public void Process(MidiEvent @event) 
+		{
+			var delta = @event.Position;
+			// recompute our timing based on current microTempo and timeBase
+			var ticksusec = MicroTempo / (double)TimeBase;
+			var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+			Ticks += delta;
+			SystemTicks += unchecked((long)(delta * tickspertick));
+			if (null != @event.Message)
+				Process(@event.Message);
 		}
 		/// <summary>
 		/// Process a message, adjusting the MIDI context
 		/// </summary>
 		/// <param name="message">The message to process</param>
-		public void ProcessMessage(MidiMessage message)
+		public void Process(MidiMessage message)
 		{
 			var hasStatus = true;
 			if (0 != message.Status)
