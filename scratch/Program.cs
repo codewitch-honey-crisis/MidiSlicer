@@ -10,8 +10,9 @@ namespace scratch
 	{
 		static void Main()
 		{
-			RecordingDemo();
+			SimpleStreamingDemo();
 		}
+		
 		static void SimpleStreamingDemo()
 		{
 			// just grab the first output stream
@@ -122,7 +123,66 @@ namespace scratch
 				stm.Close();
 			}
 		}
-		static void RecordingDemo()
+		static void SimpleRecordingDemo()
+		{
+			MidiFile mf;
+			using (var idev = MidiDevice.Inputs[0])
+			{
+				using (var odev = MidiDevice.Outputs[0])
+				{
+					idev.Input += delegate (object s, MidiInputEventArgs e)
+					{
+						// this is so we can pass through and hear 
+						// our input while recording
+						odev.Send(e.Message);
+					};
+					// open the input
+					// and output
+					idev.Open();
+					odev.Open();
+					// start recording, waiting for input
+					idev.StartRecording(true);
+					// wait to end it
+					Console.Error.WriteLine("Press any key to stop recording...");
+					Console.ReadKey();
+					// get our MidiFile from this
+					mf = idev.EndRecording();
+					// the MIDI file is always two
+					// tracks, with the first track
+					// being the tempo map
+				}
+			}
+			// merge for playback
+			var seq = MidiSequence.Merge(mf.Tracks);
+
+			// now stream the file to the output
+			// just grab the first output stream
+			using (var stm = MidiDevice.Streams[0])
+			{
+				// open it
+				stm.Open();
+				// merge the tracks for playback
+				seq = MidiSequence.Merge(mf.Tracks);
+				// set the stream timebase
+				stm.TimeBase = mf.TimeBase;
+				// start the playback
+				stm.Start();
+				Console.Error.WriteLine("Press any key to exit...");
+				// if we weren't looping
+				// we wouldn't need to
+				// hook this:
+				stm.SendComplete += delegate (object s, EventArgs e)
+				{
+					// loop
+					stm.Send(seq.Events);
+				};
+				// kick things off
+				stm.Send(seq.Events);
+				// wait for exit
+				Console.ReadKey();
+			}
+		}
+		static void ComplexRecordingDemo()
 		{
 			using (var idev = MidiDevice.Inputs[0])
 			{
@@ -137,20 +197,18 @@ namespace scratch
 				var tr0 = new MidiSequence();
 				// our seq for recording
 				var seq = new MidiSequence();
+				// compute our timing based on current microTempo and timeBase
+				var ticksusec = microTempo / (double)timeBase;
+				var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+				var pos = 0;
+				// set this to _PreciseUtcNowTicks in order
+				// to start recording now. Otherwise it will
+				// not record until the first message is 
+				// recieved:
+				var startTicks = 0L;
 
 				using (var odev = MidiDevice.Outputs[0])
 				{
-					var pos = 0;
-					// set this to _PreciseUtcNowTicks in order
-					// to start recording now. Otherwise it will
-					// not record until the first message is 
-					// recieved:
-					var startTicks = 0L;
-
-					// recompute our timing based on current microTempo and timeBase
-					var ticksusec = microTempo / (double)timeBase;
-					var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
-
 					// hook up the delegate
 					idev.Input += delegate (object s, MidiInputEventArgs ea)
 					{
@@ -185,6 +243,19 @@ namespace scratch
 					idev.Stop();
 					idev.Reset();
 				}
+				
+				// create termination track
+				var endTrack = new MidiSequence();
+				var len = seq.Length;
+				// comment the following to terminate 
+				// without the trailing empty score:
+				len = unchecked((int)((_PreciseUtcNowTicks - startTicks) / tickspertick));
+				endTrack.Events.Add(new MidiEvent(len, new MidiMessageMetaEndOfTrack()));
+				
+				// terminate the tracks
+				tr0 = MidiSequence.Merge(tr0, endTrack);
+				seq = MidiSequence.Merge(seq, endTrack);
+				
 				// build a type 1 midi file
 				var mf = new MidiFile(1, timeBase);
 				// add both tracks
