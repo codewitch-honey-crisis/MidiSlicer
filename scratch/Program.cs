@@ -21,7 +21,7 @@ namespace scratch
 				// open it
 				stm.Open();
 				// read a MIDI file
-				var mf = MidiFile.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+				var mf = MidiFile.ReadFrom(@"..\..\A-Warm-Place.mid");
 				// merge the tracks for playback
 				var seq = MidiSequence.Merge(mf.Tracks);
 				// set the stream timebase

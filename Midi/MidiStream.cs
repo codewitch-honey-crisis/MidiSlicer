@@ -163,7 +163,7 @@ namespace M
 		int _deviceIndex;
 		IntPtr _handle;
 		MidiOutProc _callback;
-		MIDIHDR _header;
+		MIDIHDR _sendHeader;
 		IntPtr _eventBuffer;
 		int _eventBlockSize;
 		int _nextSend;
@@ -176,7 +176,7 @@ namespace M
 				throw new ArgumentOutOfRangeException("deviceIndex");
 			_deviceIndex = deviceIndex;
 			_handle = IntPtr.Zero;
-			_header= default(MIDIHDR);
+			_sendHeader= default(MIDIHDR);
 			_eventBuffer= IntPtr.Zero;
 			_nextSend = -1;
 			_eventQueue = null;
@@ -272,7 +272,7 @@ namespace M
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
-			if (IntPtr.Zero != _header.lpData)
+			if (IntPtr.Zero != _sendHeader.lpData)
 				throw new InvalidOperationException("The stream is busy playing.");
 			if (null == events)
 				throw new ArgumentNullException("events");
@@ -370,13 +370,13 @@ namespace M
 					ofs = 0;
 				}			
 			}
-			_header = default(MIDIHDR);
-			Interlocked.Exchange(ref _header.lpData, eventPointer);
-			_header.dwBufferLength = _header.dwBytesRecorded = unchecked((uint)blockSize);
+			_sendHeader = default(MIDIHDR);
+			Interlocked.Exchange(ref _sendHeader.lpData, eventPointer);
+			_sendHeader.dwBufferLength = _sendHeader.dwBytesRecorded = unchecked((uint)blockSize);
 			_eventBuffer = eventPointer;
 			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
-			_CheckOutResult(midiOutPrepareHeader(_handle, ref _header, headerSize));
-			_CheckOutResult(midiStreamOut(_handle, ref _header, headerSize));
+			_CheckOutResult(midiOutPrepareHeader(_handle, ref _sendHeader, headerSize));
+			_CheckOutResult(midiStreamOut(_handle, ref _sendHeader, headerSize));
 
 		}
 		/// <summary>
@@ -455,10 +455,10 @@ namespace M
 					break;
 				case MOM_DONE:
 
-					if (IntPtr.Zero != _header.lpData)
+					if (IntPtr.Zero != _sendHeader.lpData)
 					{
-						_CheckOutResult(midiOutUnprepareHeader(_handle, ref _header, Marshal.SizeOf(typeof(MIDIHDR))));
-						Interlocked.Exchange(ref _header.lpData,IntPtr.Zero);
+						_CheckOutResult(midiOutUnprepareHeader(_handle, ref _sendHeader, Marshal.SizeOf(typeof(MIDIHDR))));
+						Interlocked.Exchange(ref _sendHeader.lpData,IntPtr.Zero);
 					}
 
 					if(-1==_nextSend)
