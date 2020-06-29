@@ -10,16 +10,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			//SimpleStreamingDemo();
-			var mf = MidiFile.ReadFrom(@"..\..\Beethoven-Moonlight-Sonata.mid");
-			Console.WriteLine(mf.Duration+" "+mf.Length);
-			var ctx = MidiSequence.Merge(mf.Tracks).GetContext(mf.Length, mf.TimeBase);
-			Console.WriteLine(ctx.Time+" "+ctx.Ticks+" "+ctx.SystemTicks);
-			var se = _PreciseUtcNowTicks;
-			mf.Preview();
-			var ee = _PreciseUtcNowTicks - se;
-			Console.WriteLine(new TimeSpan(ee)+" "+(ee));
-			
+			SimpleStreamingDemo();
 		}
 		
 		static void SimpleStreamingDemo()
@@ -30,7 +21,7 @@ namespace scratch
 				// open it
 				stm.Open();
 				// read a MIDI file
-				var mf = MidiFile.ReadFrom(@"..\..\A-Warm-Place.mid");
+				var mf = MidiFile.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 				// merge the tracks for playback
 				var seq = MidiSequence.Merge(mf.Tracks);
 				// set the stream timebase

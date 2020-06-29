@@ -234,7 +234,7 @@ namespace M
 			}
 		}
 		/// <summary>
-		/// Sends a MIDI event to the stream
+		/// Sends MIDI events to the stream
 		/// </summary>
 		/// <param name="events">The events to send</param>
 		public void Send(params MidiEvent[] events)
@@ -276,37 +276,6 @@ namespace M
 				throw new ArgumentNullException("events");
 			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT_SHORT));
 			int blockSize = 0;
-			foreach (var @event in events)
-			{
-				if (0xF0 != (@event.Message.Status & 0xF0))
-				{
-					blockSize += baseEventSize;
-				}
-				else if (0xFF == @event.Message.Status)
-				{
-					var mm = @event.Message as MidiMessageMeta;
-					if (0x51 == mm.Data1) // tempo
-					{
-						blockSize += baseEventSize;
-					}
-					else if (0x2f == mm.Data1) // end track 
-					{
-						blockSize += baseEventSize;
-					}
-				}
-				else // sysex
-				{
-					var msx = @event.Message as MidiMessageSysex;
-					var dl = msx.Data.Length + 1;
-					if(0!=(dl%4))
-					{
-						dl += 4-(dl % 4);
-					}
-					blockSize += baseEventSize+dl;
-				}
-			}
-			if (64 * 1024 <= blockSize)
-				throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 			IntPtr eventPointer = _sendEventBuffer;
 			var ofs = 0;
 			var ptrOfs = 0;
@@ -314,6 +283,9 @@ namespace M
 			{
 				if (0xF0 != (@event.Message.Status & 0xF0))
 				{
+					blockSize += baseEventSize;
+					if (64 * 1024 <= blockSize)
+						throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 					var se = new MIDIEVENT_SHORT();
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
@@ -327,6 +299,10 @@ namespace M
 					var mm = @event.Message as MidiMessageMeta;
 					if (0x51 == mm.Data1) // tempo
 					{
+						blockSize += baseEventSize;
+						if (64 * 1024 <= blockSize)
+							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
+
 						var se = new MIDIEVENT_SHORT();
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
@@ -337,6 +313,10 @@ namespace M
 					}
 					else if (0x2f == mm.Data1) // end track 
 					{
+						blockSize += baseEventSize;
+						if (64 * 1024 <= blockSize)
+							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
+
 						// add a NOP message to it just to pad our output in case we're looping
 						var se = new MIDIEVENT_SHORT();
 						se.dwDeltaTime = @event.Position + ofs;
@@ -351,6 +331,15 @@ namespace M
 				else // sysex
 				{
 					var msx = @event.Message as MidiMessageSysex;
+					var dl = msx.Data.Length + 1;
+					if (0 != (dl % 4))
+					{
+						dl += 4 - (dl % 4);
+					}
+					blockSize += baseEventSize+dl;
+					if (64 * 1024 <= blockSize)
+						throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
+
 					var se = new MIDIEVENT_SHORT();
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
@@ -359,11 +348,7 @@ namespace M
 					ptrOfs += baseEventSize;
 					Marshal.WriteByte(new IntPtr(ptrOfs + (int)eventPointer), msx.Status);
 					Marshal.Copy(msx.Data,0,new IntPtr(ptrOfs + (int)eventPointer+1), msx.Data.Length);
-					var dl = msx.Data.Length + 1;
-					if (0 != (dl % 4))
-					{
-						dl += 4-(dl % 4);
-					}
+					
 					ptrOfs += dl;
 					ofs = 0;
 				}			
