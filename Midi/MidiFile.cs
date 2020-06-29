@@ -161,6 +161,38 @@
 			}
 		}
 		/// <summary>
+		/// Gets the system ticks for the passed in MIDI tick
+		/// </summary>
+		/// <param name="tick">The MIDI tick</param>
+		/// <returns>A system tick suitable for native timing in windows</returns>
+		public long GetSystemTicksAt(int tick)
+		{
+			if (0 == Tracks.Count)
+			{
+				var ms = new MidiSequence();
+				return ms.GetSystemTicksAt(tick, TimeBase);
+			}
+			return Tracks[0].GetSystemTicksAt(tick, TimeBase);
+		}
+		/// <summary>
+		/// Indicates the duration of the MIDI file as a <see cref="TimeSpan"/>
+		/// </summary>
+		public TimeSpan Duration {
+			get {
+				return GetTimeAt(Length);
+			}
+		}
+		/// <summary>
+		/// Gets the time at the specified tick location
+		/// </summary>
+		/// <param name="tick">The tick location within the file (track 0)</param>
+		/// <returns>A <see cref="TimeSpan"/> that indicates the time of the specified MIDI tick</returns>
+		/// <remarks>This is less accurate than necessary for things like editing where you need fractions of a millisecond. Use the GetSystemTicksAt() method to get a more accurate time.</remarks>
+		public TimeSpan GetTimeAt(int tick)
+		{
+			return new TimeSpan(GetSystemTicksAt(tick));
+		}
+		/// <summary>
 		/// Indicates the type of the MIDI file
 		/// </summary>
 		/// <remarks>This can be 0, 1 or 2</remarks>

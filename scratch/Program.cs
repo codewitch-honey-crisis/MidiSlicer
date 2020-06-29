@@ -10,7 +10,8 @@ namespace scratch
 	{
 		static void Main()
 		{
-			SimpleStreamingDemo();
+			var mf = MidiFile.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid");
+			Console.WriteLine(mf.Tracks[0].GetTimeAt(mf.Length+1000,mf.TimeBase));
 		}
 		
 		static void SimpleStreamingDemo()

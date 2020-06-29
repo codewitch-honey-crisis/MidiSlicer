@@ -42,6 +42,72 @@
 		/// </summary>
 		public IList<MidiEvent> Events { get; private set; }
 		/// <summary>
+		/// Gets the duration of the MIDI sequence
+		/// </summary>
+		/// <param name="timeBase">The time base to use</param>
+		/// <returns>The duration of the sequence as a <see cref="TimeSpan"/></returns>
+		public TimeSpan GetDuration(short timeBase=96)
+		{
+			return GetTimeAt(Length, timeBase);
+		}
+		/// <summary>
+		/// Retrieves the system tick count at the specified tick position
+		/// </summary>
+		/// <param name="tick">The tick position to convert to a system tick count</param>
+		/// <param name="timeBase">The time base to use</param>
+		/// <returns>The time, in system ticks.</returns>
+		public long GetSystemTicksAt(int tick,short timeBase=96)
+		{
+			var mt = 500000;
+			// recompute our timing based on current microTempo and timeBase
+			var ticksusec = mt / (double)timeBase;
+			var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+			var pos = 0;
+			var result = 0L;
+			for (var i = 0;i<Events.Count;++i)
+			{
+				var ev = Events[i];
+				if(0xFF==ev.Message.Status)
+				{
+					var mbs = ev.Message as MidiMessageMeta;
+					// tempo
+					if (0x51 == mbs.Data1)
+					{
+						if (BitConverter.IsLittleEndian)
+							mt = (mbs.Data[0] << 16) | (mbs.Data[1] << 8) | mbs.Data[2];
+						else
+							mt = (mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
+						ticksusec = mt / (double)timeBase;
+						tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+					}
+				}
+				var p = ev.Position;
+				var adv = unchecked((long)(p * tickspertick));
+				if (pos + p >= tick)
+				{
+					p -= (pos + p - tick);
+					adv = unchecked((long)(p * tickspertick));
+					result += adv;
+					return result;
+				}
+				result += adv;
+				pos += ev.Position;
+			}
+			result += unchecked((long)((tick - pos) * tickspertick));
+			return result;
+		}
+		/// <summary>
+		/// Gets the time at the specified tick location
+		/// </summary>
+		/// <param name="tick">The tick location within the sequence</param>
+		/// <param name="timeBase">The time base to use</param>
+		/// <returns>A <see cref="TimeSpan"/> that indicates the time of the specified MIDI tick</returns>
+		/// <remarks>This is less accurate than necessary for things like editing where you need fractions of a millisecond. Use the GetSystemTicksAt() method to get a more accurate time.</remarks>
+		public TimeSpan GetTimeAt(int tick,short timeBase =96)
+		{
+			return new TimeSpan(GetSystemTicksAt(tick,timeBase));
+		}
+		/// <summary>
 		/// Indicates the first downbeat of the MIDI sequence
 		/// </summary>
 		public int FirstDownBeat {
@@ -1096,7 +1162,7 @@
 		/// <param name="timeBase">The timebase to use, in pulses/ticks per quarter note</param>
 		/// <param name="device">The MIDI output device to use</param>
 		/// <param name="loop">Indicates whether to loop playback or not</param>
-		public void Preview(short timeBase = 480, MidiOutputDevice device = null,bool loop=false)
+		public void Preview(short timeBase = 96, MidiOutputDevice device = null,bool loop=false)
 		{
 			var isOpen = false;
 			if (null == device)
