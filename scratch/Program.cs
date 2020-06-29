@@ -10,7 +10,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			SimpleStreamingDemo();
+			TestSysex();
 		}
 		
 		static void SimpleStreamingDemo()
@@ -21,7 +21,7 @@ namespace scratch
 				// open it
 				stm.Open();
 				// read a MIDI file
-				var mf = MidiFile.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+				var mf = MidiFile.ReadFrom(@"..\..\Peter-Gunn-1.mid");
 				// merge the tracks for playback
 				var seq = MidiSequence.Merge(mf.Tracks);
 				// set the stream timebase
@@ -370,18 +370,19 @@ namespace scratch
 			}
 		}
 
-		static void TestBrokenSysex()
+		static void TestSysex()
 		{
 			// select the LoopBE device
 			using (var dev = MidiDevice.Outputs[1])
 			{
 				dev.Open();
 				var sysex = new MidiMessageSysex(0xF0, new byte[] { 1, 2, 3, 4, 5,0xF7 });
+				Console.Error.WriteLine("Press any key to exit...");
 				// send sysex message
-				while (true)
+				while (!Console.KeyAvailable)
 				{
 					dev.Send(sysex);
-					Thread.Sleep(100);
+					Thread.Sleep(50);
 				}
 			}
 		}

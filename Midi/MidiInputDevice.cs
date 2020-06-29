@@ -143,6 +143,7 @@ namespace M
 		MIDIINCAPS _caps;
 		IntPtr _handle;
 		MIDIHDR _inHeader;
+		IntPtr _buffer;
 		int _bufferSize;
 		long _recordingStart;
 		int _microTempo;
@@ -282,7 +283,7 @@ namespace M
 			_CheckOutResult(midiInOpen(out _handle, _index, _callback, 0, CALLBACK_FUNCTION));
 			var sz = Marshal.SizeOf(typeof(MIDIHDR));
 			_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = unchecked((uint)_bufferSize);
-			_inHeader.lpData = Marshal.AllocHGlobal(_bufferSize);
+			_inHeader.lpData = _buffer = Marshal.AllocHGlobal(_bufferSize);
 			_CheckOutResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
 			_CheckOutResult(midiInAddBuffer(_handle, ref _inHeader, sz));
 			_state = MidiInputDeviceState.Stopped;
@@ -425,6 +426,11 @@ namespace M
 					var payload = new byte[hdr.dwBytesRecorded - 1];
 					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
 					m = new MidiMessageSysex(status, payload);
+					var sz = Marshal.SizeOf(typeof(MIDIHDR));
+					_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = unchecked((uint)_bufferSize);
+					_inHeader.lpData = _buffer;
+					_CheckOutResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
+					_CheckOutResult(midiInAddBuffer(_handle, ref _inHeader, sz));
 					_ProcessRecording(m);
 					if (MIM_LONGDATA == msg)
 						Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam),m));
