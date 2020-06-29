@@ -10,9 +10,40 @@ namespace scratch
 	{
 		static void Main()
 		{
-			RecordingDemo();
+			SimpleStreamingDemo();
 		}
-		static void StreamingDemo()
+		static void SimpleStreamingDemo()
+		{
+			// just grab the first output stream
+			using (var stm = MidiDevice.Streams[0])
+			{
+				// open it
+				stm.Open();
+				// read a MIDI file
+				var mf = MidiFile.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+				// merge the tracks for playback
+				var seq = MidiSequence.Merge(mf.Tracks);
+				// set the stream timebase
+				stm.TimeBase = mf.TimeBase;
+				// start the playback
+				stm.Start();
+				Console.Error.WriteLine("Press any key to exit...");
+				// if we weren't looping
+				// we wouldn't need to
+				// hook this:
+				stm.SendComplete += delegate (object s, EventArgs e)
+				{
+					// loop
+					stm.Send(seq.Events);
+				};
+				// kick things okff
+				stm.Send(seq.Events);
+				// wait for exit
+				Console.ReadKey();
+
+			}
+		}
+		static void ComplexStreamingDemo()
 		{
 			// demonstrate streaming a midi file 100 events at a time
 			// this allows you to handle files with more than 64kb

@@ -164,12 +164,16 @@ namespace M
 		const int MEVT_F_LONG = unchecked((int)0x80000000);
 
 		#endregion
-
+		const int _DefaultEventBlockSize = 100;
 		int _deviceIndex;
 		IntPtr _handle;
 		MidiOutProc _callback;
 		IntPtr _headerBuffer;
 		IntPtr _eventBuffer;
+		int _eventBlockSize;
+		int _nextSend;
+		IEnumerator<MidiEvent> _eventQueue;
+		List<MidiEvent> _eventQueueBuffer;
 		MidiStreamState _state = MidiStreamState.Closed;
 		internal MidiStream(int deviceIndex)
 		{
@@ -179,6 +183,10 @@ namespace M
 			_handle = IntPtr.Zero;
 			_headerBuffer= IntPtr.Zero;
 			_eventBuffer= IntPtr.Zero;
+			_nextSend = -1;
+			_eventQueue = null;
+			_eventBlockSize = _DefaultEventBlockSize;
+			_eventQueueBuffer = new List<MidiEvent>(_DefaultEventBlockSize);
 			_callback = new MidiOutProc(_MidiOutProc);
 		}
 		
@@ -216,6 +224,12 @@ namespace M
 				_CheckOutResult(midiStreamClose(_handle));
 				_handle = IntPtr.Zero;
 				GC.SuppressFinalize(this);
+				_nextSend = -1;
+				if(null!=_eventQueue)
+				{
+					_eventQueue.Dispose();
+					_eventQueue = null;
+				}
 				_state = MidiStreamState.Closed;
 			}
 		}
@@ -229,7 +243,26 @@ namespace M
 		/// Sends a MIDI event to the stream
 		/// </summary>
 		/// <param name="events">The events to send</param>
-		public void Send(IEnumerable<MidiEvent> events)
+		/// <param name="eventBlockSize">The number of events to send to the device in each block</param>
+		public void Send(IEnumerable<MidiEvent> events, int eventBlockSize=_DefaultEventBlockSize)
+		{
+			if(-1!=_nextSend)
+			{
+				throw new InvalidOperationException("The device is already sending");
+			}
+			_eventBlockSize = eventBlockSize;
+			_eventQueueBuffer.Clear();
+			_eventQueue = events.GetEnumerator();
+			for(Interlocked.Exchange(ref _nextSend,0);_nextSend<eventBlockSize;Interlocked.Increment(ref _nextSend))
+			{
+				if (!_eventQueue.MoveNext())
+					break;
+				_eventQueueBuffer.Add(_eventQueue.Current);
+			}
+			_Send(_eventQueueBuffer);
+		}
+		
+		void _Send(IEnumerable<MidiEvent> events)
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
@@ -429,8 +462,27 @@ namespace M
 						_eventBuffer= IntPtr.Zero;
 						Marshal.FreeHGlobal(ptr);
 					}
-					SendComplete?.Invoke(this, EventArgs.Empty);
-					
+
+					if(-1==_nextSend)
+						SendComplete?.Invoke(this, EventArgs.Empty);
+					else
+					{
+						_eventQueueBuffer.Clear();
+						var ne = _nextSend + _eventBlockSize;
+						var done = false;
+						for(;_nextSend<ne;Interlocked.Increment(ref _nextSend))
+						{
+							if (!_eventQueue.MoveNext())
+							{
+								done = true;
+								break;
+							}
+							_eventQueueBuffer.Add(_eventQueue.Current);
+						}
+						_Send(_eventQueueBuffer);
+						if (done)
+							Interlocked.Exchange(ref _nextSend, -1);
+					}
 					break;
 				
 			}
@@ -464,6 +516,12 @@ namespace M
 				case MidiStreamState.Playing:
 					_CheckOutResult(midiStreamStop(_handle));
 					_state = MidiStreamState.Stopped;
+					_nextSend = -1;
+					if (null != _eventQueue)
+					{
+						_eventQueue.Dispose();
+						_eventQueue = null;
+					}
 					break;
 			}
 		}
