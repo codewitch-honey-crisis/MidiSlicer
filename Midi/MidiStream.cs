@@ -385,10 +385,9 @@ namespace M
 					var se = new MIDIEVENT();
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
-					se.dwEvent = MEVT_F_LONG | data.Length;//((0==@event.Message.Status)?data.Length:(data.Length-1));
+					se.dwEvent = MEVT_F_LONG | data.Length;
 					var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
 					CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
-					//Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
 					gch.Free();
 					ptrOfs += baseEventSize;
 					Marshal.Copy(data, 0, new IntPtr(ptrOfs + eventPointer.ToInt64()), data.Length);
@@ -408,6 +407,12 @@ namespace M
 				Interlocked.Exchange(ref _sendQueue, null);
 			}
 		}
+		/// <summary>
+		/// Sends events directly to the stream
+		/// </summary>
+		/// <param name="events">The events to send</param>
+		public void SendDirect(params MidiEvent[] events)
+			=> SendDirect((IEnumerable<MidiEvent>)events);
 		/// <summary>
 		/// Sends events directly to the event queue without buffering
 		/// </summary>
@@ -431,13 +436,13 @@ namespace M
 				if (0xF0 != (@event.Message.Status & 0xF0))
 				{
 					blockSize += baseEventSize;
-					if (64 * 1024 <= blockSize)
+					if (_SendBufferSize <= blockSize)
 						throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 					var se = new MIDIEVENT();
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
 					se.dwEvent = MidiUtility.PackMessage(@event.Message);
-					Marshal.StructureToPtr(se, new IntPtr(ptrOfs + (int)eventPointer), false);
+					Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
 					ptrOfs += baseEventSize;
 					ofs = 0;
 				}
@@ -447,21 +452,21 @@ namespace M
 					if (0x51 == mm.Data1) // tempo
 					{
 						blockSize += baseEventSize;
-						if (64 * 1024 <= blockSize)
+						if (_SendBufferSize <= blockSize)
 							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
 						var se = new MIDIEVENT();
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] | (MEVT_TEMPO << 24);
-						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + (int)eventPointer), false);
+						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
 						ptrOfs += baseEventSize;
 						ofs = 0;
 					}
 					else if (0x2f == mm.Data1) // end track 
 					{
 						blockSize += baseEventSize;
-						if (64 * 1024 <= blockSize)
+						if (_SendBufferSize <= blockSize)
 							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
 						// add a NOP message to it just to pad our output in case we're looping
@@ -469,7 +474,7 @@ namespace M
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = (MEVT_NOP << 24);
-						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + (int)eventPointer), false);
+						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
 						ptrOfs += baseEventSize;
 						ofs = 0;
 					} else
@@ -484,17 +489,17 @@ namespace M
 						dl += 4 - (dl % 4);
 					}
 					blockSize += baseEventSize+dl;
-					if (64 * 1024 <= blockSize)
+					if (_SendBufferSize <= blockSize)
 						throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
 					var se = new MIDIEVENT();
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
 					se.dwEvent = MEVT_F_LONG | (msx.Data.Length + 1);
-					Marshal.StructureToPtr(se, new IntPtr(ptrOfs + (int)eventPointer), false);
+					Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
 					ptrOfs += baseEventSize;
-					Marshal.WriteByte(new IntPtr(ptrOfs + (int)eventPointer), msx.Status);
-					Marshal.Copy(msx.Data,0,new IntPtr(ptrOfs + (int)eventPointer+1), msx.Data.Length);
+					Marshal.WriteByte(new IntPtr(ptrOfs + eventPointer.ToInt64()), msx.Status);
+					Marshal.Copy(msx.Data,0,new IntPtr(ptrOfs + eventPointer.ToInt64()+1), msx.Data.Length);
 					
 					ptrOfs += dl;
 					ofs = 0;
