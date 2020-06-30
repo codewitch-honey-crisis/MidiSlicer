@@ -41,7 +41,12 @@ namespace FourByFour
 
 		private void PlayButton_Click(object sender, EventArgs e)
 		{
-			if("Stop"==PlayButton.Text)
+			// we use 100 events, which should be safe and allow
+			// for some measure of SYSEX messages in the stream
+			// without bypassing the 64kb limit
+			const int MAX_EVENT_COUNT = 100;
+			const int RATE_TICKS = 100;
+			if ("Stop"==PlayButton.Text)
 			{
 				if(null!=_play) // sanity check
 					_play.Close();
@@ -65,6 +70,8 @@ namespace FourByFour
 			const int EVENT_COUNT = 100;
 			// our current cursor pos
 			int pos = 0;
+			// for tracking deltas
+			var ofs = 0;
 			// merge our file for playback
 			var seq = MidiSequence.Merge(mf.Tracks);
 			// the number of events in the seq
@@ -83,29 +90,46 @@ namespace FourByFour
 			// set up our send complete handler
 			stm.SendComplete += delegate (object s, EventArgs ea)
 			{
-				// clear the list	
-				eventList.Clear();
-				mf = _CreateMidiFile();
-				seq = MidiSequence.Merge(mf.Tracks);
-				len = seq.Events.Count;
-				// iterate through the next events
-				var next = pos + EVENT_COUNT;
-				for (; pos < next; ++pos)
+				try
 				{
-					// if it's past the end, loop it
-					if (len <= pos)
+					Invoke(new Action(delegate ()
 					{
-						pos = 0;
-						break;
-					}
-					// otherwise add the next event
-					eventList.Add(seq.Events[pos]);
+						// clear the list	
+						eventList.Clear();
+						mf = _CreateMidiFile();
+						seq = MidiSequence.Merge(mf.Tracks);
+						ofs = 0;
+						len = seq.Events.Count;
+						// iterate through the next events
+						var next = pos + MAX_EVENT_COUNT;
+						for (; pos < next && ofs <= RATE_TICKS; ++pos)
+
+						{
+							// if it's past the end, loop it
+							if (len <= pos)
+							{
+								pos = 0;
+								break;
+							}
+							var ev = seq.Events[pos];
+							ofs += ev.Position;
+							if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
+								break;
+							// otherwise add the next event
+							eventList.Add(ev);
+						}
+						// send the list of events
+						stm.SendDirect(eventList);
+					}));
 				}
-				// send the list of events
-				stm.SendDirect(eventList);
+				catch
+				{
+
+				}
+
 			};
 			// add the first events
-			for (pos = 0; pos < EVENT_COUNT; ++pos)
+			for (pos = 0; pos < MAX_EVENT_COUNT && ofs <= RATE_TICKS; ++pos)
 			{
 				// if it's past the end, loop it
 				if (len <= pos)
@@ -113,12 +137,15 @@ namespace FourByFour
 					pos = 0;
 					break;
 				}
+				var ev = seq.Events[pos];
+				ofs += ev.Position;
+				if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
+					break;
 				// otherwise add the next event
-				eventList.Add(seq.Events[pos]);
+				eventList.Add(ev);
 			}
 			// send the list of events
 			stm.SendDirect(eventList);
-
 
 		}
 

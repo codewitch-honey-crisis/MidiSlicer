@@ -155,15 +155,18 @@ namespace MidiSlicer
 			// we use 100 events, which should be safe and allow
 			// for some measure of SYSEX messages in the stream
 			// without bypassing the 64kb limit
-			const int EVENT_COUNT = 100;
+			const int MAX_EVENT_COUNT = 100;
+			const int RATE_TICKS = 100;
 			// our current cursor pos
-			int pos = 0;
+			var pos = 0;
+			// for tracking deltas
+			var ofs = 0;
 			// merge our file for playback
 			var seq = MidiSequence.Merge(mf.Tracks);
 			// the number of events in the seq
-			int len = seq.Events.Count;
+			var len = seq.Events.Count;
 			// stores the next set of events
-			var eventList = new List<MidiEvent>(EVENT_COUNT);
+			var eventList = new List<MidiEvent>(MAX_EVENT_COUNT);
 			
 			// open the stream
 			stm.Open();
@@ -184,10 +187,12 @@ namespace MidiSlicer
 						eventList.Clear();
 						mf = _ProcessFile();
 						seq = MidiSequence.Merge(mf.Tracks);
+						ofs = 0;
 						len = seq.Events.Count;
 						// iterate through the next events
-						var next = pos + EVENT_COUNT;
-						for (; pos < next; ++pos)
+						var next = pos + MAX_EVENT_COUNT;
+						for (; pos < next && ofs<=RATE_TICKS; ++pos)
+
 						{
 							// if it's past the end, loop it
 							if (len <= pos)
@@ -195,8 +200,12 @@ namespace MidiSlicer
 								pos = 0;
 								break;
 							}
+							var ev = seq.Events[pos];
+							ofs += ev.Position;
+							if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
+								break;
 							// otherwise add the next event
-							eventList.Add(seq.Events[pos]);
+							eventList.Add(ev);
 						}
 						// send the list of events
 						stm.SendDirect(eventList);
@@ -209,16 +218,20 @@ namespace MidiSlicer
 				
 			};
 			// add the first events
-			for (pos = 0; pos < EVENT_COUNT; ++pos)
+			for (pos = 0; pos < MAX_EVENT_COUNT && ofs<=RATE_TICKS; ++pos)
 			{
 				// if it's past the end, loop it
-				if (len <= pos)
+				if (len <= pos )
 				{
 					pos = 0;
 					break;
 				}
+				var ev = seq.Events[pos];
+				ofs += ev.Position;
+				if (ev.Position<RATE_TICKS && RATE_TICKS < ofs)
+					break;
 				// otherwise add the next event
-				eventList.Add(seq.Events[pos]);
+				eventList.Add(ev);
 			}
 			// send the list of events
 			stm.SendDirect(eventList);
