@@ -181,7 +181,7 @@ namespace MidiSlicer
 			{
 				try
 				{
-					Invoke(new Action(delegate ()
+					BeginInvoke(new Action(delegate ()
 					{
 						// clear the list	
 						eventList.Clear();
