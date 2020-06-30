@@ -45,7 +45,7 @@ namespace FourByFour
 			// for some measure of SYSEX messages in the stream
 			// without bypassing the 64kb limit
 			const int MAX_EVENT_COUNT = 100;
-			const int RATE_TICKS = 100;
+			const int RATE_TICKS = 500;
 			if ("Stop"==PlayButton.Text)
 			{
 				if(null!=_play) // sanity check
