@@ -452,13 +452,12 @@
 								
 								break;
 							case 0x0:
-							case 0x7:
 								if (i == -1) throw new EndOfStreamException();
 								l = _ReadVarlen(b,stream);
 								ba = new byte[l];
 								if (l != stream.Read(ba, 0, ba.Length))
 									throw new EndOfStreamException();
-								m = new MidiMessageSysex(st, ba);
+								m = new MidiMessageSysex(ba);
 								break;
 							case 0x2:
 								if (i == -1) throw new EndOfStreamException();
@@ -468,6 +467,7 @@
 								if (i == -1) throw new EndOfStreamException();
 								m = new MidiMessageByte(st, b);
 								break;
+							case 0x7:
 							case 0x6:
 							case 0x8:
 							case 0xA:

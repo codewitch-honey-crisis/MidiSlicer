@@ -40,6 +40,9 @@ namespace M
 	class MidiStream : IDisposable
 	{
 		#region Win32
+		[DllImport("kernel32.dll", SetLastError = false)]
+		static extern void CopyMemory(IntPtr dest, IntPtr src, int count);
+
 		delegate void MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamOpen(ref IntPtr handle, ref int deviceID, int cMidi,
@@ -131,7 +134,7 @@ namespace M
 			[FieldOffset(4)] public int midiSongPtrPos;
 		}
 		[StructLayout(LayoutKind.Sequential)]
-		private struct MIDIEVENT_SHORT
+		private struct MIDIEVENT
 		{
 			public int dwDeltaTime;
 			public int dwStreamId;
@@ -157,16 +160,15 @@ namespace M
 		const int MEVT_F_LONG = unchecked((int)0x80000000);
 
 		#endregion
+		const int _SendBufferSize = 64 * 1024 - 64;
+
 		const int _DefaultEventBlockSize = 100;
 		int _deviceIndex;
 		IntPtr _handle;
 		MidiOutProc _callback;
 		MIDIHDR _sendHeader;
 		IntPtr _sendEventBuffer;
-		int _sendEventBlockSize;
-		int _sendPosition;
 		IEnumerator<MidiEvent> _sendQueue;
-		List<MidiEvent> _sendQueueBuffer;
 		MidiStreamState _state = MidiStreamState.Closed;
 		internal MidiStream(int deviceIndex)
 		{
@@ -176,10 +178,7 @@ namespace M
 			_handle = IntPtr.Zero;
 			_sendHeader= default(MIDIHDR);
 			_sendEventBuffer= IntPtr.Zero;
-			_sendPosition = -1;
 			_sendQueue = null;
-			_sendEventBlockSize = _DefaultEventBlockSize;
-			_sendQueueBuffer = new List<MidiEvent>(_DefaultEventBlockSize);
 			_callback = new MidiOutProc(_MidiOutProc);
 		}
 		
@@ -224,7 +223,6 @@ namespace M
 				Marshal.FreeHGlobal(_sendEventBuffer);
 				_sendEventBuffer = IntPtr.Zero;
 				GC.SuppressFinalize(this);
-				_sendPosition = -1;
 				if(null!=_sendQueue)
 				{
 					_sendQueue.Dispose();
@@ -239,27 +237,176 @@ namespace M
 		/// <param name="events">The events to send</param>
 		public void Send(params MidiEvent[] events)
 			=> Send((IEnumerable<MidiEvent>)events);
+		
 		/// <summary>
 		/// Sends a MIDI event to the stream
 		/// </summary>
 		/// <param name="events">The events to send</param>
-		/// <param name="eventBlockSize">The number of events to send to the device in each block</param>
-		public void Send(IEnumerable<MidiEvent> events, int eventBlockSize=_DefaultEventBlockSize)
-		{
-			if(-1!=_sendPosition)
+		public void Send(IEnumerable<MidiEvent> events) {
+			if (null != _sendQueue)
 			{
 				throw new InvalidOperationException("The device is already sending");
 			}
-			_sendEventBlockSize = eventBlockSize;
-			_sendQueueBuffer.Clear();
-			_sendQueue = events.GetEnumerator();
-			for(Interlocked.Exchange(ref _sendPosition,0);_sendPosition<eventBlockSize;Interlocked.Increment(ref _sendPosition))
+			
+			var list = new List<MidiEvent>(128);
+			// break out sysex messages into parts
+			foreach(var @event in events)
 			{
-				if (!_sendQueue.MoveNext())
-					break;
-				_sendQueueBuffer.Add(_sendQueue.Current);
+				// sysex
+				if(0xF0==@event.Message.Status)
+				{
+					var data = (@event.Message as MidiMessageSysex).Data;
+					if (null == data)
+						return;
+					if (254 < data.Length)
+					{
+						var len = 254;
+						for (var i = 0; i < data.Length; i += len)
+						{
+							if (data.Length <= i + len)
+							{
+								len = data.Length - i;
+							}
+							var buf = new byte[len];
+							if (0 == i)
+							{
+								Array.Copy(data, 0, buf, 0, len);
+								list.Add(new MidiEvent(@event.Position, new MidiMessageSysex(buf)));
+							}
+							else
+							{
+								Array.Copy(data, i, buf, 0, len);
+								list.Add(new MidiEvent(@event.Position, new MidiMessageSysexPart(buf)));
+							}
+						}
+					}
+					else
+					{
+						list.Add(@event);
+					}
+				} else
+					list.Add(@event);
 			}
-			SendDirect(_sendQueueBuffer);
+			
+			var e = list.GetEnumerator();
+			Interlocked.Exchange(ref _sendQueue , e);
+			//_sendQueue = e;
+			_SendBlock(true);
+		}
+		void _SendBlock(bool first)
+		{
+			if (null == _sendQueue)
+				return;
+			if (IntPtr.Zero == _handle)
+				throw new InvalidOperationException("The stream is closed.");
+			
+			if (IntPtr.Zero != Interlocked.CompareExchange(ref _sendHeader.lpData, _sendEventBuffer, IntPtr.Zero))
+				throw new InvalidOperationException("The stream is busy playing.");
+			// short circuit if empty, otherwise prime:
+			if (first && !_sendQueue.MoveNext())
+			{
+				Interlocked.Exchange(ref _sendHeader.lpData, IntPtr.Zero); 
+				Interlocked.Exchange(ref _sendQueue, null);
+				return;
+			}
+			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT));
+			int blockSize = 0;
+			IntPtr eventPointer = _sendEventBuffer;
+			var ofs = 0;
+			var ptrOfs = 0;
+			var done = false;
+			do
+			{
+				var @event = _sendQueue.Current;
+				if (0x00 != @event.Message.Status && 0xF0 != (@event.Message.Status & 0xF0))
+				{
+					if (_SendBufferSize < blockSize+baseEventSize)
+						break;
+					blockSize += baseEventSize;
+					var se = new MIDIEVENT();
+					se.dwDeltaTime = @event.Position + ofs;
+					se.dwStreamId = 0;
+					se.dwEvent = MidiUtility.PackMessage(@event.Message);
+					Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+					ptrOfs += baseEventSize;
+					ofs = 0;
+				}
+				else if (0xFF == @event.Message.Status)
+				{
+					var mm = @event.Message as MidiMessageMeta;
+					if (0x51 == mm.Data1) // tempo
+					{
+						if (_SendBufferSize < blockSize+baseEventSize)
+							break;
+						blockSize += baseEventSize;
+						var se = new MIDIEVENT();
+						se.dwDeltaTime = @event.Position + ofs;
+						se.dwStreamId = 0;
+						se.dwEvent = (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] | (MEVT_TEMPO << 24);
+						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+						ptrOfs += baseEventSize;
+						ofs = 0;
+					}
+					else if (0x2f == mm.Data1) // end track 
+					{
+						if (_SendBufferSize < blockSize+baseEventSize)
+							break;
+						blockSize += baseEventSize;
+						
+						// add a NOP message to it just to pad our output in case we're looping
+						var se = new MIDIEVENT();
+						se.dwDeltaTime = @event.Position + ofs;
+						se.dwStreamId = 0;
+						se.dwEvent = (MEVT_NOP << 24);
+						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+						ptrOfs += baseEventSize;
+						ofs = 0;
+					}
+					else
+						ofs = @event.Position;
+				}
+				else // sysex or sysex part
+				{
+					byte[] data;
+					if (0 == @event.Message.Status)
+						data = (@event.Message as MidiMessageSysexPart).Data;
+					else
+						data = MidiUtility.ToMessageBytes(@event.Message);
+
+
+					var dl = data.Length;
+					if (0 != (dl % 4))
+						dl += 4 - (dl % 4);
+					if (_SendBufferSize < blockSize+baseEventSize+dl)
+						break;
+
+					blockSize += baseEventSize + dl;
+					
+					var se = new MIDIEVENT();
+					se.dwDeltaTime = @event.Position + ofs;
+					se.dwStreamId = 0;
+					se.dwEvent = MEVT_F_LONG | data.Length;//((0==@event.Message.Status)?data.Length:(data.Length-1));
+					var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
+					CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
+					//Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+					gch.Free();
+					ptrOfs += baseEventSize;
+					Marshal.Copy(data, 0, new IntPtr(ptrOfs + eventPointer.ToInt64()), data.Length);
+
+					ptrOfs += dl;
+					ofs = 0;
+				}
+			} while (false==(done=!_sendQueue.MoveNext()));
+			_sendHeader = default(MIDIHDR);
+			_sendHeader.dwBufferLength = _sendHeader.dwBytesRecorded = unchecked((uint)blockSize);
+			_sendHeader.lpData = _sendEventBuffer;
+			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
+			_CheckOutResult(midiOutPrepareHeader(_handle, ref _sendHeader, headerSize));
+			_CheckOutResult(midiStreamOut(_handle, ref _sendHeader, headerSize));
+			if (done)
+			{
+				Interlocked.Exchange(ref _sendQueue, null);
+			}
 		}
 		/// <summary>
 		/// Sends events directly to the event queue without buffering
@@ -268,13 +415,13 @@ namespace M
 		/// <remarks>The total size of the events must be less than 64kb</remarks>
 		public void SendDirect(IEnumerable<MidiEvent> events)
 		{
+			if (null == events)
+				throw new ArgumentNullException("events");
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
 			if (IntPtr.Zero != _sendHeader.lpData)
 				throw new InvalidOperationException("The stream is busy playing.");
-			if (null == events)
-				throw new ArgumentNullException("events");
-			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT_SHORT));
+			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT));
 			int blockSize = 0;
 			IntPtr eventPointer = _sendEventBuffer;
 			var ofs = 0;
@@ -286,7 +433,7 @@ namespace M
 					blockSize += baseEventSize;
 					if (64 * 1024 <= blockSize)
 						throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
-					var se = new MIDIEVENT_SHORT();
+					var se = new MIDIEVENT();
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
 					se.dwEvent = MidiUtility.PackMessage(@event.Message);
@@ -303,7 +450,7 @@ namespace M
 						if (64 * 1024 <= blockSize)
 							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
-						var se = new MIDIEVENT_SHORT();
+						var se = new MIDIEVENT();
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] | (MEVT_TEMPO << 24);
@@ -318,7 +465,7 @@ namespace M
 							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
 						// add a NOP message to it just to pad our output in case we're looping
-						var se = new MIDIEVENT_SHORT();
+						var se = new MIDIEVENT();
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = (MEVT_NOP << 24);
@@ -340,7 +487,7 @@ namespace M
 					if (64 * 1024 <= blockSize)
 						throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
-					var se = new MIDIEVENT_SHORT();
+					var se = new MIDIEVENT();
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
 					se.dwEvent = MEVT_F_LONG | (msx.Data.Length + 1);
@@ -379,34 +526,21 @@ namespace M
 					var data = MidiUtility.ToMessageBytes(message);
 					if (null == data)
 						return;
-					if (data.Length > (64 * 1024))
-						throw new InvalidOperationException("The buffer cannot exceed 64k");
-
-					var hdrSize = Marshal.SizeOf(typeof(MIDIHDR));
-					var hdr = new MIDIHDR();
-					var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-					try
+					if (254 < data.Length)
 					{
-						hdr.lpData = handle.AddrOfPinnedObject();
-						hdr.dwBufferLength = (uint)data.Length;
-						hdr.dwFlags = 0;
-						_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, hdrSize));
-						while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)
+						var len = 254;
+						for (var i = 0; i < data.Length; i += len)
 						{
-							Thread.Sleep(1);
-						}
-						_CheckOutResult(midiOutLongMsg(_handle, ref hdr, hdrSize));
-						while ((hdr.dwFlags & MHDR_DONE) != MHDR_DONE)
-						{
-							Thread.Sleep(1);
-						}
-						_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, hdrSize));
-					}
-					finally
-					{
-						handle.Free();
+							if (data.Length <= i + len)
+							{
+								len = data.Length - i;
+							}
+							_SendRaw(data, i, len);
 
+						}
 					}
+					else
+						_SendRaw(data, 0, data.Length);
 				}
 			}
 			else
@@ -414,7 +548,34 @@ namespace M
 				_CheckOutResult(midiOutShortMsg(_handle, MidiUtility.PackMessage(message)));
 			}
 		}
-		
+		void _SendRaw(byte[] data, int startIndex, int length)
+		{
+			var hdrSize = Marshal.SizeOf(typeof(MIDIHDR));
+			var hdr = new MIDIHDR();
+			var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+			try
+			{
+				hdr.lpData = new IntPtr(handle.AddrOfPinnedObject().ToInt64() + startIndex);
+				hdr.dwBufferLength = hdr.dwBytesRecorded = (uint)(length);
+				hdr.dwFlags = 0;
+				_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, hdrSize));
+				while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)
+				{
+					Thread.Sleep(1);
+				}
+				_CheckOutResult(midiOutLongMsg(_handle, ref hdr, hdrSize));
+				while ((hdr.dwFlags & MHDR_DONE) != MHDR_DONE)
+				{
+					Thread.Sleep(1);
+				}
+				_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, hdrSize));
+			}
+			finally
+			{
+				handle.Free();
+
+			}
+		}
 		void IDisposable.Dispose()
 		{
 			Close();
@@ -444,25 +605,11 @@ namespace M
 						Interlocked.Exchange(ref _sendHeader.lpData,IntPtr.Zero);
 					}
 
-					if(-1==_sendPosition)
+					if(null==_sendQueue)
 						SendComplete?.Invoke(this, EventArgs.Empty);
 					else
 					{
-						_sendQueueBuffer.Clear();
-						var ne = _sendPosition + _sendEventBlockSize;
-						var done = false;
-						for(;_sendPosition<ne;Interlocked.Increment(ref _sendPosition))
-						{
-							if (!_sendQueue.MoveNext())
-							{
-								done = true;
-								break;
-							}
-							_sendQueueBuffer.Add(_sendQueue.Current);
-						}
-						SendDirect(_sendQueueBuffer);
-						if (done)
-							Interlocked.Exchange(ref _sendPosition, -1);
+						_SendBlock(false);
 					}
 					break;
 				
@@ -497,7 +644,6 @@ namespace M
 				case MidiStreamState.Playing:
 					_CheckOutResult(midiStreamStop(_handle));
 					_state = MidiStreamState.Stopped;
-					_sendPosition = -1;
 					if (null != _sendQueue)
 					{
 						_sendQueue.Dispose();

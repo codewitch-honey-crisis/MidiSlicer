@@ -378,22 +378,18 @@ namespace M
 					return;
 				if (254 < data.Length)
 				{
-
-					var buf = new byte[254];
-					for (var i = 0; i < data.Length; i += buf.Length)
+					var len = 254;
+					for (var i = 0; i < data.Length; i += len)
 					{
-						var len = buf.Length ;
 						if (data.Length <= i + len )
 						{
 							len = data.Length - i ;
-							buf = new byte[len];
 						}
-						Array.Copy(data, i, buf, 0, len);
-						_SendRaw(buf);
+						_SendRaw(data,i,len);
 						
 					}
 				} else
-					_SendRaw(data);
+					_SendRaw(data,0,data.Length);
 				
 			}
 			else
@@ -402,18 +398,15 @@ namespace M
 			}
 		}
 
-		private void _SendRaw(byte[] data)
+		void _SendRaw(byte[] data,int startIndex,int length)
 		{
-			if (data.Length > (64 * 1024))
-				throw new InvalidOperationException("The buffer cannot exceed 64k");
-
 			var hdrSize = Marshal.SizeOf(typeof(MIDIHDR));
 			var hdr = new MIDIHDR();
 			var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
 			try
 			{
-				hdr.lpData = handle.AddrOfPinnedObject();
-				hdr.dwBufferLength = hdr.dwBytesRecorded = (uint)data.Length;
+				hdr.lpData = new IntPtr(handle.AddrOfPinnedObject().ToInt64()+startIndex);
+				hdr.dwBufferLength = hdr.dwBytesRecorded = (uint)(length);
 				hdr.dwFlags = 0;
 				_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, hdrSize));
 				while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)

@@ -10,7 +10,8 @@ namespace scratch
 	{
 		static void Main()
 		{
-			TestSysex();
+			//SimpleStreamingDemo();
+			TestSysexStream();
 		}
 		
 		static void SimpleStreamingDemo()
@@ -21,7 +22,10 @@ namespace scratch
 				// open it
 				stm.Open();
 				// read a MIDI file
-				var mf = MidiFile.ReadFrom(@"..\..\Peter-Gunn-1.mid");
+				var mf = MidiFile
+				.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+				//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
+				//.ReadFrom(@"..\..\A-Warm-Place.mid"); 
 				// merge the tracks for playback
 				var seq = MidiSequence.Merge(mf.Tracks);
 				// set the stream timebase
@@ -37,7 +41,7 @@ namespace scratch
 					// loop
 					stm.Send(seq.Events);
 				};
-				// kick things okff
+				// kick things off
 				stm.Send(seq.Events);
 				// wait for exit
 				Console.ReadKey();
@@ -376,7 +380,7 @@ namespace scratch
 			using (var dev = MidiDevice.Outputs[1])
 			{
 				dev.Open();
-				var buf = new byte[300];
+				var buf = new byte[650];
 				Console.Error.WriteLine("Press any key to exit...");
 				var b = 0;
 				while (true)
@@ -384,9 +388,11 @@ namespace scratch
 					if (0xF7 != b)
 					{
 						for (var i = 0; i < buf.Length - 1; ++i)
-							buf[i] = (byte)b;
+						{
+							buf[i] = (byte)((b+i)&0x7F);
+						}
 						buf[buf.Length - 1] = 0xF7;
-						var sysex = new MidiMessageSysex(0xF0, buf);
+						var sysex = new MidiMessageSysex(buf);
 						// send sysex message
 						if (Console.KeyAvailable)
 							return;
@@ -398,6 +404,53 @@ namespace scratch
 						b = 0;
 				}
 				
+			}
+		}
+		static void TestSysexStream()
+		{
+			var b = 0;
+			var buf = new byte[650];
+
+			// select the LoopBE device
+			using (var stm = MidiDevice.Streams[1])
+			{
+				stm.SendComplete += delegate (object o, EventArgs e)
+				{
+					if (0xF7 != b)
+					{
+						for (var i = 0; i < buf.Length - 1; ++i)
+						{
+							buf[i] = (byte)((b + i) & 0x7F);
+						}
+						++b;
+						buf[buf.Length - 1] = 0xF7;
+						var sysex = new MidiMessageSysex(buf);
+						Thread.Sleep(100);
+						// send sysex message
+						stm.Send(new MidiEvent(0, sysex));
+						
+					}
+					if (0x80 == b)
+						b = 0;
+				};
+				stm.Open();
+				stm.TimeBase = 480;
+				stm.Start();
+				Console.Error.WriteLine("Press any key to exit...");
+				if (0xF7 != b)
+				{
+					for (var i = 0; i < buf.Length - 1; ++i)
+					{
+						buf[i] = (byte)((b + i) & 0x7F);
+					}
+					++b;
+					buf[buf.Length - 1] = 0xF7;
+					var sysex = new MidiMessageSysex(buf);
+					// send sysex message
+					stm.Send(new MidiEvent(0, sysex));
+					
+				}
+				Console.ReadKey();
 			}
 		}
 		static void TestTiming()

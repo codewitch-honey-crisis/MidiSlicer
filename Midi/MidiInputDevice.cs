@@ -425,7 +425,7 @@ namespace M
 					//	return; // not a sysex message - not sure what to do 
 					var payload = new byte[hdr.dwBytesRecorded - 1];
 					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
-					m = new MidiMessageSysex(status, payload);
+					m = new MidiMessageSysex(payload);
 					var sz = Marshal.SizeOf(typeof(MIDIHDR));
 					_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = unchecked((uint)_bufferSize);
 					_inHeader.lpData = _buffer;

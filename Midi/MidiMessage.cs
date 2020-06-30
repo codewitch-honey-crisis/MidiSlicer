@@ -839,9 +839,8 @@
 		/// <summary>
 		/// Creates a MIDI message with the specified status, type and payload
 		/// </summary>
-		/// <param name="status">The MIDI status byte (should be F0 or F7)</param>
 		/// <param name="data">The payload of the MIDI message, as bytes</param>
-		public MidiMessageSysex(byte status, byte[] data) : base(status)
+		public MidiMessageSysex(byte[] data) : base(0xF0)
 		{
 			Data = data;
 		}
@@ -860,7 +859,7 @@
 		/// <returns>The cloned MIDI message</returns>
 		protected override MidiMessage CloneImpl()
 		{
-			return new MidiMessageSysex(Status, Data);
+			return new MidiMessageSysex(Data);
 		}
 		/// <summary>
 		/// Returns a string representation of the message
@@ -870,7 +869,6 @@
 		{
 			var sb = new StringBuilder();
 			sb.Append("Sysex: ");
-			sb.Append(Status.ToString("X2"));
 			for (var i = 0; i < Data.Length; i++)
 				sb.Append(Data[i].ToString("X2"));
 			return sb.ToString();

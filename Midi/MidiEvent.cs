@@ -42,5 +42,15 @@
 		{
 			return Clone();
 		}
+		/// <summary>
+		/// Returns a string representation of the event
+		/// </summary>
+		/// <returns>A string representation of the event</returns>
+		public override string ToString()
+		{
+			if (null == Message)
+				return Position.ToString();
+			return Position+"::"+Message.ToString();
+		}
 	}
 }
