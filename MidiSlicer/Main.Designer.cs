@@ -60,12 +60,15 @@
 			this.WrapCheckBox = new System.Windows.Forms.CheckBox();
 			this.DrumsCheckBox = new System.Windows.Forms.CheckBox();
 			this.OutputComboBox = new System.Windows.Forms.ComboBox();
+			this.TempoLabel = new System.Windows.Forms.Label();
+			this.TempoUpDown = new System.Windows.Forms.NumericUpDown();
 			((System.ComponentModel.ISupportInitialize)(this.OffsetUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LengthUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.StretchUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.LevelsUpDown)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.TransposeUpDown)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.TempoUpDown)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// TrackList
@@ -86,9 +89,9 @@
 			this.TracksLabel.AutoSize = true;
 			this.TracksLabel.Location = new System.Drawing.Point(1, 30);
 			this.TracksLabel.Name = "TracksLabel";
-			this.TracksLabel.Size = new System.Drawing.Size(225, 13);
+			this.TracksLabel.Size = new System.Drawing.Size(163, 13);
 			this.TracksLabel.TabIndex = 1;
-			this.TracksLabel.Text = "Tracks:    Tempo {0}     Time signature {1}/{2}";
+			this.TracksLabel.Text = "Tracks:    Time signature: {0}/{1}";
 			// 
 			// MidiFileBox
 			// 
@@ -466,11 +469,45 @@
 			this.OutputComboBox.TabIndex = 33;
 			this.OutputComboBox.SelectedIndexChanged += new System.EventHandler(this.OutputComboBox_SelectedIndexChanged);
 			// 
+			// TempoLabel
+			// 
+			this.TempoLabel.AutoSize = true;
+			this.TempoLabel.Location = new System.Drawing.Point(167, 30);
+			this.TempoLabel.Name = "TempoLabel";
+			this.TempoLabel.Size = new System.Drawing.Size(40, 13);
+			this.TempoLabel.TabIndex = 34;
+			this.TempoLabel.Text = "Tempo";
+			// 
+			// TempoUpDown
+			// 
+			this.TempoUpDown.DecimalPlaces = 3;
+			this.TempoUpDown.Location = new System.Drawing.Point(209, 27);
+			this.TempoUpDown.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            131072});
+			this.TempoUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.TempoUpDown.Name = "TempoUpDown";
+			this.TempoUpDown.Size = new System.Drawing.Size(74, 20);
+			this.TempoUpDown.TabIndex = 35;
+			this.TempoUpDown.Value = new decimal(new int[] {
+            120,
+            0,
+            0,
+            0});
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(329, 263);
+			this.Controls.Add(this.TempoUpDown);
+			this.Controls.Add(this.TempoLabel);
 			this.Controls.Add(this.OutputComboBox);
 			this.Controls.Add(this.DrumsCheckBox);
 			this.Controls.Add(this.WrapCheckBox);
@@ -510,6 +547,7 @@
 			((System.ComponentModel.ISupportInitialize)(this.ResampleUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.LevelsUpDown)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.TransposeUpDown)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.TempoUpDown)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -549,5 +587,7 @@
 		private System.Windows.Forms.CheckBox WrapCheckBox;
 		private System.Windows.Forms.CheckBox DrumsCheckBox;
 		private System.Windows.Forms.ComboBox OutputComboBox;
+		private System.Windows.Forms.Label TempoLabel;
+		private System.Windows.Forms.NumericUpDown TempoUpDown;
 	}
 }

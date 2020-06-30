@@ -751,6 +751,62 @@
 			}
 			return result;
 		}
+		/// <summary>
+		/// Adjusts the tempo of a sequence
+		/// </summary>
+		/// <param name="tempo">The new tempo</param>
+		/// <returns>A new sequence with an adjusted tempo. All other tempo messages are adjusted relatively to the first one</returns>
+		public MidiSequence AdjustTempo(double tempo)
+			=> AdjustTempo(MidiUtility.TempoToMicroTempo(tempo));
+		/// <summary>
+		/// Adjusts the tempo of a sequence
+		/// </summary>
+		/// <param name="microTempo">The new microtempo</param>
+		/// <returns>A new sequence with an adjusted tempo. All other tempo messages are adjusted relatively to the first one</returns>
+		public MidiSequence AdjustTempo(int microTempo)
+		{
+			var smt = MicroTempo;
+			if (smt == microTempo)
+				return Clone();
+			var diff = microTempo/smt;
+			return ScaleTempo(diff);
+		}
+		/// <summary>
+		/// Adjusts the tempo by the specified difference
+		/// </summary>
+		/// <param name="diff">A value indicating the multiplier. Larger makes the tempo higher.</param>
+		/// <returns></returns>
+		public MidiSequence ScaleTempo(double diff)
+		{
+			var result = new MidiSequence();
+			byte runningStatus = 0;
+			foreach (var e in Events)
+			{
+				if (0 != e.Message.Status)
+					runningStatus = e.Message.Status;
+				var m = e.Message;
+				if (-1 == m.PayloadLength)
+				{
+					if (0xFF == runningStatus)
+					{
+						var mbs = m as MidiMessageMeta;
+						if (0x51 == mbs.Data1)
+						{
+							var mt = 0;
+							if (BitConverter.IsLittleEndian)
+								mt = (mbs.Data[0] << 16) | (mbs.Data[1] << 8) | mbs.Data[2];
+							else
+								mt = (mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
+							mt = (int)Math.Round(mt * diff, MidpointRounding.AwayFromZero);
+
+							m = new MidiMessageMetaTempo(mt);
+						}
+					}
+				}
+				result.Events.Add(new MidiEvent(e.Position, m));
+			}
+			return result;
+		}
 		internal int GetMaxVelocity()
 		{
 			var maxvel = 0;
@@ -813,10 +869,11 @@
 		/// <summary>
 		/// Indicates the MicroTempo of the MIDI sequence
 		/// </summary>
-		public int MicroTempo { get {
+		public int MicroTempo {
+			get {
 				foreach (var e in AbsoluteEvents)
 				{
-					switch(e.Message.Status & 0xF0)
+					switch (e.Message.Status & 0xF0)
 					{
 						case 0x80:
 						case 0x90:
@@ -827,45 +884,13 @@
 						var mm = e.Message as MidiMessageMeta;
 						if (0x51 == mm.Data1)
 						{
-							return BitConverter.IsLittleEndian?
-								(mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2]:
+							return BitConverter.IsLittleEndian ?
+								(mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] :
 								(mm.Data[2] << 16) | (mm.Data[1] << 8) | mm.Data[0];
 						}
 					}
 				}
 				return 500000;
-			}
-			set {
-				var toRemove = -1;
-				var i = 0;
-				foreach (var e in AbsoluteEvents)
-				{
-					switch (e.Message.Status & 0xF0)
-					{
-						case 0x80:
-						case 0x90:
-							Events.Insert(0, new MidiEvent(0,new MidiMessageMetaTempo(value)));
-							return;
-					}
-					if (e.Message.Status == 0xFF)
-					{
-						var mm = e.Message as MidiMessageMeta;
-						if (0x51 == mm.Data1)
-						{
-
-							toRemove = i;
-							break;
-						}
-					}
-					++i;
-				}
-				if(-1==toRemove)
-				{
-					Events.Insert(0, new MidiEvent(0, new MidiMessageMetaTempo(value)));
-					return;
-				}
-				Events.RemoveAt(toRemove);
-				Events.Insert(toRemove, new MidiEvent(0, new MidiMessageMetaTempo(value)));
 			}
 		}
 		/// <summary>
@@ -895,9 +920,7 @@
 			get {
 				return MidiUtility.MicroTempoToTempo(MicroTempo);
 			}
-			set {
-				MicroTempo = MidiUtility.TempoToMicroTempo(value);
-			}
+			
 		}
 		/// <summary>
 		/// Indicates all the tempos in the sequence

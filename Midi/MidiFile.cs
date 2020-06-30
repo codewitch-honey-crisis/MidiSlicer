@@ -77,12 +77,7 @@
 				if (0 == Tracks.Count) return 500000;
 				return Tracks[0].MicroTempo;
 			}
-			set {
-				if (0 == Tracks.Count)
-					throw new InvalidOperationException("There are no tracks");
-				Tracks[0].MicroTempo = value;
-
-			}
+			
 		}
 		/// <summary>
 		/// Indicates all of the MicroTempos of the MIDI file
@@ -101,9 +96,6 @@
 		public double Tempo {
 			get {
 				return MidiUtility.MicroTempoToTempo(MicroTempo);
-			}
-			set {
-				MicroTempo = MidiUtility.TempoToMicroTempo(value);
 			}
 		}
 		/// <summary>
@@ -287,6 +279,41 @@
 			var result = new MidiFile(Type, TimeBase);
 			foreach(var trk in Tracks)
 				result.Tracks.Add(trk.Stretch(diff,adjustTempo));
+			return result;
+		}
+		/// <summary>
+		/// Adjusts the tempo of a MIDI file
+		/// </summary>
+		/// <param name="tempo">The new tempo</param>
+		/// <returns>A new file with an adjusted tempo. All other tempo messages are adjusted relatively to the first one</returns>
+		public MidiFile AdjustTempo(double tempo)
+			=> AdjustTempo(MidiUtility.TempoToMicroTempo(tempo));
+		/// <summary>
+		/// Adjusts the tempo of a MIDI file
+		/// </summary>
+		/// <param name="microTempo">The new microtempo</param>
+		/// <returns>A new file with an adjusted tempo. All other tempo messages are adjusted relatively to the first one</returns>
+		public MidiFile AdjustTempo(int microTempo)
+		{
+			var mt = MicroTempo;
+			var diff = microTempo / (double)mt;
+			var result = new MidiFile(Type, TimeBase);
+			for (var i = 0; i < Tracks.Count; ++i)
+			{
+				result.Tracks.Add(Tracks[i].ScaleTempo(diff));
+			}
+			return result;
+		}
+		/// <summary>
+		/// Scales the tempo of a file to a new relative tempo
+		/// </summary>
+		/// <param name="diff">The relative difference in the tempo. Higher makes the tempo higher</param>
+		/// <returns>A new file with the adjusted tempo. All tempo messages are adjusted relatively</returns>
+		public MidiFile ScaleTempo(double diff)
+		{
+			var result = new MidiFile(Type, TimeBase);
+			for (var i = 0; i < Tracks.Count; ++i)
+				result.Tracks.Add(Tracks[i].ScaleTempo(diff));
 			return result;
 		}
 		/// <summary>

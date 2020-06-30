@@ -70,6 +70,7 @@ namespace MidiSlicer
 				WrapCheckBox.Enabled = false;
 				DrumsCheckBox.Enabled = false;
 				SaveAsButton.Enabled = false;
+				TempoUpDown.Enabled = false;
 			}
 			else
 			{
@@ -86,7 +87,7 @@ namespace MidiSlicer
 					++i;
 				}
 				var sig = _file.TimeSignature;
-				TracksLabel.Text = string.Format(_tracksLabelFormat, _file.Tempo,sig.Numerator,sig.Denominator);
+				TracksLabel.Text = string.Format(_tracksLabelFormat, sig.Numerator,sig.Denominator);
 				TrackList.Enabled = true;
 				PreviewButton.Enabled = true;
 				UnitsCombo.Enabled = true;
@@ -104,6 +105,7 @@ namespace MidiSlicer
 				WrapCheckBox.Enabled = true;
 				DrumsCheckBox.Enabled = true;
 				SaveAsButton.Enabled = true;
+				TempoUpDown.Enabled = true;
 				
 				StretchUpDown.Value = 1;
 				UnitsCombo.SelectedIndex = 0;
@@ -122,6 +124,7 @@ namespace MidiSlicer
 				TransposeUpDown.Value = 0;
 				WrapCheckBox.Checked = false;
 				DrumsCheckBox.Checked = false;
+				TempoUpDown.Value = (decimal)_file.Tempo;
 				
 			}
 		}
@@ -206,7 +209,7 @@ namespace MidiSlicer
 						eventList.Add(ev);
 					}
 					// send the list of events
-					if (0 != eventList.Count)
+					if (MidiStreamState.Closed!=stm.State && 0 != eventList.Count)
 						stm.SendDirect(eventList);
 				}));
 	
@@ -408,7 +411,11 @@ namespace MidiSlicer
 			// or len anymore
 			if (1m != StretchUpDown.Value)
 				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
-
+			// finally adjust the tempo
+			if(_file.Tempo!=(double)TempoUpDown.Value)
+			{
+				result = result.AdjustTempo((double)TempoUpDown.Value);
+			}
 			// if merge is checked merge the
 			// tracks
 			if (MergeTracksCheckBox.Checked)
