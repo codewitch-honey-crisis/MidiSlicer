@@ -64,10 +64,7 @@ namespace FourByFour
 			_play = (OutputComboBox.SelectedItem as MidiOutputDevice).Stream;
 			var mf = _CreateMidiFile();
 			var stm = _play;
-			// we use 100 events, which should be safe and allow
-			// for some measure of SYSEX messages in the stream
-			// without bypassing the 64kb limit
-			const int EVENT_COUNT = 100;
+
 			// our current cursor pos
 			int pos = 0;
 			// for tracking deltas
@@ -77,7 +74,7 @@ namespace FourByFour
 			// the number of events in the seq
 			int len = seq.Events.Count;
 			// stores the next set of events
-			var eventList = new List<MidiEvent>(EVENT_COUNT);
+			var eventList = new List<MidiEvent>(MAX_EVENT_COUNT);
 
 			// open the stream
 			stm.Open();
