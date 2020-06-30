@@ -116,7 +116,8 @@ namespace FourByFour
 							eventList.Add(ev);
 						}
 						// send the list of events
-						stm.SendDirect(eventList);
+						if(MidiStreamState.Closed!=stm.State)
+							stm.SendDirect(eventList);
 					}));
 				}
 				catch
