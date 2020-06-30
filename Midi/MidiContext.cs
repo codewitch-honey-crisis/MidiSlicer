@@ -101,7 +101,7 @@
 			{
 				case 0xC0:
 					var mb = message as MidiMessageByte;
-					Channels[cn].Patch = mb.Data1;
+					Channels[cn].Program = mb.Data1;
 					break;
 				case 0xD0:
 					mb = message as MidiMessageByte;
@@ -199,7 +199,7 @@
 			/// <summary>
 			/// Indicates the current MIDI patch for the channel
 			/// </summary>
-			public byte Patch { get; internal set; }
+			public byte Program { get; internal set; }
 
 			internal Channel()
 			{
@@ -211,8 +211,38 @@
 				for (int i = 0; i < 128; ++i) KeyPressure[i] = 0xFF;
 				ChannelPressure = 0xFF;
 				PitchWheel = -1;
-				Patch = 0xFF;
+				Program = 0xFF;
 			}
+		}
+		/// <summary>
+		/// Creates a deep copy of the MIDI context
+		/// </summary>
+		/// <returns>A new copy of the MIDI context</returns>
+		public MidiContext Clone()
+		{
+			var result = new MidiContext(TimeBase);
+			result.ChannelPrefix = ChannelPrefix;
+			for(var i = 0;i<16;i++)
+			{
+				var dst = result.Channels[i];
+				var src = Channels[i];
+				for(var j=0;j<128; j++)
+				{
+					dst.Controls[j] = src.Controls[j];
+					dst.Notes[j] = src.Notes[j];
+				}
+				dst.ChannelPressure = src.ChannelPressure;
+				dst.KeyPressure = src.KeyPressure;
+				dst.Program = src.Program;
+				dst.PitchWheel = src.PitchWheel;
+			}
+			result.KeySignature = KeySignature;
+			result.MicroTempo = MicroTempo;
+			result.RunningStatus = RunningStatus;
+			result.SystemTicks = SystemTicks;
+			result.Ticks = Ticks;
+			result.TimeSignature = TimeSignature;
+			return result;
 		}
 	}
 }

@@ -159,9 +159,9 @@
 				}
 				for (var i = 0; i < ctx.Channels.Length; i++) {
 					var ch = ctx.Channels[i];
-					if (0x80 > ch.Patch)
+					if (0x80 > ch.Program)
 					{
-						result.Events.Add(new MidiEvent(0, new MidiMessagePatchChange(ch.Patch, unchecked((byte)i))));
+						result.Events.Add(new MidiEvent(0, new MidiMessagePatchChange(ch.Program, unchecked((byte)i))));
 					}
 				}
 
