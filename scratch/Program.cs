@@ -10,8 +10,8 @@ namespace scratch
 	{
 		static void Main()
 		{
-			//SimpleStreamingDemo();
-			TestSysexStream();
+			SimpleStreamingDemo();
+			//TestSysexStream();
 		}
 		
 		static void SimpleStreamingDemo()
@@ -427,7 +427,7 @@ namespace scratch
 						var sysex = new MidiMessageSysex(buf);
 						Thread.Sleep(100);
 						// send sysex message
-						stm.SendDirect(new MidiEvent(0, sysex));
+						stm.Send(new MidiEvent(0, sysex));
 						
 					}
 					if (0x80 == b)
@@ -447,7 +447,7 @@ namespace scratch
 					buf[buf.Length - 1] = 0xF7;
 					var sysex = new MidiMessageSysex(buf);
 					// send sysex message
-					stm.SendDirect(new MidiEvent(0, sysex));
+					stm.Send(new MidiEvent(0, sysex));
 					
 				}
 				Console.ReadKey();

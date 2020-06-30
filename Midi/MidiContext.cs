@@ -45,6 +45,10 @@
 		/// Indicates the time signature for the current MIDI context
 		/// </summary>
 		public MidiTimeSignature TimeSignature { get; private set; }
+		/// <summary>
+		/// Indicates the key signature for the current MIDI context
+		/// </summary>
+		public MidiKeySignature KeySignature { get; private set; }
 		
 		static Channel[] _InitChannels()
 		{
@@ -151,6 +155,9 @@
 									break;
 								case 0x58:
 									TimeSignature = new MidiTimeSignature(mbs.Data[0], (byte)Math.Pow(2,mbs.Data[1]), mbs.Data[2], mbs.Data[3]);
+									break;
+								case 0x59:
+									KeySignature = new MidiKeySignature(unchecked((sbyte)mbs.Data[0]), 0 != mbs.Data[1]);
 									break;
 							}
 							break;

@@ -327,7 +327,9 @@ namespace M
 					se.dwDeltaTime = @event.Position + ofs;
 					se.dwStreamId = 0;
 					se.dwEvent = MidiUtility.PackMessage(@event.Message);
-					Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+					var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
+					CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
+					gch.Free();
 					ptrOfs += baseEventSize;
 					ofs = 0;
 				}
@@ -343,7 +345,9 @@ namespace M
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] | (MEVT_TEMPO << 24);
-						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+						var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
+						CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
+						gch.Free();
 						ptrOfs += baseEventSize;
 						ofs = 0;
 					}
@@ -358,7 +362,9 @@ namespace M
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = (MEVT_NOP << 24);
-						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+						var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
+						CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
+						gch.Free();
 						ptrOfs += baseEventSize;
 						ofs = 0;
 					}
