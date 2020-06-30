@@ -137,7 +137,7 @@ namespace M
 		/// </summary>
 		/// <param name="message">The MIDI message</param>
 		/// <returns>An integer representing the packed MIDI message</returns>
-		/// <remarks>Must not be a sysex message</remarks>
+		/// <remarks>This is geared for the wire protocol, not files. The message must not be a sysex message</remarks>
 		public static int PackMessage(MidiMessage message)
 		{
 			
@@ -184,8 +184,37 @@ namespace M
 					return new MidiMessageChannelPressure(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)(message & 0xF)));
 				case 0xE0:
 					return new MidiMessageChannelPitch(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)((message >> 16) & 0xFF)), unchecked((byte)(message & 0xF)));
+				case 0xF0:
+					switch(message & 0x0F)
+					{
+						case 0:
+							throw new NotSupportedException("The MIDI sysex message is not supported in this context.");
+						case 2:
+							return new MidiMessageSongPosition(unchecked((byte)((message >> 8) & 0xFF)), unchecked((byte)((message >> 16) & 0xFF)));
+						case 3:
+							return new MidiMessageSongSelect(unchecked((byte)((message >> 8) & 0xFF)));
+						case 6:
+							return new MidiMessageTuneRequest();
+						case 7:
+							// we should not get this here!
+							throw new NotSupportedException("Illegal MIDI message data found.");
+						case 8:
+							return new MidiMessageRealTimeTimingClock();
+						case 0xA:
+							return new MidiMessageRealTimeStart();
+						case 0xB:
+							return new MidiMessageRealTimeContinue();
+						case 0xC:
+							return new MidiMessageRealTimeStop();
+						case 0xD:
+							return new MidiMessageRealTimeActiveSensing();
+						case 0xF:
+							return new MidiMessageRealTimeReset();
+						default:
+							throw new NotSupportedException("The MIDI message is not recognized.");
+					}
 				default:
-					throw new NotSupportedException("The MIDI message is not recognized.");
+					throw new NotSupportedException("Illegal MIDI message data found.");
 			}
 
 		}
@@ -195,6 +224,7 @@ namespace M
 		/// </summary>
 		/// <param name="message">The message to retrieve the bytes for</param>
 		/// <returns>An array of bytes containing the message data</returns>
+		/// <remarks>This is geared for the wire protocol, not files</remarks>
 		public static byte[] ToMessageBytes(MidiMessage message)
 		{
 			byte[] data;
@@ -219,14 +249,47 @@ namespace M
 					data[1] = msgb.Data1;
 					return data;
 				case 0xF0:
-					var msgsx = message as MidiMessageSysex;
-					if(null!=msgsx)
+					switch(message.Status & 0xF)
 					{
-						data = new byte[1 + msgsx.Data.Length];
-						data[0] = msgsx.Status;
-						Array.Copy(msgsx.Data, 0, data, 1, msgsx.Data.Length);
-						return data;
+						case 0:
+							var msgsx = message as MidiMessageSysex;
+							data = new byte[1 + msgsx.Data.Length];
+							data[0] = msgsx.Status;
+							Array.Copy(msgsx.Data, 0, data, 1, msgsx.Data.Length);
+							return data;
+						case 2:
+							msgw= message as MidiMessageWord;
+							data = new byte[3];
+							data[0] = msgw.Status;
+							data[1] = msgw.Data1;
+							data[2] = msgw.Data2;
+							return data;
+						case 3:
+							msgb = message as MidiMessageByte;
+							data = new byte[2];
+							data[0] = msgb.Status;
+							data[1] = msgb.Data1;
+							return data;
+						case 6:
+						case 8:
+						case 0xA:
+						case 0xB:
+						case 0xC:
+						case 0xE:
+							data = new byte[1];
+							data[0] = message.Status;
+							return data;
+						case 0xF:
+							var msgm = message as MidiMessageMeta;
+							if (null != msgm)
+								throw new InvalidOperationException("MIDI meta messages cannot be used in this context.");
+							data = new byte[1];
+							data[0] = message.Status;
+							return data;
+						case 7:
+							throw new InvalidProgramException("Illegal MIDI message");
 					}
+
 					break;
 			}
 			return null;

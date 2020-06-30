@@ -453,10 +453,27 @@
 								break;
 							case 0x0:
 								if (i == -1) throw new EndOfStreamException();
-								l = _ReadVarlen(b,stream);
-								ba = new byte[l];
-								if (l != stream.Read(ba, 0, ba.Length))
-									throw new EndOfStreamException();
+								var bb = b;
+								var d = new List<byte>(128);
+								if(0xF7==bb)
+								{
+									m = new MidiMessageSysex(new byte[0]);
+									break;
+								}
+								d.Add(bb);
+								while(0xF7!=bb)
+								{
+									var rb = stream.ReadByte();
+									if(0>rb)
+										throw new EndOfStreamException("Unterminated MIDI sysex message in file.");
+									if (0xF7 == rb)
+										break;
+									bb= unchecked((byte)rb);
+									d.Add(bb);
+									
+								}
+								d.Add(0xF7);
+								ba = d.ToArray();
 								m = new MidiMessageSysex(ba);
 								break;
 							case 0x2:
@@ -528,8 +545,7 @@
 						if(null!=msx)
 						{
 							int v = msx.Data.Length;
-							_WriteVarlen(stream, v);
-							stream.Write(msx.Data, 0, msx.Data.Length);
+							stream.Write(msx.Data, 0, v);
 						}
 						break;
 				}

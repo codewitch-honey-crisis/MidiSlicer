@@ -894,6 +894,105 @@
 		}
 	}
 	/// <summary>
+	/// Represents a MIDI song position message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageSongPosition : MidiMessageWord
+	{
+		/// <summary>
+		/// Creates a new MIDI song position message
+		/// </summary>
+		/// <param name="position">Indicates the new song position in beats since the start</param>
+		public MidiMessageSongPosition(short position) : base(0xF2,position)
+		{
+		}
+		/// <summary>
+		/// Creates a new MIDI song position message
+		/// </summary>
+		/// <param name="position1">The high part of the position</param>
+		/// <param name="position2">The low part of the position</param>
+		public MidiMessageSongPosition(byte position1,byte position2) : base(0xF2, position1,position2)
+		{
+		}
+		/// <summary>
+		/// Indicates the new song position in beats since the start
+		/// </summary>
+		public short Position {
+			get {
+				return Data;
+			}
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageSongPosition(Position);
+		}
+	}
+
+	/// <summary>
+	/// Represents a MIDI song select message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageSongSelect : MidiMessageByte
+	{
+		/// <summary>
+		/// Creates a new MIDI song select message
+		/// </summary>
+		/// <param name="songId">Indicates the new song id</param>
+		public MidiMessageSongSelect(byte songId) : base(0xF3, songId)
+		{
+		}
+		
+		/// <summary>
+		/// Indicates the song id
+		/// </summary>
+		public byte SongId {
+			get {
+				return Data1;
+			}
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageSongSelect(SongId);
+		}
+	}
+
+	/// <summary>
+	/// Represents a MIDI tune request message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageTuneRequest : MidiMessage
+	{
+		/// <summary>
+		/// Creates a new MIDI tune request message
+		/// </summary>
+		public MidiMessageTuneRequest() : base(0xF6)
+		{
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageTuneRequest();
+		}
+	}
+
+	/// <summary>
 	/// Represents a MIDI note on message
 	/// </summary>
 #if MIDILIB
@@ -1303,5 +1402,184 @@
 			return "Channel Pitch: " + Pitch.ToString() + ", Channel: " + Channel.ToString();
 		}
 	}
+	/// <summary>
+	/// Represents a MIDI real-time message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	abstract class MidiMessageRealTime : MidiMessage
+	{
+		/// <summary>
+		/// Creates a MIDI real-time message
+		/// </summary>
+		/// <param name="status"></param>
+		protected MidiMessageRealTime(byte status) : base(status)
+		{
 
+		}
+	}
+	/// <summary>
+	/// Represents a MIDI reset message
+	/// </summary>
+	/// <remarks>This message shares the same status code with MIDI a meta-message. The meta-messages come from files but this comes over the wire whereas meta-messages do not.</remarks>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageRealTimeReset : MidiMessageRealTime
+	{
+		/// <summary>
+		/// Creates a new MIDI reset message
+		/// </summary>
+		public MidiMessageRealTimeReset() : base(0xFF)
+		{
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageRealTimeReset();
+		}
+		/// <summary>
+		/// Indicates the payload of the message
+		/// </summary>
+		public override int PayloadLength => 0;
+	}
+	/// <summary>
+	/// Represents a MIDI active sensing message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageRealTimeActiveSensing : MidiMessageRealTime
+	{
+		/// <summary>
+		/// Creates a new MIDI active sensing message
+		/// </summary>
+		public MidiMessageRealTimeActiveSensing() : base(0xFE)
+		{
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageRealTimeActiveSensing();
+		}
+		/// <summary>
+		/// Indicates the payload of the message
+		/// </summary>
+		public override int PayloadLength => 0;
+	}
+	/// <summary>
+	/// Represents a MIDI start message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageRealTimeStart : MidiMessageRealTime
+	{
+		/// <summary>
+		/// Creates a new MIDI start message
+		/// </summary>
+		public MidiMessageRealTimeStart() : base(0xFA)
+		{
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageRealTimeStart();
+		}
+		/// <summary>
+		/// Indicates the payload of the message
+		/// </summary>
+		public override int PayloadLength => 0;
+	}
+	/// <summary>
+	/// Represents a MIDI continue message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageRealTimeContinue : MidiMessageRealTime
+	{
+		/// <summary>
+		/// Creates a new MIDI continue message
+		/// </summary>
+		public MidiMessageRealTimeContinue() : base(0xFB)
+		{
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageRealTimeContinue();
+		}
+		/// <summary>
+		/// Indicates the payload of the message
+		/// </summary>
+		public override int PayloadLength => 0;
+	}
+	/// <summary>
+	/// Represents a MIDI stop message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageRealTimeStop : MidiMessageRealTime
+	{
+		/// <summary>
+		/// Creates a new MIDI stop message
+		/// </summary>
+		public MidiMessageRealTimeStop() : base(0xFC)
+		{
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageRealTimeStop();
+		}
+		/// <summary>
+		/// Indicates the payload of the message
+		/// </summary>
+		public override int PayloadLength => 0;
+	}
+	/// <summary>
+	/// Represents a MIDI start message
+	/// </summary>
+#if MIDILIB
+	public
+#endif
+	sealed class MidiMessageRealTimeTimingClock : MidiMessageRealTime
+	{
+		/// <summary>
+		/// Creates a new MIDI timing clock message
+		/// </summary>
+		public MidiMessageRealTimeTimingClock() : base(0xF8)
+		{
+		}
+		/// <summary>
+		/// Clones the message
+		/// </summary>
+		/// <returns>The new message</returns>
+		protected override MidiMessage CloneImpl()
+		{
+			return new MidiMessageRealTimeTimingClock();
+		}
+		/// <summary>
+		/// Indicates the payload of the message
+		/// </summary>
+		public override int PayloadLength => 0;
+	}
 }
