@@ -12,7 +12,6 @@ namespace MidiSlicer
 	{
 		MidiStream _play;
 		MidiFile _file;
-		Thread _previewThread;
 		string _tracksLabelFormat;
 		public Main()
 		{
@@ -238,12 +237,7 @@ namespace MidiSlicer
 
 		protected override void OnClosing(CancelEventArgs e)
 		{
-			if (null != _previewThread)
-			{
-				_previewThread.Abort();
-				_previewThread.Join();
-				_previewThread = null;
-			}
+			
 
 		}
 
@@ -405,17 +399,20 @@ namespace MidiSlicer
 					
 				}
 			}
+			// next adjust the tempo
+			if (_file.Tempo != (double)TempoUpDown.Value)
+			{
+				result = result.AdjustTempo((double)TempoUpDown.Value);
+			}
 			// stretch the result. we do this
 			// here so the track lengths are
 			// correct and we don't need ofs
 			// or len anymore
 			if (1m != StretchUpDown.Value)
-				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
-			// finally adjust the tempo
-			if(_file.Tempo!=(double)TempoUpDown.Value)
 			{
-				result = result.AdjustTempo((double)TempoUpDown.Value);
+				result = result.Stretch((double)StretchUpDown.Value, AdjustTempoCheckBox.Checked);
 			}
+			
 			// if merge is checked merge the
 			// tracks
 			if (MergeTracksCheckBox.Checked)
