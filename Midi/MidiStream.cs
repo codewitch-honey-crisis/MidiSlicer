@@ -437,8 +437,10 @@ namespace M
 			IntPtr eventPointer = _sendEventBuffer;
 			var ofs = 0;
 			var ptrOfs = 0;
+			var hasEvents = false;
 			foreach (var @event in events)
 			{
+				hasEvents = true;
 				if (0xF0 != (@event.Message.Status & 0xF0))
 				{
 					blockSize += baseEventSize;
@@ -511,13 +513,16 @@ namespace M
 					ofs = 0;
 				}			
 			}
-			_sendHeader = default(MIDIHDR);
-			Interlocked.Exchange(ref _sendHeader.lpData, eventPointer);
-			_sendHeader.dwBufferLength = _sendHeader.dwBytesRecorded = unchecked((uint)blockSize);
-			_sendEventBuffer = eventPointer;
-			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
-			_CheckOutResult(midiOutPrepareHeader(_handle, ref _sendHeader, headerSize));
-			_CheckOutResult(midiStreamOut(_handle, ref _sendHeader, headerSize));
+			if (hasEvents)
+			{
+				_sendHeader = default(MIDIHDR);
+				Interlocked.Exchange(ref _sendHeader.lpData, eventPointer);
+				_sendHeader.dwBufferLength = _sendHeader.dwBytesRecorded = unchecked((uint)blockSize);
+				_sendEventBuffer = eventPointer;
+				int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
+				_CheckOutResult(midiOutPrepareHeader(_handle, ref _sendHeader, headerSize));
+				_CheckOutResult(midiStreamOut(_handle, ref _sendHeader, headerSize));
+			}
 
 		}
 		/// <summary>
