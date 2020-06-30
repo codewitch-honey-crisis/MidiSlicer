@@ -175,46 +175,41 @@ namespace MidiSlicer
 
 			// first set the timebase
 			stm.TimeBase = mf.TimeBase;
-
 			// set up our send complete handler
 			stm.SendComplete += delegate (object s, EventArgs ea)
 			{
-				try
+			
+				BeginInvoke(new Action(delegate ()
 				{
-					BeginInvoke(new Action(delegate ()
+					// clear the list	
+					eventList.Clear();
+					mf = _ProcessFile();
+					seq = MidiSequence.Merge(mf.Tracks);
+					ofs = 0;
+					len = seq.Events.Count;
+					// iterate through the next events
+					var next = pos + MAX_EVENT_COUNT;
+					for (; pos < next && ofs<=RATE_TICKS; ++pos)
+
 					{
-						// clear the list	
-						eventList.Clear();
-						mf = _ProcessFile();
-						seq = MidiSequence.Merge(mf.Tracks);
-						ofs = 0;
-						len = seq.Events.Count;
-						// iterate through the next events
-						var next = pos + MAX_EVENT_COUNT;
-						for (; pos < next && ofs<=RATE_TICKS; ++pos)
-
+						// if it's past the end, loop it
+						if (len <= pos)
 						{
-							// if it's past the end, loop it
-							if (len <= pos)
-							{
-								pos = 0;
-								break;
-							}
-							var ev = seq.Events[pos];
-							ofs += ev.Position;
-							if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
-								break;
-							// otherwise add the next event
-							eventList.Add(ev);
+							pos = 0;
+							break;
 						}
-						// send the list of events
+						var ev = seq.Events[pos];
+						ofs += ev.Position;
+						if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
+							break;
+						// otherwise add the next event
+						eventList.Add(ev);
+					}
+					// send the list of events
+					if (0 != eventList.Count)
 						stm.SendDirect(eventList);
-					}));
-				}
-				catch
-				{
-
-				}
+				}));
+	
 				
 			};
 			// add the first events
@@ -234,7 +229,8 @@ namespace MidiSlicer
 				eventList.Add(ev);
 			}
 			// send the list of events
-			stm.SendDirect(eventList);
+			if (0 != eventList.Count)
+				stm.SendDirect(eventList);
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
