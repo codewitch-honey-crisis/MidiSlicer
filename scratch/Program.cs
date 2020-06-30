@@ -376,14 +376,28 @@ namespace scratch
 			using (var dev = MidiDevice.Outputs[1])
 			{
 				dev.Open();
-				var sysex = new MidiMessageSysex(0xF0, new byte[] { 1, 2, 3, 4, 5,0xF7 });
+				var buf = new byte[300];
 				Console.Error.WriteLine("Press any key to exit...");
-				// send sysex message
-				while (!Console.KeyAvailable)
+				var b = 0;
+				while (true)
 				{
-					dev.Send(sysex);
-					Thread.Sleep(50);
+					if (0xF7 != b)
+					{
+						for (var i = 0; i < buf.Length - 1; ++i)
+							buf[i] = (byte)b;
+						buf[buf.Length - 1] = 0xF7;
+						var sysex = new MidiMessageSysex(0xF0, buf);
+						// send sysex message
+						if (Console.KeyAvailable)
+							return;
+						dev.Send(sysex);
+						Thread.Sleep(50);
+					}
+					++b;
+					if (0x80 == b)
+						b = 0;
 				}
+				
 			}
 		}
 		static void TestTiming()

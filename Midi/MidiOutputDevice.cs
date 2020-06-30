@@ -371,48 +371,69 @@ namespace M
 				throw new InvalidOperationException("The device is closed.");
 			if (null == message)
 				throw new ArgumentNullException("message");
-			if (0xF0 == (message.Status & 0xF0))
+			if (0xF0 == message.Status) // sysex
 			{
-				if (0xF != message.Channel)
+				var data = MidiUtility.ToMessageBytes(message);
+				if (null == data)
+					return;
+				if (254 < data.Length)
 				{
-					var data = MidiUtility.ToMessageBytes(message);
-					if (null == data)
-						return;
-					if (data.Length > (64 * 1024))
-						throw new InvalidOperationException("The buffer cannot exceed 64k");
 
-					var hdrSize = Marshal.SizeOf(typeof(MIDIHDR));
-					var hdr = new MIDIHDR();
-					var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-					try
+					var buf = new byte[254];
+					for (var i = 0; i < data.Length; i += buf.Length)
 					{
-						hdr.lpData = handle.AddrOfPinnedObject();
-						hdr.dwBufferLength = (uint)data.Length;
-						hdr.dwFlags = 0;
-						_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, hdrSize));
-						while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)
+						var len = buf.Length ;
+						if (data.Length <= i + len )
 						{
-							Thread.Sleep(1);
+							len = data.Length - i ;
+							buf = new byte[len];
 						}
-						_CheckOutResult(midiOutLongMsg(_handle, ref hdr, hdrSize));
-						while ((hdr.dwFlags & MHDR_DONE) != MHDR_DONE)
-						{
-							Thread.Sleep(1);
-						}
-						_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, hdrSize));
+						Array.Copy(data, i, buf, 0, len);
+						_SendRaw(buf);
+						
 					}
-					finally
-					{
-						handle.Free();
-
-					}
-				}
+				} else
+					_SendRaw(data);
+				
 			}
 			else
 			{
 				_CheckOutResult(midiOutShortMsg(_handle, MidiUtility.PackMessage(message)));
 			}
 		}
+
+		private void _SendRaw(byte[] data)
+		{
+			if (data.Length > (64 * 1024))
+				throw new InvalidOperationException("The buffer cannot exceed 64k");
+
+			var hdrSize = Marshal.SizeOf(typeof(MIDIHDR));
+			var hdr = new MIDIHDR();
+			var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+			try
+			{
+				hdr.lpData = handle.AddrOfPinnedObject();
+				hdr.dwBufferLength = hdr.dwBytesRecorded = (uint)data.Length;
+				hdr.dwFlags = 0;
+				_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, hdrSize));
+				while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)
+				{
+					Thread.Sleep(1);
+				}
+				_CheckOutResult(midiOutLongMsg(_handle, ref hdr, hdrSize));
+				while ((hdr.dwFlags & MHDR_DONE) != MHDR_DONE)
+				{
+					Thread.Sleep(1);
+				}
+				_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, hdrSize));
+			}
+			finally
+			{
+				handle.Free();
+
+			}
+		}
+
 		/// <summary>
 		/// Retrieves the MIDI stream associated with this output device
 		/// </summary>

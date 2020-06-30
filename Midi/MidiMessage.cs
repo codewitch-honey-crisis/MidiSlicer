@@ -876,6 +876,7 @@
 			return sb.ToString();
 		}
 	}
+	
 	// internal class used by the framework
 	sealed class MidiMessageSysexPart : MidiMessage
 	{
