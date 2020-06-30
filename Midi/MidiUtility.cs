@@ -155,9 +155,27 @@ namespace M
 					var mb = message as MidiMessageByte;
 					return PackMessage(mb.Status, mb.Data1, 0, mb.Channel);
 				case 0xF0:
-					if(0xFF!=message.Status)
+					if(0xF0==message.Status)
 						throw new NotSupportedException("The message must not be a sysex message");
-					return -1;
+					switch(message.Status & 0xF)
+					{
+						case 2:
+							mw = message as MidiMessageWord;
+							return PackMessage(mw.Status, mw.Data1, mw.Data2);
+						case 3:
+							mb = message as MidiMessageByte;
+							return PackMessage(mb.Status, mb.Data1, 0);
+						case 6:
+						case 8:
+						case 0xA:
+						case 0xB:
+						case 0xC:
+						case 0xE:
+						case 0xF:
+							return PackMessage(message.Status, 0, 0);
+					}
+					throw new NotSupportedException("Unsupported message");
+
 				default: // should never happen
 					throw new NotSupportedException("Unsupported message");
 			}

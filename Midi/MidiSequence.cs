@@ -478,20 +478,36 @@
 								break;
 							case 0x2:
 								if (i == -1) throw new EndOfStreamException();
-								m = new MidiMessageWord(st, b, (byte)stream.ReadByte());
+								m = new MidiMessageSongPosition(b, (byte)stream.ReadByte());
 								break;
 							case 0x3:
 								if (i == -1) throw new EndOfStreamException();
-								m = new MidiMessageByte(st, b);
+								m = new MidiMessageSongSelect(b);
 								break;
-							case 0x7:
 							case 0x6:
+								if (i == -1) throw new EndOfStreamException();
+								m = new MidiMessageTuneRequest();
+								break;
+							// system reatime messages follow. Shouldn't be present in a file but we handle them anyway
 							case 0x8:
+								if (i == -1) throw new EndOfStreamException();
+								m = new MidiMessageRealTimeTimingClock();
+								break;
 							case 0xA:
+								if (i == -1) throw new EndOfStreamException();
+								m = new MidiMessageRealTimeStart();
+								break;
 							case 0xB:
+								if (i == -1) throw new EndOfStreamException();
+								m = new MidiMessageRealTimeContinue();
+								break;
 							case 0xC:
-								// status *was* specified if we got here
-								m = new MidiMessage(st);
+								if (i == -1) throw new EndOfStreamException();
+								m = new MidiMessageRealTimeStop();
+								break;
+							case 0xE:
+								if (i == -1) throw new EndOfStreamException();
+								m = new MidiMessageRealTimeActiveSensing();
 								break;
 							default:
 								throw new NotSupportedException("The MIDI message is not recognized.");

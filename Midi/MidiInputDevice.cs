@@ -416,13 +416,12 @@ namespace M
 					break;
 				case MIM_LONGDATA:
 				case MIM_LONGERROR:
-					// Semi tested, it has fired once but I can't get this to fire multiple times - not sure where the problem is
+					// TODO: Semi tested
 					var hdr = (MIDIHDR)Marshal.PtrToStructure(new IntPtr(lparam), typeof(MIDIHDR));
 					if (0 == hdr.dwBytesRecorded)
 						return; // no message
+					// this code assumes it's a sysex message but I should probably check it.
 					var status = Marshal.ReadByte(hdr.lpData, 0);
-					//if (0xF0 != (status & 0xF0))
-					//	return; // not a sysex message - not sure what to do 
 					var payload = new byte[hdr.dwBytesRecorded - 1];
 					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
 					m = new MidiMessageSysex(payload);
