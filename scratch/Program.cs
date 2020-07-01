@@ -10,8 +10,8 @@ namespace scratch
 	{
 		static void Main()
 		{
-			SimpleStreamingDemo();
-			//TestSysexStream();
+			//TestTapTempo();			
+			SimpleRecordingDemo();
 		}
 		
 		static void SimpleStreamingDemo()
@@ -144,6 +144,7 @@ namespace scratch
 					// and output
 					idev.Open();
 					odev.Open();
+					idev.Start();
 					// start recording, waiting for input
 					idev.StartRecording(true);
 					// wait to end it
@@ -479,7 +480,45 @@ namespace scratch
 
 			Console.WriteLine(new TimeSpan(et - st));
 		}
+		static void TestTapTempo()
+		{
+			const int MIN_TEMPO= 50;
+			Console.Error.WriteLine("Press Ctrl+C to exit. Any other key to tap tempo");
+			using (var dev = MidiDevice.Outputs[1])
+			{
+				dev.Open();
+				long oldTicks = 0;
+				var amnt=0d;
+				while (true)
+				{
+					if (0 != oldTicks)
+					{
+						var dif = (_PreciseUtcNowTicks - oldTicks);
+						var tpm = TimeSpan.TicksPerMillisecond * 60000;
+						amnt = tpm / (double)dif;
+						if (amnt < MIN_TEMPO)
+							oldTicks = 0;
+					}
+					if (Console.KeyAvailable)
+					{
+						dev.Send(new MidiMessageRealTimeTimingClock());
+						Console.ReadKey();
+						if (0 == oldTicks)
+						{
+							oldTicks = _PreciseUtcNowTicks;
 
+						}
+						else
+						{
+
+							oldTicks = 0;
+							Console.WriteLine(amnt);
+						}
+					}
+					Thread.Sleep(1);
+				}
+			}
+		}
 		#region Win32
 		[DllImport("Kernel32.dll", EntryPoint = "GetSystemTimePreciseAsFileTime", CallingConvention = CallingConvention.Winapi)]
 		static extern void _GetSystemTimePreciseAsFileTime(out long filetime);
