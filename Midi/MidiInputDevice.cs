@@ -146,8 +146,11 @@ namespace M
 		int _bufferSize;
 		int _microTempo;
 		int _timeBase;
-		double _timingTempoMinimum;
-		long _timingTimestamp;
+		// TODO: This code is at least half implemented so finish it.
+		// it actually "works" it's just not the right interval
+		// and i have not much to test it with
+		//double _timingTempoMinimum;
+		//long _timingTimestamp;
 		// must be an int for Interlocked nonzero=true, zero=false
 		//int _tapTempoEnabled;
 		// the system timestamp for the last recorded message
@@ -174,10 +177,8 @@ namespace M
 			_recordingSequence = null;
 			_microTempo = 500000; // 120BPM
 			_timeBase = 96;
-			_timingTempoMinimum = 50d;
-			_timingTimestamp = 0L;
-			//_tapTempoMinimum = 50d;
-			//_tapTempoEnabled = 0; // false
+			//_timingTempoMinimum = 50d;
+			//_timingTimestamp = 0L;
 			_CheckOutResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
 		}
 
@@ -444,7 +445,7 @@ namespace M
 					break;
 				case MIM_DATA:
 					var m = MidiUtility.UnpackMessage(lparam);
-					if(0xF8==m.Status)
+					/*if(0xF8==m.Status)
 					{
 						if (0 != _timingTimestamp)
 						{
@@ -462,7 +463,7 @@ namespace M
 							var timeNow = _PreciseUtcNowTicks;
 							Interlocked.Exchange(ref _timingTimestamp, timeNow);
 						}
-					}
+					}*/
 					_ProcessRecording(m);
 					Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), m));
 					break;
