@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-
 namespace M
 {
 	/// <summary>
@@ -145,16 +144,18 @@ namespace M
 		MIDIHDR _inHeader;
 		IntPtr _buffer;
 		int _bufferSize;
-		// the system timestamp for the last recorded message
-		long _recordingLastTimestamp;
 		int _microTempo;
 		int _timeBase;
-		//double _tapTempoMinimum;
+		double _timingTempoMinimum;
+		long _timingTimestamp;
 		// must be an int for Interlocked nonzero=true, zero=false
 		//int _tapTempoEnabled;
+		// the system timestamp for the last recorded message
+		long _recordingLastTimestamp;
 		MidiSequence _recordingTrack0;
 		MidiSequence _recordingSequence;
 		int _recordingPos;
+		readonly object _recordingTrack0Lock = new object();
 		MidiInputDeviceState _state;
 		internal MidiInputDevice(int deviceIndex, int bufferSize = 65536)
 		{
@@ -173,6 +174,8 @@ namespace M
 			_recordingSequence = null;
 			_microTempo = 500000; // 120BPM
 			_timeBase = 96;
+			_timingTempoMinimum = 50d;
+			_timingTimestamp = 0L;
 			//_tapTempoMinimum = 50d;
 			//_tapTempoEnabled = 0; // false
 			_CheckOutResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
@@ -186,7 +189,10 @@ namespace M
 		/// Raised when the device is closed
 		/// </summary>
 		public event EventHandler Closed;
-
+		/// <summary>
+		/// Raised when the tempo changes
+		/// </summary>
+		public event EventHandler TempoChanged;
 		/// <summary>
 		/// Raised when incoming messages occur
 		/// </summary>
@@ -232,7 +238,23 @@ namespace M
 			set {
 				if (IntPtr.Zero == _handle)
 					throw new InvalidOperationException("The device is closed.");
-				Interlocked.Exchange(ref _microTempo, value);
+				if (value != _microTempo)
+				{
+					// if it's recording, generate a tempo change meta event
+					// and put it in the sequence
+					if (0 != _recordingLastTimestamp) {
+						lock (_recordingTrack0Lock)
+						{
+							if (null != _recordingTrack0)
+							{
+								var trk = new MidiSequence();
+								trk.Events.Add(new MidiEvent(_recordingPos, new MidiMessageMetaTempo(value)));
+							}
+						}
+					}
+					Interlocked.Exchange(ref _microTempo, value);
+					TempoChanged?.Invoke(this, EventArgs.Empty);
+				}
 			}
 		}
 		/// <summary>
@@ -354,7 +376,8 @@ namespace M
 			if (0 != _recordingLastTimestamp)
 				throw new InvalidOperationException("The device is already recording.");
 			Interlocked.Exchange(ref _recordingPos, 0);
-			Interlocked.Exchange(ref _recordingTrack0 ,new MidiSequence());
+			lock (_recordingTrack0Lock)
+				_recordingTrack0 = new MidiSequence();
 
 			Interlocked.Exchange(ref _recordingSequence, new MidiSequence());
 
@@ -382,9 +405,12 @@ namespace M
 			var ts = _recordingLastTimestamp;
 			Interlocked.Exchange(ref _recordingLastTimestamp, 0);
 			Interlocked.Exchange(ref _recordingPos, 0);
-			result.Tracks.Add(_recordingTrack0);
+			lock (_recordingTrack0Lock)
+			{
+				result.Tracks.Add(_recordingTrack0);
+				Interlocked.Exchange(ref _recordingTrack0, null);
+			}
 			result.Tracks.Add(_recordingSequence);
-			Interlocked.Exchange(ref _recordingTrack0, null);
 			Interlocked.Exchange(ref _recordingSequence,null);
 			var endTrack = new MidiSequence();
 			int len;
@@ -418,6 +444,25 @@ namespace M
 					break;
 				case MIM_DATA:
 					var m = MidiUtility.UnpackMessage(lparam);
+					if(0xF8==m.Status)
+					{
+						if (0 != _timingTimestamp)
+						{
+							var dif = (_PreciseUtcNowTicks - _timingTimestamp);
+							var tpm = TimeSpan.TicksPerMillisecond * 60000;
+							var newTempo = tpm / (double)dif;
+							if (newTempo < _timingTempoMinimum)
+								Interlocked.Exchange(ref _timingTimestamp, 0);
+							else
+							{
+								Tempo = newTempo;
+								Interlocked.Exchange(ref _timingTimestamp, 0);
+							}
+						} else {
+							var timeNow = _PreciseUtcNowTicks;
+							Interlocked.Exchange(ref _timingTimestamp, timeNow);
+						}
+					}
 					_ProcessRecording(m);
 					Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), m));
 					break;
@@ -457,13 +502,18 @@ namespace M
 			var mt = _microTempo;
 			var tb = _timeBase;
 			var rst = _recordingLastTimestamp;
-			var t0 = _recordingTrack0;
+			MidiSequence t0 = null;
+			lock(_recordingTrack0Lock)
+				t0 = _recordingTrack0;
 			var rs = _recordingSequence;
 			if (null != _recordingSequence)
 			{
-				if (0 == t0.Events.Count)
+				lock (_recordingTrack0Lock)
 				{
-					t0.Events.Add(new MidiEvent(0, new MidiMessageMetaTempo(mt)));
+					if (0 == t0.Events.Count)
+					{
+						t0.Events.Add(new MidiEvent(0, new MidiMessageMetaTempo(mt)));
+					}
 				}
 				// recompute our timing based on current microTempo and timeBase
 				var ticksusec = mt / (double)tb;

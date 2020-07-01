@@ -140,6 +140,10 @@ namespace scratch
 						// our input while recording
 						odev.Send(e.Message);
 					};
+					idev.TempoChanged += delegate (object s, EventArgs e)
+					{
+						Console.WriteLine("New Tempo: " + idev.Tempo);
+					};
 					// open the input
 					// and output
 					idev.Open();
