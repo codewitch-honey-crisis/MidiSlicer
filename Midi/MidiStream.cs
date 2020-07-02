@@ -199,7 +199,7 @@ namespace M
 			_outCallback = new MidiOutProc(_MidiOutProc);
 			_timerCallback = new TimerProc(_TimerProc);
 			_tempoSyncEnabled = 0;
-			_tempoSyncMessageCount = 10;
+			_tempoSyncMessageCount = 100;
 			_tempoSyncMessagesSentCount = 0;
 		}
 		
@@ -515,6 +515,10 @@ namespace M
 						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
 						ptrOfs += baseEventSize;
 						ofs = 0;
+						// TODO: This signal is sent too early. It should really wait until after the
+						// MEVT_TEMPO message is processed by the driver, but i have no easy way to
+						// do that. All we can do is hope, here
+						Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 					}
 					else if (0x2f == mm.Data1) // end track 
 					{
@@ -670,12 +674,17 @@ namespace M
 		{
 			if (IntPtr.Zero!=_handle && _timerHandle==handle && 0!=_tempoSyncEnabled)
 			{
-				// quickly send a time sync message
-				midiOutShortMsg(_handle, 0xF8);
+				if (0==_tempoSyncMessageCount || _tempoSyncMessagesSentCount < _tempoSyncMessageCount)
+				{
+					// quickly send a time sync message
+					midiOutShortMsg(_handle, 0xF8);
+					Interlocked.Increment(ref _tempoSyncMessagesSentCount);
+				}
 				var tmp = Tempo;
 				var spb = 60 / tmp;
 				var ms = unchecked((int)(Math.Round((1000 * spb) / 24)));
 				_RestartTimer(ms);
+				
 			}
 		}
 		void _MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2)
@@ -723,6 +732,7 @@ namespace M
 					var tmp = Tempo;
 					var spb = 60 / tmp;
 					var ms = unchecked((int)(Math.Round((1000 * spb) / 24)));
+					Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 					_RestartTimer(ms);
 					
 					_CheckOutResult(midiStreamRestart(_handle));
@@ -743,6 +753,7 @@ namespace M
 				case MidiStreamState.Started:
 					_DisposeTimer();
 					_CheckOutResult(midiStreamStop(_handle));
+					Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 					_state = MidiStreamState.Stopped;
 					
 					Interlocked.Exchange(ref _sendQueuePosition, 0);
@@ -766,6 +777,7 @@ namespace M
 				case MidiStreamState.Started:
 					_CheckOutResult(midiStreamPause(_handle));
 					_state = MidiStreamState.Paused;
+					Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 					break;
 			}
 		}
@@ -904,6 +916,7 @@ namespace M
 			set {
 				if (IntPtr.Zero == _handle)
 					throw new InvalidOperationException("The stream is closed.");
+				Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 				var t = new MIDIPROPTEMPO();
 				t.cbStruct = Marshal.SizeOf(typeof(MIDIPROPTEMPO));
 				t.dwTempo= value;

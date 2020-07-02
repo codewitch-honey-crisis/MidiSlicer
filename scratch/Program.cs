@@ -11,8 +11,8 @@ namespace scratch
 		static void Main()
 		{
 			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
-			//TestTapTempo();			
-			SimpleRecordingDemo();
+			TestTapTempo();			
+			//SimpleRecordingDemo();
 		}
 		
 		static void SimpleStreamingDemo()
@@ -501,6 +501,7 @@ namespace scratch
 				
 				stm.Open();
 				stm.TimeBase = 480;
+				//stm.TempoSynchronizationMessageCount = 0; // continuous
 				stm.TempoSynchronizationEnabled = true;
 				stm.Start();
 				long oldTicks = 0;
