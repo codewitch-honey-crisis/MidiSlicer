@@ -575,9 +575,10 @@ namespace M
 
 		}
 		/// <summary>
-		/// Sends a message out immediately
+		/// Sends a message immediately to the device
 		/// </summary>
 		/// <param name="message">The message to send</param>
+		/// <remarks>The message is not queued. Tempo change messages are not honored.</remarks>
 		public void Send(MidiMessage message)
 		{
 			if (IntPtr.Zero == _handle)
