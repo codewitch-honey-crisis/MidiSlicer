@@ -143,14 +143,22 @@ namespace M
 		IntPtr _handle;
 		MIDIHDR _inHeader;
 		IntPtr _buffer;
-		int _bufferSize;
 		int _microTempo;
 		int _timeBase;
-		// TODO: This code is at least half implemented so finish it.
-		// it actually "works" it's just not the right interval
-		// and i have not much to test it with
-		//double _timingTempoMinimum;
-		//long _timingTimestamp;
+		double _tempoSynchMininumTempo;
+		long _timingTimestamp;
+		// must be an int to work with interlocked
+		// 0=false, non-zero = true
+		int _tempoSynchEnabled;
+		// indicates the frequency the tempo
+		// can change given the sync signal
+		// in system ticks
+		long _tempoSyncFrequency;
+		// for tracking the above
+		// reports the last time the
+		// tempo was changed in 
+		// system ticks
+		long _tempoSyncTimestamp;
 		// must be an int for Interlocked nonzero=true, zero=false
 		//int _tapTempoEnabled;
 		// the system timestamp for the last recorded message
@@ -160,25 +168,25 @@ namespace M
 		int _recordingPos;
 		readonly object _recordingTrack0Lock = new object();
 		MidiInputDeviceState _state;
-		internal MidiInputDevice(int deviceIndex, int bufferSize = 65536)
+		internal MidiInputDevice(int deviceIndex)
 		{
-			if (0 > bufferSize)
-				bufferSize = 65536;
 			if (0 > deviceIndex)
 				throw new ArgumentOutOfRangeException("deviceIndex");
 			_handle = IntPtr.Zero;
 			_callback = new MidiInProc(_MidiInProc);
 			_index = deviceIndex;
 			_state = MidiInputDeviceState.Closed;
-			_bufferSize = bufferSize;
 			_recordingLastTimestamp= 0L;
 			_recordingPos = 0;
 			_recordingTrack0 = null;
 			_recordingSequence = null;
 			_microTempo = 500000; // 120BPM
 			_timeBase = 96;
-			//_timingTempoMinimum = 50d;
-			//_timingTimestamp = 0L;
+			_timingTimestamp = 0L;
+			_tempoSynchMininumTempo = 50d;
+			_tempoSynchEnabled = 0; // false
+			_tempoSyncFrequency = 0L;
+			_tempoSyncTimestamp = 0L;
 			_CheckOutResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
 		}
 
@@ -254,7 +262,8 @@ namespace M
 						}
 					}
 					Interlocked.Exchange(ref _microTempo, value);
-					TempoChanged?.Invoke(this, EventArgs.Empty);
+					Interlocked.Exchange(ref _tempoSyncTimestamp, _PreciseUtcNowTicks);
+					TempoChanged?.BeginInvoke(this, EventArgs.Empty,null,null);
 				}
 			}
 		}
@@ -269,7 +278,55 @@ namespace M
 				MicroTempo = MidiUtility.TempoToMicroTempo(value);
 			}
 		}
-		
+		/// <summary>
+		/// Indicates whether or not the system should respond to attempts
+		/// to synchronize the tempo using MIDI realtime time clock 
+		/// messages
+		/// </summary>
+		/// <remarks>This is somewhat inaccurate, as .NET's latency is too high for an accurate measurement?</remarks>
+		public bool UseTempoSynchronization {
+			get {
+				return 0 != _tempoSynchEnabled;
+			}
+			set {
+				if(value && 0==_tempoSynchEnabled)
+				{
+					Interlocked.Exchange(ref _tempoSynchEnabled, 1);
+					return;
+				}
+				if (!value && 0 != _tempoSynchEnabled)
+					Interlocked.Exchange(ref _tempoSynchEnabled, 0);
+			}
+		}
+		/// <summary>
+		/// Indicates the quantization factor to use for tempo synchronization
+		/// </summary>
+		public TimeSpan TempoSychronizationFrequency {
+			get {
+				return new TimeSpan(_tempoSyncFrequency);
+			}
+			set {
+				Interlocked.Exchange(ref _tempoSyncFrequency, value.Ticks);
+			}
+		}
+		/// <summary>
+		/// Indicates the minumum micro tempo for the tempo synchronization feature
+		/// </summary>
+		public int TempoSynchronizationMinimumMicroTempo {
+			get { return MidiUtility.TempoToMicroTempo(TempoSynchronizationMinimumTempo); }
+			set { MidiUtility.MicroTempoToTempo(value); }
+		}
+		/// <summary>
+		/// Indicates the minumum tempo for the tempo synchronization feature
+		/// </summary>
+		public double TempoSynchronizationMinimumTempo {
+			get {
+				return _tempoSynchMininumTempo;
+			}
+			set {
+				Interlocked.Exchange(ref _tempoSynchMininumTempo, value);
+			}
+		}
 		/// <summary>
 		/// Indicates the index of the input device
 		/// </summary>
@@ -310,8 +367,8 @@ namespace M
 			Close();
 			_CheckOutResult(midiInOpen(out _handle, _index, _callback, 0, CALLBACK_FUNCTION));
 			var sz = Marshal.SizeOf(typeof(MIDIHDR));
-			_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = unchecked((uint)_bufferSize);
-			_inHeader.lpData = _buffer = Marshal.AllocHGlobal(_bufferSize);
+			_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = 65536u;
+			_inHeader.lpData = _buffer = Marshal.AllocHGlobal(65536);
 			_CheckOutResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
 			_CheckOutResult(midiInAddBuffer(_handle, ref _inHeader, sz));
 			_state = MidiInputDeviceState.Stopped;
@@ -392,13 +449,13 @@ namespace M
 		/// Ends the current recording session, returning a MIDI file
 		/// </summary>
 		/// <param name="trimRemainder">Indicates whether or not the silent remainder of the recording (if any) is trimmed</param>
-		/// <returns>The MIDI file containing the recorded performance</returns>
+		/// <returns>The MIDI file containing the recorded performance, or null if recording was never started.</returns>
 		public MidiFile EndRecording(bool trimRemainder = false)
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The device is closed.");
 			if (0 == _recordingLastTimestamp)
-				throw new InvalidOperationException("The device is not recording.");
+				return null;
 			var result = new MidiFile(1, unchecked((short)_timeBase));
 			var tb = _timeBase;
 			var mt = _microTempo;
@@ -444,28 +501,42 @@ namespace M
 					Closed?.Invoke(this, EventArgs.Empty);
 					break;
 				case MIM_DATA:
-					var m = MidiUtility.UnpackMessage(lparam);
-					/*if(0xF8==m.Status)
+					MidiMessage m;
+					if (0!=_tempoSynchEnabled && 0xF8 == (0xFF & lparam))
 					{
 						if (0 != _timingTimestamp)
 						{
-							var dif = (_PreciseUtcNowTicks - _timingTimestamp);
+							var dif = (_PreciseUtcNowTicks - _timingTimestamp) * 24;
 							var tpm = TimeSpan.TicksPerMillisecond * 60000;
-							var newTempo = tpm / (double)dif;
-							if (newTempo < _timingTempoMinimum)
+							var newTempo = (tpm / (double)dif);
+							if (newTempo < _tempoSynchMininumTempo)
 								Interlocked.Exchange(ref _timingTimestamp, 0);
 							else
 							{
-								Tempo = newTempo;
-								Interlocked.Exchange(ref _timingTimestamp, 0);
+								var timeNow = _PreciseUtcNowTicks;
+
+								if (0L==_tempoSyncTimestamp || 0L == _tempoSyncFrequency || (timeNow-_tempoSyncTimestamp>_tempoSyncFrequency))
+								{
+									var tmp = Tempo;
+									var ta = (tmp + newTempo) / 2;
+									Tempo = ta;
+								}
+								Interlocked.Exchange(ref _timingTimestamp, timeNow);
 							}
-						} else {
+						}
+						else
+						{
 							var timeNow = _PreciseUtcNowTicks;
 							Interlocked.Exchange(ref _timingTimestamp, timeNow);
 						}
-					}*/
-					_ProcessRecording(m);
-					Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), m));
+						
+					}
+					else
+					{
+						m = MidiUtility.UnpackMessage(lparam);
+						_ProcessRecording(m);
+						Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), m));
+					}
 					break;
 				case MIM_ERROR:
 					Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), MidiUtility.UnpackMessage(lparam)));
@@ -482,7 +553,7 @@ namespace M
 					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
 					m = new MidiMessageSysex(payload);
 					var sz = Marshal.SizeOf(typeof(MIDIHDR));
-					_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = unchecked((uint)_bufferSize);
+					_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = 65536u;
 					_inHeader.lpData = _buffer;
 					_CheckOutResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
 					_CheckOutResult(midiInAddBuffer(_handle, ref _inHeader, sz));

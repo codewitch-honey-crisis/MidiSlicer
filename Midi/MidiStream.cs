@@ -168,7 +168,8 @@ namespace M
 		MidiOutProc _callback;
 		MIDIHDR _sendHeader;
 		IntPtr _sendEventBuffer;
-		IEnumerator<MidiEvent> _sendQueue;
+		int _sendQueuePosition;
+		List<MidiEvent> _sendQueue;
 		MidiStreamState _state = MidiStreamState.Closed;
 		internal MidiStream(int deviceIndex)
 		{
@@ -178,7 +179,7 @@ namespace M
 			_handle = IntPtr.Zero;
 			_sendHeader= default(MIDIHDR);
 			_sendEventBuffer= IntPtr.Zero;
-			_sendQueue = null;
+			_sendQueuePosition = 0;
 			_callback = new MidiOutProc(_MidiOutProc);
 		}
 		
@@ -223,11 +224,6 @@ namespace M
 				Marshal.FreeHGlobal(_sendEventBuffer);
 				_sendEventBuffer = IntPtr.Zero;
 				GC.SuppressFinalize(this);
-				if(null!=_sendQueue)
-				{
-					_sendQueue.Dispose();
-					_sendQueue = null;
-				}
 				_state = MidiStreamState.Closed;
 			}
 		}
@@ -245,6 +241,7 @@ namespace M
 		public void Send(IEnumerable<MidiEvent> events) {
 			if (null != _sendQueue)
 			{
+				
 				throw new InvalidOperationException("The device is already sending");
 			}
 			
@@ -287,13 +284,11 @@ namespace M
 				} else
 					list.Add(@event);
 			}
-			
-			var e = list.GetEnumerator();
-			Interlocked.Exchange(ref _sendQueue , e);
-			//_sendQueue = e;
-			_SendBlock(true);
+			Interlocked.Exchange(ref _sendQueue, list);
+			Interlocked.Exchange(ref _sendQueuePosition , 0);
+			_SendBlock();
 		}
-		void _SendBlock(bool first)
+		void _SendBlock()
 		{
 			if (null == _sendQueue)
 				return;
@@ -302,22 +297,15 @@ namespace M
 			
 			if (IntPtr.Zero != Interlocked.CompareExchange(ref _sendHeader.lpData, _sendEventBuffer, IntPtr.Zero))
 				throw new InvalidOperationException("The stream is busy playing.");
-			// short circuit if empty, otherwise prime:
-			if (first && !_sendQueue.MoveNext())
-			{
-				Interlocked.Exchange(ref _sendHeader.lpData, IntPtr.Zero); 
-				Interlocked.Exchange(ref _sendQueue, null);
-				return;
-			}
+
 			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT));
 			int blockSize = 0;
 			IntPtr eventPointer = _sendEventBuffer;
 			var ofs = 0;
 			var ptrOfs = 0;
-			var done = false;
-			do
+			for(;_sendQueuePosition<_sendQueue.Count;Interlocked.Exchange(ref _sendQueuePosition,_sendQueuePosition+1))
 			{
-				var @event = _sendQueue.Current;
+				var @event = _sendQueue[_sendQueuePosition];
 				if (0x00 != @event.Message.Status && 0xF0 != (@event.Message.Status & 0xF0))
 				{
 					if (_SendBufferSize < blockSize+baseEventSize)
@@ -401,17 +389,14 @@ namespace M
 					ptrOfs += dl;
 					ofs = 0;
 				}
-			} while (false==(done=!_sendQueue.MoveNext()));
+			} 
 			_sendHeader = default(MIDIHDR);
 			_sendHeader.dwBufferLength = _sendHeader.dwBytesRecorded = unchecked((uint)blockSize);
 			_sendHeader.lpData = _sendEventBuffer;
 			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
 			_CheckOutResult(midiOutPrepareHeader(_handle, ref _sendHeader, headerSize));
 			_CheckOutResult(midiStreamOut(_handle, ref _sendHeader, headerSize));
-			if (done)
-			{
-				Interlocked.Exchange(ref _sendQueue, null);
-			}
+			
 		}
 		/// <summary>
 		/// Sends events directly to the stream
@@ -619,13 +604,15 @@ namespace M
 					{
 						_CheckOutResult(midiOutUnprepareHeader(_handle, ref _sendHeader, Marshal.SizeOf(typeof(MIDIHDR))));
 						Interlocked.Exchange(ref _sendHeader.lpData,IntPtr.Zero);
+						Interlocked.Exchange(ref _sendQueuePosition, 0);
+						Interlocked.Exchange(ref _sendQueue, null);
 					}
 
 					if(null==_sendQueue)
 						SendComplete?.Invoke(this, EventArgs.Empty);
 					else
 					{
-						_SendBlock(false);
+						_SendBlock();
 					}
 					break;
 				
@@ -660,10 +647,12 @@ namespace M
 				case MidiStreamState.Playing:
 					_CheckOutResult(midiStreamStop(_handle));
 					_state = MidiStreamState.Stopped;
-					if (null != _sendQueue)
+					
+					Interlocked.Exchange(ref _sendQueuePosition, 0);
+					
+					if(null!=_sendQueue)
 					{
-						_sendQueue.Dispose();
-						_sendQueue = null;
+						Interlocked.Exchange(ref _sendQueue, null);
 					}
 					break;
 			}

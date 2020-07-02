@@ -10,6 +10,7 @@ namespace scratch
 	{
 		static void Main()
 		{
+			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 			//TestTapTempo();			
 			SimpleRecordingDemo();
 		}
@@ -147,6 +148,11 @@ namespace scratch
 					// open the input
 					// and output
 					idev.Open();
+					// set our timebase
+					idev.TimeBase = 480;
+					idev.UseTempoSynchronization = true;
+					// every tenth of a second
+					idev.TempoSychronizationFrequency = new TimeSpan(0, 0, 0, 1, 0);
 					odev.Open();
 					idev.Start();
 					// start recording, waiting for input
@@ -161,6 +167,8 @@ namespace scratch
 					// being the tempo map
 				}
 			}
+			if (null == mf)
+				return;
 			// merge for playback
 			var seq = MidiSequence.Merge(mf.Tracks);
 
@@ -487,13 +495,21 @@ namespace scratch
 		static void TestTapTempo()
 		{
 			const int MIN_TEMPO= 50;
-			Console.Error.WriteLine("Press Ctrl+C to exit. Any other key to tap tempo");
-			using (var dev = MidiDevice.Outputs[1])
+			Console.Error.WriteLine("Press escape to exit. Any other key to tap tempo");
+			var tev = new AutoResetEvent(true);
+			using (var dev = MidiDevice.Streams[1])
 			{
+				dev.SendComplete += delegate (object s, EventArgs e)
+				{
+					// wake up the main code path
+					tev.Set();
+				};
 				dev.Open();
+				dev.TimeBase = 480;
+				dev.Start();
 				long oldTicks = 0;
 				var amnt=0d;
-				while (true)
+				while(true)
 				{
 					if (0 != oldTicks)
 					{
@@ -501,26 +517,39 @@ namespace scratch
 						var tpm = TimeSpan.TicksPerMillisecond * 60000;
 						amnt = tpm / (double)dif;
 						if (amnt < MIN_TEMPO)
+						{
 							oldTicks = 0;
+							Console.Error.WriteLine("Tap tempo timed out for tempo less than " + MIN_TEMPO + "bpm");
+						}
 					}
 					if (Console.KeyAvailable)
 					{
-						dev.Send(new MidiMessageRealTimeTimingClock());
-						Console.ReadKey();
+						if (ConsoleKey.Escape == Console.ReadKey(true).Key)
+							return; // exit
 						if (0 == oldTicks)
 						{
+							Console.Error.WriteLine("Tap Started");
 							oldTicks = _PreciseUtcNowTicks;
-
 						}
 						else
 						{
-
-							oldTicks = 0;
-							Console.WriteLine(amnt);
+							var dif = _PreciseUtcNowTicks - oldTicks;
+							var tpm = TimeSpan.TicksPerMillisecond * 60000;
+							amnt = tpm / (double)dif;
+							dev.Tempo = amnt;
+							oldTicks = _PreciseUtcNowTicks;
+							var pos = dev.TimeBase/ 24;
+							Console.Error.WriteLine("Tapped @ " + amnt);
+							var ev1 = new MidiEvent(0, new MidiMessageRealTimeTimingClock());
+							var ev2 = new MidiEvent(pos, new MidiMessageRealTimeTimingClock());
+							tev.WaitOne();
+							dev.Send(ev1, ev2);
 						}
 					}
-					Thread.Sleep(1);
+					else
+						Thread.Sleep(1);
 				}
+
 			}
 		}
 		#region Win32
