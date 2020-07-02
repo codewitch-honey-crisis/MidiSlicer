@@ -187,7 +187,7 @@ namespace M
 			_tempoSynchEnabled = 0; // false
 			_tempoSyncFrequency = 0L;
 			_tempoSyncTimestamp = 0L;
-			_CheckOutResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
+			_CheckInResult(midiInGetDevCaps(deviceIndex, ref _caps, Marshal.SizeOf(typeof(MIDIINCAPS))));
 		}
 
 		/// <summary>
@@ -365,12 +365,12 @@ namespace M
 		public override void Open()
 		{
 			Close();
-			_CheckOutResult(midiInOpen(out _handle, _index, _callback, 0, CALLBACK_FUNCTION));
+			_CheckInResult(midiInOpen(out _handle, _index, _callback, 0, CALLBACK_FUNCTION));
 			var sz = Marshal.SizeOf(typeof(MIDIHDR));
 			_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = 65536u;
 			_inHeader.lpData = _buffer = Marshal.AllocHGlobal(65536);
-			_CheckOutResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
-			_CheckOutResult(midiInAddBuffer(_handle, ref _inHeader, sz));
+			_CheckInResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
+			_CheckInResult(midiInAddBuffer(_handle, ref _inHeader, sz));
 			_state = MidiInputDeviceState.Stopped;
 		}
 		/// <summary>
@@ -386,8 +386,8 @@ namespace M
 				Reset();
 				var sz = Marshal.SizeOf(typeof(MIDIHDR));
 				var ptr = _inHeader.lpData;
-				_CheckOutResult(midiInUnprepareHeader(_handle, ref _inHeader, sz));
-				_CheckOutResult(midiInClose(_handle));
+				_CheckInResult(midiInUnprepareHeader(_handle, ref _inHeader, sz));
+				_CheckInResult(midiInClose(_handle));
 				Marshal.FreeHGlobal(ptr);
 				_state = MidiInputDeviceState.Closed;
 				_timeBase = 96;
@@ -401,7 +401,7 @@ namespace M
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The device is closed.");
-			_CheckOutResult(midiInStart(_handle));
+			_CheckInResult(midiInStart(_handle));
 			_state = MidiInputDeviceState.Started;
 		}
 		/// <summary>
@@ -411,7 +411,7 @@ namespace M
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The device is closed.");
-			_CheckOutResult(midiInStop(_handle));
+			_CheckInResult(midiInStop(_handle));
 			_state = MidiInputDeviceState.Stopped;
 		}
 		/// <summary>
@@ -421,7 +421,7 @@ namespace M
 		{
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The device is closed.");
-			_CheckOutResult(midiInReset(_handle));
+			_CheckInResult(midiInReset(_handle));
 		}
 		/// <summary>
 		/// Starts recording to a MIDI file
@@ -555,8 +555,8 @@ namespace M
 					var sz = Marshal.SizeOf(typeof(MIDIHDR));
 					_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = 65536u;
 					_inHeader.lpData = _buffer;
-					_CheckOutResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
-					_CheckOutResult(midiInAddBuffer(_handle, ref _inHeader, sz));
+					_CheckInResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
+					_CheckInResult(midiInAddBuffer(_handle, ref _inHeader, sz));
 					_ProcessRecording(m);
 					if (MIM_LONGDATA == msg)
 						Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam),m));
@@ -609,17 +609,17 @@ namespace M
 				Interlocked.Exchange(ref _recordingPos, _recordingPos+midiTicks);
 			}
 		}
-		static string _GetMidiOutErrorMessage(int errorCode)
+		static string _GetMidiInErrorMessage(int errorCode)
 		{
 			var result = new StringBuilder(256);
 			midiInGetErrorText(errorCode, result, result.Capacity);
 			return result.ToString();
 		}
 		[System.Diagnostics.DebuggerNonUserCode()]
-		static void _CheckOutResult(int errorCode)
+		static void _CheckInResult(int errorCode)
 		{
 			if (0 != errorCode)
-				throw new Exception(_GetMidiOutErrorMessage(errorCode));
+				throw new Exception(_GetMidiInErrorMessage(errorCode));
 		}
 		static long _PreciseUtcNowTicks {
 			get {
