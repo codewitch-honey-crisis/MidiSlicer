@@ -450,6 +450,7 @@ namespace M
 		/// </summary>
 		/// <param name="trimRemainder">Indicates whether or not the silent remainder of the recording (if any) is trimmed</param>
 		/// <returns>The MIDI file containing the recorded performance, or null if recording was never started.</returns>
+		/// <remarks>The returned file is always a type 1 MIDI file at the stream's timebase, and following the stream's tempo. The file consists of two tracks. Track 0 is a meta track containing the tempo map, and the other track contains the performance data</remarks>
 		public MidiFile EndRecording(bool trimRemainder = false)
 		{
 			if (IntPtr.Zero == _handle)
