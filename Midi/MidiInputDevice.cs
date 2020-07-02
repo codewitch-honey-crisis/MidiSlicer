@@ -284,7 +284,7 @@ namespace M
 		/// messages
 		/// </summary>
 		/// <remarks>This is somewhat inaccurate, as .NET's latency is too high for an accurate measurement?</remarks>
-		public bool UseTempoSynchronization {
+		public bool TempoSynchronizationEnabled {
 			get {
 				return 0 != _tempoSynchEnabled;
 			}

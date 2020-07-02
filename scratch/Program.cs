@@ -10,7 +10,7 @@ namespace scratch
 	{
 		static void Main()
 		{
-			Thread.CurrentThread.Priority = ThreadPriority.Highest;
+			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
 			//TestTapTempo();			
 			SimpleRecordingDemo();
 		}
@@ -150,7 +150,7 @@ namespace scratch
 					idev.Open();
 					// set our timebase
 					idev.TimeBase = 480;
-					idev.UseTempoSynchronization = true;
+					idev.TempoSynchronizationEnabled = true;
 					// every tenth of a second
 					idev.TempoSychronizationFrequency = new TimeSpan(0, 0, 0, 1, 0);
 					odev.Open();
@@ -496,17 +496,13 @@ namespace scratch
 		{
 			const int MIN_TEMPO= 50;
 			Console.Error.WriteLine("Press escape to exit. Any other key to tap tempo");
-			var tev = new AutoResetEvent(true);
-			using (var dev = MidiDevice.Streams[1])
+			using (var stm = MidiDevice.Streams[1])
 			{
-				dev.SendComplete += delegate (object s, EventArgs e)
-				{
-					// wake up the main code path
-					tev.Set();
-				};
-				dev.Open();
-				dev.TimeBase = 480;
-				dev.Start();
+				
+				stm.Open();
+				stm.TimeBase = 480;
+				stm.TempoSynchronizationEnabled = true;
+				stm.Start();
 				long oldTicks = 0;
 				var amnt=0d;
 				while(true)
@@ -536,14 +532,11 @@ namespace scratch
 							var dif = _PreciseUtcNowTicks - oldTicks;
 							var tpm = TimeSpan.TicksPerMillisecond * 60000;
 							amnt = tpm / (double)dif;
-							dev.Tempo = amnt;
+							stm.Tempo = amnt;
 							oldTicks = _PreciseUtcNowTicks;
-							var pos = dev.TimeBase/ 24;
+							var pos = stm.TimeBase/ 24;
 							Console.Error.WriteLine("Tapped @ " + amnt);
-							var ev1 = new MidiEvent(0, new MidiMessageRealTimeTimingClock());
-							var ev2 = new MidiEvent(pos, new MidiMessageRealTimeTimingClock());
-							tev.WaitOne();
-							dev.Send(ev1, ev2);
+							
 						}
 					}
 					else

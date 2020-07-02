@@ -176,6 +176,7 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiOutReset(IntPtr handle);
 
+
 		[StructLayout(LayoutKind.Sequential)]
 		private struct MIDIHDR
 		{
@@ -216,6 +217,8 @@ namespace M
 		const uint MIDICAPS_LRVOLUME = 2;    // separate left-right volume control
 		const uint MIDICAPS_CACHE = 4;
 		const uint MIDICAPS_STREAM = 8;      // driver supports midiStreamOut directly
+		
+
 		#endregion
 		readonly int _index;
 		readonly MIDIOUTCAPS _caps;
@@ -226,6 +229,8 @@ namespace M
 			_CheckOutResult(midiOutGetDevCaps(index, ref _caps, Marshal.SizeOf(typeof(MIDIOUTCAPS))));
 			_handle = IntPtr.Zero;
 		}
+
+	
 		/// <summary>
 		/// Indicates the name of the MIDI output device
 		/// </summary>

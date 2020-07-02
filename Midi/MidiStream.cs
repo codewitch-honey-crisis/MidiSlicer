@@ -29,7 +29,7 @@ namespace M
 		/// <summary>
 		/// The stream is playing
 		/// </summary>
-		Playing = 2
+		Started = 2
 	}
 	/// <summary>
 	/// Represents a MIDI stream
@@ -40,10 +40,10 @@ namespace M
 	class MidiStream : IDisposable
 	{
 		#region Win32
+		delegate void MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2);
+		delegate void TimerProc(IntPtr handle, int msg, int instance, int param1, int param2);
 		[DllImport("kernel32.dll", SetLastError = false)]
 		static extern void CopyMemory(IntPtr dest, IntPtr src, int count);
-
-		delegate void MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamOpen(ref IntPtr handle, ref int deviceID, int cMidi,
 			MidiOutProc proc, int instance, int flags);
@@ -82,7 +82,15 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiOutGetErrorText(int errCode,
 		   StringBuilder message, int sizeOfMessage);
-
+		[DllImport("winmm.dll")]
+		static extern IntPtr timeSetEvent(int delay, int resolution, TimerProc handler, IntPtr user, int eventType);
+		[DllImport("winmm.dll")]
+		static extern int timeKillEvent(IntPtr handle);
+		[DllImport("winmm.dll")]
+		static extern int timeBeginPeriod(int msec);
+		[DllImport("winmm.dll")]
+		static extern int timeEndPeriod(int msec);
+		
 		[StructLayout(LayoutKind.Sequential)]
 		private struct MIDIHDR
 		{
@@ -158,17 +166,25 @@ namespace M
 		const int MHDR_DONE = 1;
 		const int MHDR_PREPARED = 2;
 		const int MEVT_F_LONG = unchecked((int)0x80000000);
-
+		const int TIME_ONESHOT = 0;
+		const int TIME_PERIODIC = 1;
 		#endregion
 		const int _SendBufferSize = 64 * 1024 - 64;
 
-		const int _DefaultEventBlockSize = 100;
 		int _deviceIndex;
 		IntPtr _handle;
-		MidiOutProc _callback;
+		IntPtr _timerHandle;
+		MidiOutProc _outCallback;
+		TimerProc _timerCallback;
 		MIDIHDR _sendHeader;
 		IntPtr _sendEventBuffer;
 		int _sendQueuePosition;
+		int _tempoSyncMessageCount;
+		int _tempoSyncMessagesSentCount;
+		// must be an int to use interlocked
+		// 0=false, nonzero = true
+		int _tempoSyncEnabled;
+
 		List<MidiEvent> _sendQueue;
 		MidiStreamState _state = MidiStreamState.Closed;
 		internal MidiStream(int deviceIndex)
@@ -180,7 +196,11 @@ namespace M
 			_sendHeader= default(MIDIHDR);
 			_sendEventBuffer= IntPtr.Zero;
 			_sendQueuePosition = 0;
-			_callback = new MidiOutProc(_MidiOutProc);
+			_outCallback = new MidiOutProc(_MidiOutProc);
+			_timerCallback = new TimerProc(_TimerProc);
+			_tempoSyncEnabled = 0;
+			_tempoSyncMessageCount = 10;
+			_tempoSyncMessagesSentCount = 0;
 		}
 		
 		/// <summary>
@@ -200,6 +220,43 @@ namespace M
 		/// </summary>
 		public MidiStreamState State => _state;
 		/// <summary>
+		/// Indicates whether or not the stream attempts to synchronize the remote device's tempo
+		/// </summary>
+		public bool TempoSynchronizationEnabled {
+			get {
+				return 0 != _tempoSyncMessageCount;
+			} 
+			set {
+				if(value)
+				{
+					if(MidiStreamState.Started==_state)
+					{
+						var tmp = Tempo;
+						var spb = 60/tmp;
+						var ms = unchecked((int)(Math.Round((1000 * spb)/24)));
+						_RestartTimer(ms);
+					}
+					Interlocked.Exchange(ref _tempoSyncEnabled, 1);
+					return;
+				}
+				Interlocked.Exchange(ref _tempoSyncEnabled, 0);
+				Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
+				_DisposeTimer();
+
+			}
+		}
+		/// <summary>
+		/// Indicates the number of time clock sync messages to send when the tempo is changed. 0 indicates continuous synchronization
+		/// </summary>
+		public int TempoSynchronizationMessageCount {
+			get {
+				return _tempoSyncMessageCount;
+			}
+			set {
+				Interlocked.Exchange(ref _tempoSyncMessageCount, value);
+			}
+		}
+		/// <summary>
 		/// Opens the stream
 		/// </summary>
 		public void Open()
@@ -208,7 +265,9 @@ namespace M
 				throw new InvalidOperationException("The device is already open");
 			_sendEventBuffer = Marshal.AllocHGlobal(64 * 1024);
 			var di = _deviceIndex;
-			_CheckOutResult(midiStreamOpen(ref _handle, ref di, 1, _callback, 0, CALLBACK_FUNCTION));
+			var h = IntPtr.Zero;
+			_CheckOutResult(midiStreamOpen(ref h, ref di, 1, _outCallback, 0, CALLBACK_FUNCTION));
+			Interlocked.Exchange(ref _handle, h);
 			_state = MidiStreamState.Paused;
 		}
 		/// <summary>
@@ -216,11 +275,12 @@ namespace M
 		/// </summary>
 		public void Close()
 		{
+			_DisposeTimer();
 			if (IntPtr.Zero != _handle) {
 				Stop();
 				Reset();
 				_CheckOutResult(midiStreamClose(_handle));
-				_handle = IntPtr.Zero;
+				Interlocked.Exchange(ref _handle , IntPtr.Zero);
 				Marshal.FreeHGlobal(_sendEventBuffer);
 				_sendEventBuffer = IntPtr.Zero;
 				GC.SuppressFinalize(this);
@@ -588,6 +648,36 @@ namespace M
 		{
 			Close();
 		}
+		void _RestartTimer(int ms)
+		{
+			if (0 >= ms)
+				throw new ArgumentOutOfRangeException("ms");
+			_DisposeTimer();
+			var h = timeSetEvent(ms, 0, _timerCallback, IntPtr.Zero,TIME_ONESHOT);
+			if (IntPtr.Zero == h)
+				throw new Exception("Could not create multimedia timer");
+			Interlocked.Exchange(ref _timerHandle, h);
+		}
+		void _DisposeTimer()
+		{
+			if(null!=_timerHandle)
+			{
+				timeKillEvent(_timerHandle);
+				Interlocked.Exchange(ref _timerHandle,IntPtr.Zero);
+			}
+		}
+		void _TimerProc(IntPtr handle, int msg, int user, int param1, int param2)
+		{
+			if (IntPtr.Zero!=_handle && _timerHandle==handle && 0!=_tempoSyncEnabled)
+			{
+				// quickly send a time sync message
+				midiOutShortMsg(_handle, 0xF8);
+				var tmp = Tempo;
+				var spb = 60 / tmp;
+				var ms = unchecked((int)(Math.Round((1000 * spb) / 24)));
+				_RestartTimer(ms);
+			}
+		}
 		void _MidiOutProc(IntPtr handle, int msg, int instance, int param1, int param2)
 		{
 			switch(msg)
@@ -629,8 +719,14 @@ namespace M
 			{
 				case MidiStreamState.Paused:
 				case MidiStreamState.Stopped:
+					
+					var tmp = Tempo;
+					var spb = 60 / tmp;
+					var ms = unchecked((int)(Math.Round((1000 * spb) / 24)));
+					_RestartTimer(ms);
+					
 					_CheckOutResult(midiStreamRestart(_handle));
-					_state = MidiStreamState.Playing;
+					_state = MidiStreamState.Started;
 					break;		
 			}
 		}
@@ -644,7 +740,8 @@ namespace M
 			switch (_state)
 			{
 				case MidiStreamState.Paused:
-				case MidiStreamState.Playing:
+				case MidiStreamState.Started:
+					_DisposeTimer();
 					_CheckOutResult(midiStreamStop(_handle));
 					_state = MidiStreamState.Stopped;
 					
@@ -666,7 +763,7 @@ namespace M
 				throw new InvalidOperationException("The stream is closed.");
 			switch (_state)
 			{
-				case MidiStreamState.Playing:
+				case MidiStreamState.Started:
 					_CheckOutResult(midiStreamPause(_handle));
 					_state = MidiStreamState.Paused;
 					break;
@@ -691,7 +788,7 @@ namespace M
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
-					case MidiStreamState.Playing:
+					case MidiStreamState.Started:
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_TICKS;
@@ -713,7 +810,7 @@ namespace M
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
-					case MidiStreamState.Playing:
+					case MidiStreamState.Started:
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_MS;
@@ -735,7 +832,7 @@ namespace M
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
-					case MidiStreamState.Playing:
+					case MidiStreamState.Started:
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_MIDI;
@@ -757,7 +854,7 @@ namespace M
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
-					case MidiStreamState.Playing:
+					case MidiStreamState.Started:
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_BYTES;
@@ -779,7 +876,7 @@ namespace M
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
-					case MidiStreamState.Playing:
+					case MidiStreamState.Started:
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_SMPTE;
@@ -802,7 +899,7 @@ namespace M
 				var t = new MIDIPROPTEMPO();
 				t.cbStruct = Marshal.SizeOf(typeof(MIDIPROPTEMPO));
 				_CheckOutResult(midiStreamProperty(_handle, ref t, MIDIPROP_GET | MIDIPROP_TEMPO));
-				return unchecked((short)t.dwTempo);
+				return unchecked(t.dwTempo);
 			}
 			set {
 				if (IntPtr.Zero == _handle)

@@ -21,7 +21,6 @@ namespace taptempo
 				dev.Open();
 				long oldTicks = 0;
 				var amnt = 0d;
-				var oldAmnt = 0d;
 				var next = 0L;
 				var dif = 0L;
 				var msgCount = 0;
@@ -54,7 +53,7 @@ namespace taptempo
 							var ts = new TimeSpan(dif);
 							var ms = ts.TotalMilliseconds;
 							var tpm = TimeSpan.TicksPerMillisecond * 60000;
-							oldAmnt = amnt;
+			
 							amnt = tpm / (double)dif;
 							oldTicks = _PreciseUtcNowTicks;
 							Console.Error.WriteLine("Tapped @ " + amnt+"bpm "+ms+"ms");
