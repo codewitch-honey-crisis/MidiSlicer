@@ -199,62 +199,65 @@ namespace MidiSlicer
 			// set up our send complete handler
 			stm.SendComplete += delegate (object s, EventArgs ea)
 			{
-			
-				BeginInvoke(new Action(delegate ()
-				{
-					// clear the list	
-					eventList.Clear();
-					mf = _processedFile;
-					if (_dirty)
-					{
-						if (_reseekDirty)
-						{
-							var time = _processedFile.Tracks[0].GetContext(songPos, _processedFile.TimeBase).Time;
-							_processedFile = _ProcessFile();
-							songPos = _processedFile.Tracks[0].GetPositionAtTime(time, _processedFile.TimeBase);
-							mf = _processedFile;
-							seq = MidiSequence.Merge(mf.Tracks);
-							events = new List<MidiEvent>(seq.GetNextEventsAtPosition(songPos,true));
-							len = events.Count;
-							pos = 0;
-						}
-						else
-						{
-							_processedFile = _ProcessFile();
-							mf = _processedFile;
-							seq = MidiSequence.Merge(mf.Tracks);
-							events = seq.Events;
-						}
-					}
-					
-					ofs = 0;
-					len = events.Count;
-					// iterate through the next events
-					var next = pos + MAX_EVENT_COUNT;
-					for (; pos < next && ofs<=RATE_TICKS; ++pos)
 
+				try
+				{
+					BeginInvoke(new Action(delegate ()
 					{
-						// if it's past the end, loop it
-						if (len <= pos)
+						// clear the list	
+						eventList.Clear();
+						mf = _processedFile;
+						if (_dirty)
 						{
-							pos = 0;
-							songPos = 0;
-							events = seq.Events;
-							break;
+							if (_reseekDirty)
+							{
+								var time = _processedFile.Tracks[0].GetContext(songPos, _processedFile.TimeBase).Time;
+								_processedFile = _ProcessFile();
+								songPos = _processedFile.Tracks[0].GetPositionAtTime(time, _processedFile.TimeBase);
+								mf = _processedFile;
+								seq = MidiSequence.Merge(mf.Tracks);
+								events = new List<MidiEvent>(seq.GetNextEventsAtPosition(songPos, true));
+								len = events.Count;
+								pos = 0;
+							}
+							else
+							{
+								_processedFile = _ProcessFile();
+								mf = _processedFile;
+								seq = MidiSequence.Merge(mf.Tracks);
+								events = seq.Events;
+							}
 						}
-						var ev = events[pos];
-						ofs += ev.Position;
-						songPos += pos;
-						if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
-							break;
-						// otherwise add the next event
-						eventList.Add(ev);
-					}
-					// send the list of events
-					if (MidiStreamState.Closed!=stm.State && 0 != eventList.Count)
-						stm.SendDirect(eventList);
-				}));
-	
+
+						ofs = 0;
+						len = events.Count;
+						// iterate through the next events
+						var next = pos + MAX_EVENT_COUNT;
+						for (; pos < next && ofs <= RATE_TICKS; ++pos)
+
+						{
+							// if it's past the end, loop it
+							if (len <= pos)
+							{
+								pos = 0;
+								songPos = 0;
+								events = seq.Events;
+								break;
+							}
+							var ev = events[pos];
+							ofs += ev.Position;
+							songPos += pos;
+							if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
+								break;
+							// otherwise add the next event
+							eventList.Add(ev);
+						}
+						// send the list of events
+						if (MidiStreamState.Closed != stm.State && 0 != eventList.Count)
+							stm.SendDirect(eventList);
+					}));
+				}
+				catch { }
 				
 			};
 			// add the first events

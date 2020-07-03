@@ -10,9 +10,9 @@ namespace scratch
 	{
 		static void Main()
 		{
-			//SimpleStreamingDemo();
+			SimpleStreamingDemo();
 			//SimpleRecordingDemo();
-			TestTiming();
+			//TestTiming();
 		}
 
 		static void SimpleStreamingDemo()
