@@ -212,7 +212,7 @@
 			this.LengthUpDown.Name = "LengthUpDown";
 			this.LengthUpDown.Size = new System.Drawing.Size(75, 20);
 			this.LengthUpDown.TabIndex = 12;
-			this.LengthUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
+			this.LengthUpDown.ValueChanged += new System.EventHandler(this.LengthUpDown_ValueChanged);
 			// 
 			// SaveAsButton
 			// 

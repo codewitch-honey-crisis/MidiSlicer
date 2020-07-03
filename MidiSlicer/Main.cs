@@ -15,6 +15,7 @@ namespace MidiSlicer
 		MidiFile _processedFile;
 		string _tracksLabelFormat;
 		bool _dirty;
+		bool _reseekDirty;
 		public Main()
 		{
 			InitializeComponent();
@@ -28,6 +29,7 @@ namespace MidiSlicer
 			StartCombo.SelectedIndex = 0;
 			_processedFile = null;
 			_dirty = true;
+			_reseekDirty = true;
 			_UpdateMidiFile();
 
 		}
@@ -205,14 +207,23 @@ namespace MidiSlicer
 					mf = _processedFile;
 					if (_dirty)
 					{
-						var time = _processedFile.Tracks[0].GetContext(songPos, _processedFile.TimeBase).Time;
-						_processedFile = _ProcessFile();
-						songPos = _processedFile.Tracks[0].GetTicksAtTime(time, _processedFile.TimeBase);
-						mf = _processedFile;
-						seq = MidiSequence.Merge(mf.Tracks);
-						events = new List<MidiEvent>(seq.GetNextEventsAtPosition(songPos));
-						pos = 0;
-						
+						if (_reseekDirty)
+						{
+							var time = _processedFile.Tracks[0].GetContext(songPos, _processedFile.TimeBase).Time;
+							_processedFile = _ProcessFile();
+							songPos = _processedFile.Tracks[0].GetTicksAtTime(time, _processedFile.TimeBase) % mf.Length;
+							mf = _processedFile;
+							seq = MidiSequence.Merge(mf.Tracks);
+							events = new List<MidiEvent>(seq.GetNextEventsAtPosition(songPos));
+							len = events.Count;
+						}
+						else
+						{
+							_processedFile = _ProcessFile();
+							mf = _processedFile;
+							seq = MidiSequence.Merge(mf.Tracks);
+							events = seq.Events;
+						}
 					}
 					
 					ofs = 0;
@@ -456,6 +467,7 @@ namespace MidiSlicer
 				result.Tracks.Add(trk);
 			}
 			_dirty = false;
+			_reseekDirty = false;
 			return result;
 		}
 
@@ -466,11 +478,18 @@ namespace MidiSlicer
 		private void TrackList_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
 			_dirty = true;
+			_reseekDirty = true;
 		}
 
 		private void _SetDirtyHandler(object sender, EventArgs e)
 		{
 			_dirty = true;
+		}
+
+		private void LengthUpDown_ValueChanged(object sender, EventArgs e)
+		{
+			_dirty = true;
+			_reseekDirty = true;
 		}
 	}
 }
