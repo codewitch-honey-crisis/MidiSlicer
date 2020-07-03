@@ -10,21 +10,9 @@ namespace scratch
 	{
 		static void Main()
 		{
-			SimpleStreamingDemo();
+			//SimpleStreamingDemo();
 			//SimpleRecordingDemo();
-			return;
-			// read a MIDI file
-			var mf = MidiFile
-			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
-			.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
-														 //.ReadFrom(@"..\..\A-Warm-Place.mid"); 
-			var ticks = mf.Tracks[0].GetTicksAtTime(new TimeSpan(0,0, 8, 0,0), mf.TimeBase);
-			Console.WriteLine("Ticks " + ticks);
-			var time = new TimeSpan(mf.Tracks[0].GetContext(ticks, mf.TimeBase).SystemTicks % mf.Duration.Ticks);
-			
-			Console.WriteLine("Time " + time);
-			Console.WriteLine(mf.Tracks[1].GetNextEventAtPosition(ticks,true));
-			
+			TestTiming();
 		}
 
 		static void SimpleStreamingDemo()
@@ -476,6 +464,25 @@ namespace scratch
 			}
 		}
 		static void TestTiming()
+		{
+			// read a MIDI file
+			var mf = MidiFile
+			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+			//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
+			//.ReadFrom(@"..\..\Beethoven-Moonlight-Sonata.mid");
+			//.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
+			.ReadFrom(@"..\..\A-Warm-Place.mid");
+			Console.WriteLine("Timebase: " + mf.TimeBase);
+			var time = new TimeSpan(0, 0, 0, 3, 0);
+			Console.WriteLine("Time " + time);
+			var ticks = mf.Tracks[0].GetTicksAtTime(time, mf.TimeBase);
+			Console.WriteLine("Ticks " + ticks);
+			time = new TimeSpan(mf.Tracks[0].GetContext(ticks, mf.TimeBase).SystemTicks);
+			Console.WriteLine("Time " + time);
+			ticks = mf.Tracks[0].GetTicksAtTime(time, mf.TimeBase);
+			Console.WriteLine("Ticks: " + ticks);
+		}
+		static void TestPlaybackTiming()
 		{
 			var mf = MidiFile.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid");
 			var seq = MidiSequence.Merge(mf.Tracks);

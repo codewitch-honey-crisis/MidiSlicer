@@ -83,6 +83,7 @@
 			this.TrackList.Name = "TrackList";
 			this.TrackList.Size = new System.Drawing.Size(88, 199);
 			this.TrackList.TabIndex = 0;
+			this.TrackList.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.TrackList_ItemCheck);
 			// 
 			// TracksLabel
 			// 
@@ -176,6 +177,7 @@
 			this.OffsetUpDown.Name = "OffsetUpDown";
 			this.OffsetUpDown.Size = new System.Drawing.Size(75, 20);
 			this.OffsetUpDown.TabIndex = 10;
+			this.OffsetUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// OffsetLabel
 			// 
@@ -210,6 +212,7 @@
 			this.LengthUpDown.Name = "LengthUpDown";
 			this.LengthUpDown.Size = new System.Drawing.Size(75, 20);
 			this.LengthUpDown.TabIndex = 12;
+			this.LengthUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// SaveAsButton
 			// 
@@ -237,6 +240,7 @@
 			this.MergeTracksCheckBox.TabIndex = 15;
 			this.MergeTracksCheckBox.Text = "Merge Tracks";
 			this.MergeTracksCheckBox.UseVisualStyleBackColor = true;
+			this.MergeTracksCheckBox.CheckedChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// StretchLabel
 			// 
@@ -276,6 +280,7 @@
             0,
             0,
             0});
+			this.StretchUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// AdjustTempoCheckBox
 			// 
@@ -287,6 +292,7 @@
 			this.AdjustTempoCheckBox.TabIndex = 20;
 			this.AdjustTempoCheckBox.Text = "Adjust Tempo";
 			this.AdjustTempoCheckBox.UseVisualStyleBackColor = true;
+			this.AdjustTempoCheckBox.CheckedChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// StartLabel
 			// 
@@ -311,6 +317,7 @@
 			this.StartCombo.Name = "StartCombo";
 			this.StartCombo.Size = new System.Drawing.Size(75, 21);
 			this.StartCombo.TabIndex = 21;
+			this.StartCombo.SelectedIndexChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// CopyTimingPatchCheckBox
 			// 
@@ -324,6 +331,7 @@
 			this.CopyTimingPatchCheckBox.TabIndex = 23;
 			this.CopyTimingPatchCheckBox.Text = "Copy Timing/Patch";
 			this.CopyTimingPatchCheckBox.UseVisualStyleBackColor = true;
+			this.CopyTimingPatchCheckBox.CheckedChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// ResampleLabel
 			// 
@@ -357,6 +365,7 @@
             0,
             0,
             0});
+			this.ResampleUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// NormalizeCheckBox
 			// 
@@ -368,6 +377,7 @@
 			this.NormalizeCheckBox.TabIndex = 26;
 			this.NormalizeCheckBox.Text = "Normalize";
 			this.NormalizeCheckBox.UseVisualStyleBackColor = true;
+			this.NormalizeCheckBox.CheckedChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// LevelsLabel
 			// 
@@ -407,6 +417,7 @@
             0,
             0,
             0});
+			this.LevelsUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// TransposeUpDown
 			// 
@@ -425,6 +436,7 @@
 			this.TransposeUpDown.Name = "TransposeUpDown";
 			this.TransposeUpDown.Size = new System.Drawing.Size(54, 20);
 			this.TransposeUpDown.TabIndex = 30;
+			this.TransposeUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// TransposeLabel
 			// 
@@ -446,6 +458,7 @@
 			this.WrapCheckBox.TabIndex = 31;
 			this.WrapCheckBox.Text = "Wrap";
 			this.WrapCheckBox.UseVisualStyleBackColor = true;
+			this.WrapCheckBox.CheckedChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// DrumsCheckBox
 			// 
@@ -457,6 +470,7 @@
 			this.DrumsCheckBox.TabIndex = 32;
 			this.DrumsCheckBox.Text = "Drums";
 			this.DrumsCheckBox.UseVisualStyleBackColor = true;
+			this.DrumsCheckBox.CheckedChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// OutputComboBox
 			// 
@@ -500,6 +514,7 @@
             0,
             0,
             0});
+			this.TempoUpDown.ValueChanged += new System.EventHandler(this._SetDirtyHandler);
 			// 
 			// Main
 			// 

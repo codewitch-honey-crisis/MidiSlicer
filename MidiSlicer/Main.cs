@@ -12,7 +12,9 @@ namespace MidiSlicer
 	{
 		MidiStream _play;
 		MidiFile _file;
+		MidiFile _processedFile;
 		string _tracksLabelFormat;
+		bool _dirty;
 		public Main()
 		{
 			InitializeComponent();
@@ -24,6 +26,8 @@ namespace MidiSlicer
 			_tracksLabelFormat = TracksLabel.Text;
 			UnitsCombo.SelectedIndex = 0;
 			StartCombo.SelectedIndex = 0;
+			_processedFile = null;
+			_dirty = true;
 			_UpdateMidiFile();
 
 		}
@@ -70,6 +74,7 @@ namespace MidiSlicer
 				DrumsCheckBox.Enabled = false;
 				SaveAsButton.Enabled = false;
 				TempoUpDown.Enabled = false;
+
 			}
 			else
 			{
@@ -124,7 +129,8 @@ namespace MidiSlicer
 				WrapCheckBox.Checked = false;
 				DrumsCheckBox.Checked = false;
 				TempoUpDown.Value = (decimal)_file.Tempo;
-				
+				_dirty = true;
+				_processedFile = null;
 			}
 		}
 
@@ -141,6 +147,9 @@ namespace MidiSlicer
 				{
 					_play.Close();
 				}
+				MidiFileBox.Enabled = true;
+				BrowseButton.Enabled = true;
+				OutputComboBox.Enabled = true;
 				PreviewButton.Text = "Preview";
 				return;
 			}
@@ -149,9 +158,14 @@ namespace MidiSlicer
 			{
 				_play.Close();
 			}
+			MidiFileBox.Enabled = false;
+			BrowseButton.Enabled = false;
+			OutputComboBox.Enabled = false;
 			PreviewButton.Text = "Stop";
-			var mf = _ProcessFile();
-
+			if(_dirty)
+				_processedFile=_ProcessFile();
+			var mf = _processedFile;
+			
 			_play = (OutputComboBox.SelectedItem as MidiOutputDevice).Stream;
 			var stm = _play;
 			// we use 100 events, which should be safe and allow
@@ -163,10 +177,13 @@ namespace MidiSlicer
 			var pos = 0;
 			// for tracking deltas
 			var ofs = 0;
+			// for tracking the song position
+			var songPos = 0;
 			// merge our file for playback
 			var seq = MidiSequence.Merge(mf.Tracks);
+			var events = seq.Events;
 			// the number of events in the seq
-			var len = seq.Events.Count;
+			var len = events.Count;
 			// stores the next set of events
 			var eventList = new List<MidiEvent>(MAX_EVENT_COUNT);
 			
@@ -185,10 +202,21 @@ namespace MidiSlicer
 				{
 					// clear the list	
 					eventList.Clear();
-					mf = _ProcessFile();
-					seq = MidiSequence.Merge(mf.Tracks);
+					mf = _processedFile;
+					if (_dirty)
+					{
+						var time = _processedFile.Tracks[0].GetContext(songPos, _processedFile.TimeBase).Time;
+						_processedFile = _ProcessFile();
+						songPos = _processedFile.Tracks[0].GetTicksAtTime(time, _processedFile.TimeBase);
+						mf = _processedFile;
+						seq = MidiSequence.Merge(mf.Tracks);
+						events = new List<MidiEvent>(seq.GetNextEventsAtPosition(songPos));
+						pos = 0;
+						
+					}
+					
 					ofs = 0;
-					len = seq.Events.Count;
+					len = events.Count;
 					// iterate through the next events
 					var next = pos + MAX_EVENT_COUNT;
 					for (; pos < next && ofs<=RATE_TICKS; ++pos)
@@ -198,10 +226,13 @@ namespace MidiSlicer
 						if (len <= pos)
 						{
 							pos = 0;
+							songPos = 0;
+							events = seq.Events;
 							break;
 						}
-						var ev = seq.Events[pos];
+						var ev = events[pos];
 						ofs += ev.Position;
+						songPos += pos;
 						if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
 							break;
 						// otherwise add the next event
@@ -221,9 +252,11 @@ namespace MidiSlicer
 				if (len <= pos )
 				{
 					pos = 0;
+					songPos = 0;
+					events = seq.Events;
 					break;
 				}
-				var ev = seq.Events[pos];
+				var ev = events[pos];
 				ofs += ev.Position;
 				if (ev.Position<RATE_TICKS && RATE_TICKS < ofs)
 					break;
@@ -257,6 +290,7 @@ namespace MidiSlicer
 					OffsetUpDown.Maximum = LengthUpDown.Maximum - 1;
 				}
 				LengthUpDown.Value = LengthUpDown.Maximum;
+				_dirty = true;
 			}
 		}
 
@@ -421,11 +455,22 @@ namespace MidiSlicer
 				result.Tracks.Clear();
 				result.Tracks.Add(trk);
 			}
+			_dirty = false;
 			return result;
 		}
 
 		private void OutputComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
+		}
+
+		private void TrackList_ItemCheck(object sender, ItemCheckEventArgs e)
+		{
+			_dirty = true;
+		}
+
+		private void _SetDirtyHandler(object sender, EventArgs e)
+		{
+			_dirty = true;
 		}
 	}
 }
