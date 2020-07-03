@@ -44,6 +44,7 @@ namespace scratch
 				};
 				// kick things off
 				stm.Send(seq.Events);
+		
 				// wait for exit
 				Console.ReadKey();
 

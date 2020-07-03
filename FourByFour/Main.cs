@@ -303,19 +303,24 @@ namespace FourByFour
 			var beat = new BeatControl();
 			beat.NoteId = 36; // Bass Drum 1
 			beat.Bars = (int)BarsUpDown.Value;
+			beat.Delete += Beats_Delete;
 			BeatsPanel.Controls.Add(beat);
 			beat = new BeatControl();
 			beat.NoteId = 40; // Electric Snare 1
 			beat.Bars = (int)BarsUpDown.Value;
+			beat.Delete += Beats_Delete;
 			BeatsPanel.Controls.Add(beat);
 			beat = new BeatControl();
 			beat.NoteId = 42; // Closed Hat
 			beat.Bars = (int)BarsUpDown.Value;
+			beat.Delete += Beats_Delete;
 			BeatsPanel.Controls.Add(beat);
 			beat = new BeatControl();
 			beat.NoteId = 46; // Open Hat
 			beat.Bars = (int)BarsUpDown.Value;
+			beat.Delete += Beats_Delete;
 			BeatsPanel.Controls.Add(beat);
 		}
+
 	}
 }
