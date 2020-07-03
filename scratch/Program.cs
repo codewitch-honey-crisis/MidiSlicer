@@ -10,11 +10,20 @@ namespace scratch
 	{
 		static void Main()
 		{
-			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
-			TestTapTempo();			
+			//SimpleStreamingDemo();
 			//SimpleRecordingDemo();
+			//return;
+			// read a MIDI file
+			var mf = MidiFile
+			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+			.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
+														 //.ReadFrom(@"..\..\A-Warm-Place.mid"); 
+			var ticks = mf.Tracks[0].GetTicksAtTime(new TimeSpan(0,0, 8, 0,0), mf.TimeBase);
+			Console.WriteLine("Ticks " + ticks);
+			var time = mf.Tracks[0].GetContext(ticks, mf.TimeBase).Time;
+			Console.WriteLine("Time " + time);
 		}
-		
+
 		static void SimpleStreamingDemo()
 		{
 			// just grab the first output stream
@@ -149,10 +158,7 @@ namespace scratch
 					// and output
 					idev.Open();
 					// set our timebase
-					idev.TimeBase = 480;
-					idev.TempoSynchronizationEnabled = true;
-					// every tenth of a second
-					idev.TempoSychronizationFrequency = new TimeSpan(0, 0, 0, 1, 0);
+					idev.TimeBase = 384;
 					odev.Open();
 					idev.Start();
 					// start recording, waiting for input

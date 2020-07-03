@@ -130,11 +130,71 @@
 					// advance the cursor by the remainder
 					var tev = new MidiEvent((pos - position), null);
 					result.Process(tev);
+					return result;
 				}
 				result.Process(e);
 			}
+			if(pos<position)
+			{
+				var tev = new MidiEvent((position - pos), null);
+				result.Process(tev);
+			}
 			return result;
 		}
+		/// <summary>
+		/// Gets the MIDI tick position for the current sequence at the current time
+		/// </summary>
+		/// <param name="systemTicks">The number of system ticks elapsed</param>
+		/// <param name="timeBase">The time base to use</param>
+		/// <returns>The number of ticks <paramref name="systemTicks"/> corresponds to for this sequence</returns>
+		public int GetTicksAtTime(long systemTicks,short timeBase=96)
+		{
+			var microTempo = 500000; // 120bpm default
+			var result = 0;
+			var elapsed = 0L;
+			var ticksusec = microTempo / (double)timeBase;
+			var tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+			foreach (var e in Events)
+			{
+				var len = unchecked((long)Math.Round(e.Position * tickspertick));
+				if(len+elapsed>systemTicks)
+				{
+					var dif = (len + elapsed) - systemTicks;
+					return unchecked((int)Math.Round(dif / tickspertick)) + result;
+				}
+				result += e.Position;
+				elapsed += len;
+				switch(e.Message.Status)
+				{
+					case 0xFF:
+						var mbs = e.Message as MidiMessageMeta;
+						switch (mbs.Data1)
+						{
+							case 0x51:
+								if (BitConverter.IsLittleEndian)
+									microTempo = (mbs.Data[0] << 16) | (mbs.Data[1] << 8) | mbs.Data[2];
+								else
+									microTempo = (mbs.Data[2] << 16) | (mbs.Data[1] << 8) | mbs.Data[0];
+								ticksusec = microTempo / (double)timeBase;
+								tickspertick = ticksusec / (TimeSpan.TicksPerMillisecond / 1000) * 100;
+								break;
+						}
+						break;
+				}
+
+			}
+			if (systemTicks > elapsed)
+				result+= unchecked((int)((systemTicks - elapsed) / tickspertick));
+			return result;
+		}
+		/// <summary>
+		/// Gets the MIDI tick position for the current sequence at the current time
+		/// </summary>
+		/// <param name="time">The span of time that has elapsed</param>
+		/// <param name="timeBase">The time base to use</param>
+		/// <returns>The number of ticks <paramref name="time"/> corresponds to for this sequence</returns>
+		public int GetTicksAtTime(TimeSpan time, short timeBase = 96)
+			=> GetTicksAtTime(time.Ticks,timeBase);
 		/// <summary>
 		/// Gets a range of MIDI events as a new sequence
 		/// </summary>
