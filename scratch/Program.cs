@@ -10,9 +10,9 @@ namespace scratch
 	{
 		static void Main()
 		{
-			//SimpleStreamingDemo();
+			SimpleStreamingDemo();
 			//SimpleRecordingDemo();
-			//return;
+			return;
 			// read a MIDI file
 			var mf = MidiFile
 			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
@@ -20,8 +20,11 @@ namespace scratch
 														 //.ReadFrom(@"..\..\A-Warm-Place.mid"); 
 			var ticks = mf.Tracks[0].GetTicksAtTime(new TimeSpan(0,0, 8, 0,0), mf.TimeBase);
 			Console.WriteLine("Ticks " + ticks);
-			var time = mf.Tracks[0].GetContext(ticks, mf.TimeBase).Time;
+			var time = new TimeSpan(mf.Tracks[0].GetContext(ticks, mf.TimeBase).SystemTicks % mf.Duration.Ticks);
+			
 			Console.WriteLine("Time " + time);
+			Console.WriteLine(mf.Tracks[1].GetNextEventAtPosition(ticks,true));
+			
 		}
 
 		static void SimpleStreamingDemo()

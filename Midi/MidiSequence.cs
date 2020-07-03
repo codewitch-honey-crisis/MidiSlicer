@@ -188,6 +188,29 @@
 			return result;
 		}
 		/// <summary>
+		/// Retrieves the next event in the sequence from the position specified by <paramref name="position"/>. The event's delta is modified such that it reflects the difference between the requested position and the time the note should be played.
+		/// </summary>
+		/// <param name="position">The position within the sequence</param>
+		/// <param name="loop">True if the sequence should be treated as a loop, and the position logically wrapped if it's past the end of the track, otherwise false</param>
+		/// <returns>A <see cref="MidiEvent"/> with an adjusted delta, or null if the sequence is empty or if <paramref name="loop"/> is false and there are no more events after <paramref name="position"/></returns>
+		public MidiEvent GetNextEventAtPosition(int position,bool loop=false)
+		{
+			if (0 == Events.Count)
+				return null;
+			var pos = 0;
+			foreach(var e in Events)
+			{
+				var delta = e.Position;
+				if (delta + pos >=position)
+					return new MidiEvent(delta + pos - position, e.Message);
+				pos += delta;
+			}
+			if (!loop)
+				return null;
+			position %= (pos+1);
+			return GetNextEventAtPosition(position);
+		}
+		/// <summary>
 		/// Gets the MIDI tick position for the current sequence at the current time
 		/// </summary>
 		/// <param name="time">The span of time that has elapsed</param>
