@@ -286,7 +286,7 @@
 			// 
 			this.AdjustTempoCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.AdjustTempoCheckBox.AutoSize = true;
-			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(211, 131);
+			this.AdjustTempoCheckBox.Location = new System.Drawing.Point(209, 131);
 			this.AdjustTempoCheckBox.Name = "AdjustTempoCheckBox";
 			this.AdjustTempoCheckBox.Size = new System.Drawing.Size(91, 17);
 			this.AdjustTempoCheckBox.TabIndex = 20;
@@ -325,7 +325,7 @@
 			this.CopyTimingPatchCheckBox.AutoSize = true;
 			this.CopyTimingPatchCheckBox.Checked = true;
 			this.CopyTimingPatchCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.CopyTimingPatchCheckBox.Location = new System.Drawing.Point(211, 77);
+			this.CopyTimingPatchCheckBox.Location = new System.Drawing.Point(209, 77);
 			this.CopyTimingPatchCheckBox.Name = "CopyTimingPatchCheckBox";
 			this.CopyTimingPatchCheckBox.Size = new System.Drawing.Size(117, 17);
 			this.CopyTimingPatchCheckBox.TabIndex = 23;
@@ -371,7 +371,7 @@
 			// 
 			this.NormalizeCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.NormalizeCheckBox.AutoSize = true;
-			this.NormalizeCheckBox.Location = new System.Drawing.Point(211, 181);
+			this.NormalizeCheckBox.Location = new System.Drawing.Point(210, 181);
 			this.NormalizeCheckBox.Name = "NormalizeCheckBox";
 			this.NormalizeCheckBox.Size = new System.Drawing.Size(72, 17);
 			this.NormalizeCheckBox.TabIndex = 26;
@@ -452,7 +452,7 @@
 			// 
 			this.WrapCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.WrapCheckBox.AutoSize = true;
-			this.WrapCheckBox.Location = new System.Drawing.Point(211, 207);
+			this.WrapCheckBox.Location = new System.Drawing.Point(210, 207);
 			this.WrapCheckBox.Name = "WrapCheckBox";
 			this.WrapCheckBox.Size = new System.Drawing.Size(52, 17);
 			this.WrapCheckBox.TabIndex = 31;
@@ -464,7 +464,7 @@
 			// 
 			this.DrumsCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.DrumsCheckBox.AutoSize = true;
-			this.DrumsCheckBox.Location = new System.Drawing.Point(261, 206);
+			this.DrumsCheckBox.Location = new System.Drawing.Point(260, 207);
 			this.DrumsCheckBox.Name = "DrumsCheckBox";
 			this.DrumsCheckBox.Size = new System.Drawing.Size(56, 17);
 			this.DrumsCheckBox.TabIndex = 32;
