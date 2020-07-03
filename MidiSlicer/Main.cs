@@ -211,11 +211,12 @@ namespace MidiSlicer
 						{
 							var time = _processedFile.Tracks[0].GetContext(songPos, _processedFile.TimeBase).Time;
 							_processedFile = _ProcessFile();
-							songPos = _processedFile.Tracks[0].GetTicksAtTime(time, _processedFile.TimeBase) % mf.Length;
+							songPos = _processedFile.Tracks[0].GetTicksAtTime(time, _processedFile.TimeBase);
 							mf = _processedFile;
 							seq = MidiSequence.Merge(mf.Tracks);
-							events = new List<MidiEvent>(seq.GetNextEventsAtPosition(songPos));
+							events = new List<MidiEvent>(seq.GetNextEventsAtPosition(songPos,true));
 							len = events.Count;
+							pos = 0;
 						}
 						else
 						{
