@@ -475,11 +475,11 @@ namespace scratch
 			Console.WriteLine("Timebase: " + mf.TimeBase);
 			var time = new TimeSpan(0, 0, 0, 3, 0);
 			Console.WriteLine("Time " + time);
-			var ticks = mf.Tracks[0].GetTicksAtTime(time, mf.TimeBase);
+			var ticks = mf.Tracks[0].GetPositionAtTime(time, mf.TimeBase);
 			Console.WriteLine("Ticks " + ticks);
 			time = new TimeSpan(mf.Tracks[0].GetContext(ticks, mf.TimeBase).SystemTicks);
 			Console.WriteLine("Time " + time);
-			ticks = mf.Tracks[0].GetTicksAtTime(time, mf.TimeBase);
+			ticks = mf.Tracks[0].GetPositionAtTime(time, mf.TimeBase);
 			Console.WriteLine("Ticks: " + ticks);
 		}
 		static void TestPlaybackTiming()

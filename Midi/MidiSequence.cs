@@ -147,7 +147,7 @@
 		/// <param name="systemTicks">The number of system ticks elapsed</param>
 		/// <param name="timeBase">The time base to use</param>
 		/// <returns>The number of ticks <paramref name="systemTicks"/> corresponds to for this sequence</returns>
-		public int GetTicksAtTime(long systemTicks,short timeBase=96)
+		public int GetPositionAtTime(long systemTicks,short timeBase=96)
 		{
 			var microTempo = 500000; // 120bpm default
 			var result = 0;
@@ -246,8 +246,8 @@
 		/// <param name="time">The span of time that has elapsed</param>
 		/// <param name="timeBase">The time base to use</param>
 		/// <returns>The number of ticks <paramref name="time"/> corresponds to for this sequence</returns>
-		public int GetTicksAtTime(TimeSpan time, short timeBase = 96)
-			=> GetTicksAtTime(time.Ticks,timeBase);
+		public int GetPositionAtTime(TimeSpan time, short timeBase = 96)
+			=> GetPositionAtTime(time.Ticks,timeBase);
 		/// <summary>
 		/// Gets a range of MIDI events as a new sequence
 		/// </summary>
