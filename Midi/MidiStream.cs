@@ -361,11 +361,6 @@ namespace M
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
 		
-			// TODO: see if we can send while already sending
-
-			//if (IntPtr.Zero != Interlocked.CompareExchange(ref _sendHeader.lpData, _sendEventBuffer, IntPtr.Zero))
-			//	throw new InvalidOperationException("The stream is busy playing.");
-
 			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT));
 			int blockSize = 0;
 			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
@@ -495,13 +490,10 @@ namespace M
 				throw new ArgumentNullException("events");
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
-			// TODO: see if we can send while already sending.
-
-			//if (IntPtr.Zero != _sendHeader.lpData)
-			//	throw new InvalidOperationException("The stream is busy playing.");
+			
+			var headerSize = Marshal.SizeOf(typeof(MIDIHDR));
 			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT));
 			int blockSize = 0;
-			var headerSize = Marshal.SizeOf(typeof(MIDIHDR));
 			IntPtr headerPointer = Marshal.AllocHGlobal(_SendBufferSize + headerSize);
 			try
 			{
