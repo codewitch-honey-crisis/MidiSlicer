@@ -1263,7 +1263,30 @@
 				}
 			}
 		}
-
+		/// <summary>
+		/// Adds an event at the specified absolute position
+		/// </summary>
+		/// <param name="position">The absolute position in ticks</param>
+		/// <param name="message">The message to insert</param>
+		public void AddAbsoluteEvent(int position,MidiMessage message)
+		{
+			var pos = 0;
+			for(var i =0;i<Events.Count;++i)
+			{
+				var ev = Events[i];
+				var delta = ev.Position;
+				if(delta+pos>=position)
+				{
+					var ndelta = position - pos;
+					var nev = new MidiEvent(ndelta, message);
+					Events[i] = new MidiEvent(delta - ndelta, ev.Message);
+					Events.Insert(i, nev);
+					return;
+				}
+				pos += delta;
+			}
+			Events.Add(new MidiEvent(position - pos, message));
+		}
 		/// <summary>
 		/// Plays the sequence to the specified MIDI device using the specified timebase
 		/// </summary>

@@ -486,9 +486,9 @@ namespace M
 				len = pos+remst;
 			} else
 				 len = result.Tracks[1].Length;
-			endTrack.Events.Add(new MidiEvent(len, new MidiMessageMetaEndOfTrack()));
-			result.Tracks[0] = MidiSequence.Merge(result.Tracks[0], endTrack);
-			result.Tracks[1] = MidiSequence.Merge(result.Tracks[1], endTrack);
+			//endTrack.Events.Add(new MidiEvent(len, new MidiMessageMetaEndOfTrack()));
+			result.Tracks[0].AddAbsoluteEvent(len, new MidiMessageMetaEndOfTrack());// = MidiSequence.Merge(result.Tracks[0], endTrack);
+			result.Tracks[1].AddAbsoluteEvent(len, new MidiMessageMetaEndOfTrack());//= MidiSequence.Merge(result.Tracks[1], endTrack);
 			return result;
 		}
 		void _MidiInProc(IntPtr handle, int msg, int instance, int lparam, int wparam)
