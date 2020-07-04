@@ -42,8 +42,6 @@ namespace M
 		#region Win32
 		delegate void MidiOutProc(IntPtr handle, int msg, int instance, IntPtr param1, IntPtr param2);
 		delegate void TimerProc(IntPtr handle, int msg, int instance, IntPtr param1, IntPtr param2);
-		[DllImport("kernel32.dll", SetLastError = false)]
-		static extern void CopyMemory(IntPtr dest, IntPtr src, int count);
 		[DllImport("winmm.dll")]
 		static extern int midiStreamOpen(ref IntPtr handle, ref int deviceID, int cMidi,
 			MidiOutProc proc, int instance, int flags);
@@ -173,17 +171,16 @@ namespace M
 		const int MHDR_PREPARED = 2;
 		const int MEVT_F_LONG = unchecked((int)0x80000000);
 		const int TIME_ONESHOT = 0;
-		const int TIME_PERIODIC = 1;
+		static readonly int MIDIHDR_SIZE = Marshal.SizeOf(typeof(MIDIHDR));
+		static readonly int MIDIEVENT_SIZE = Marshal.SizeOf(typeof(MIDIEVENT));
 		#endregion
-		const int _SendBufferSize = 64 * 1024 - 64;
+		static readonly int MAX_EVENTBLOCK_SIZE = 65536-MIDIHDR_SIZE;
 
 		int _deviceIndex;
 		IntPtr _handle;
 		IntPtr _timerHandle;
 		MidiOutProc _outCallback;
 		TimerProc _timerCallback;
-		MIDIHDR _sendHeader;
-		IntPtr _sendEventBuffer;
 		int _sendQueuePosition;
 		int _tempoSyncMessageCount;
 		int _tempoSyncMessagesSentCount;
@@ -199,8 +196,6 @@ namespace M
 				throw new ArgumentOutOfRangeException("deviceIndex");
 			_deviceIndex = deviceIndex;
 			_handle = IntPtr.Zero;
-			_sendHeader= default(MIDIHDR);
-			_sendEventBuffer= IntPtr.Zero;
 			_sendQueuePosition = 0;
 			_outCallback = new MidiOutProc(_MidiOutProc);
 			_timerCallback = new TimerProc(_TimerProc);
@@ -269,7 +264,6 @@ namespace M
 		{
 			if (IntPtr.Zero!= _handle)
 				throw new InvalidOperationException("The device is already open");
-			//_sendEventBuffer = Marshal.AllocHGlobal(64 * 1024);
 			var di = _deviceIndex;
 			var h = IntPtr.Zero;
 			_CheckOutResult(midiStreamOpen(ref h, ref di, 1, _outCallback, 0, CALLBACK_FUNCTION));
@@ -361,13 +355,11 @@ namespace M
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
 		
-			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT));
 			int blockSize = 0;
-			int headerSize = Marshal.SizeOf(typeof(MIDIHDR));
-			IntPtr headerPointer = Marshal.AllocHGlobal(headerSize + _SendBufferSize);
+			IntPtr headerPointer = Marshal.AllocHGlobal(MIDIHDR_SIZE+MAX_EVENTBLOCK_SIZE);
 			try
 			{
-				IntPtr eventPointer = new IntPtr(headerPointer.ToInt64() + headerSize);
+				IntPtr eventPointer = new IntPtr(headerPointer.ToInt64() +MIDIHDR_SIZE);
 				var ofs = 0;
 				var ptrOfs = 0;
 				for (; _sendQueuePosition < _sendQueue.Count; Interlocked.Exchange(ref _sendQueuePosition, _sendQueuePosition + 1))
@@ -375,17 +367,15 @@ namespace M
 					var @event = _sendQueue[_sendQueuePosition];
 					if (0x00 != @event.Message.Status && 0xF0 != (@event.Message.Status & 0xF0))
 					{
-						if (_SendBufferSize < blockSize + baseEventSize)
+						if (MAX_EVENTBLOCK_SIZE < blockSize + MIDIEVENT_SIZE)
 							break;
-						blockSize += baseEventSize;
-						var se = new MIDIEVENT();
+						blockSize += MIDIEVENT_SIZE;
+						var se = default(MIDIEVENT);
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = MidiUtility.PackMessage(@event.Message);
-						var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
-						CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
-						gch.Free();
-						ptrOfs += baseEventSize;
+						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+						ptrOfs += MIDIEVENT_SIZE;
 						ofs = 0;
 					}
 					else if (0xFF == @event.Message.Status)
@@ -393,34 +383,30 @@ namespace M
 						var mm = @event.Message as MidiMessageMeta;
 						if (0x51 == mm.Data1) // tempo
 						{
-							if (_SendBufferSize < blockSize + baseEventSize)
+							if (MAX_EVENTBLOCK_SIZE < blockSize + MIDIEVENT_SIZE)
 								break;
-							blockSize += baseEventSize;
-							var se = new MIDIEVENT();
+							blockSize += MIDIEVENT_SIZE;
+							var se = default(MIDIEVENT);
 							se.dwDeltaTime = @event.Position + ofs;
 							se.dwStreamId = 0;
 							se.dwEvent = (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] | (MEVT_TEMPO << 24);
-							var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
-							CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
-							gch.Free();
-							ptrOfs += baseEventSize;
+							Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+							ptrOfs += MIDIEVENT_SIZE;
 							ofs = 0;
 						}
 						else if (0x2f == mm.Data1) // end track 
 						{
-							if (_SendBufferSize < blockSize + baseEventSize)
+							if (MAX_EVENTBLOCK_SIZE < blockSize + MIDIEVENT_SIZE)
 								break;
-							blockSize += baseEventSize;
+							blockSize += MIDIEVENT_SIZE;
 
 							// add a NOP message to it just to pad our output in case we're looping
-							var se = new MIDIEVENT();
+							var se = default(MIDIEVENT);
 							se.dwDeltaTime = @event.Position + ofs;
 							se.dwStreamId = 0;
 							se.dwEvent = (MEVT_NOP << 24);
-							var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
-							CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
-							gch.Free();
-							ptrOfs += baseEventSize;
+							Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+							ptrOfs += MIDIEVENT_SIZE;
 							ofs = 0;
 						}
 						else
@@ -438,19 +424,17 @@ namespace M
 						var dl = data.Length;
 						if (0 != (dl % 4))
 							dl += 4 - (dl % 4);
-						if (_SendBufferSize < blockSize + baseEventSize + dl)
+						if (MAX_EVENTBLOCK_SIZE < blockSize + MIDIEVENT_SIZE+ dl)
 							break;
 
-						blockSize += baseEventSize + dl;
+						blockSize += MIDIEVENT_SIZE + dl;
 
-						var se = new MIDIEVENT();
+						var se = default(MIDIEVENT);
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = MEVT_F_LONG | data.Length;
-						var gch = GCHandle.Alloc(se, GCHandleType.Pinned);
-						CopyMemory(new IntPtr(ptrOfs + eventPointer.ToInt64()), gch.AddrOfPinnedObject(), Marshal.SizeOf(typeof(MIDIEVENT)));
-						gch.Free();
-						ptrOfs += baseEventSize;
+						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
+						ptrOfs += MIDIEVENT_SIZE;
 						Marshal.Copy(data, 0, new IntPtr(ptrOfs + eventPointer.ToInt64()), data.Length);
 
 						ptrOfs += dl;
@@ -461,8 +445,8 @@ namespace M
 				header.dwBufferLength = header.dwBytesRecorded = unchecked((uint)blockSize);
 				header.lpData = eventPointer;
 				Marshal.StructureToPtr(header, headerPointer, false);
-				_CheckOutResult(midiOutPrepareHeader(_handle, headerPointer, headerSize));
-				_CheckOutResult(midiStreamOut(_handle, headerPointer, headerSize));
+				_CheckOutResult(midiOutPrepareHeader(_handle, headerPointer, MIDIHDR_SIZE));
+				_CheckOutResult(midiStreamOut(_handle, headerPointer, MIDIHDR_SIZE));
 				headerPointer= IntPtr.Zero;
 			}
 			finally
@@ -491,13 +475,11 @@ namespace M
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("The stream is closed.");
 			
-			var headerSize = Marshal.SizeOf(typeof(MIDIHDR));
-			int baseEventSize = Marshal.SizeOf(typeof(MIDIEVENT));
 			int blockSize = 0;
-			IntPtr headerPointer = Marshal.AllocHGlobal(_SendBufferSize + headerSize);
+			IntPtr headerPointer = Marshal.AllocHGlobal(MAX_EVENTBLOCK_SIZE + MIDIHDR_SIZE);
 			try
 			{
-				IntPtr eventPointer = new IntPtr(headerPointer.ToInt64() + headerSize);
+				IntPtr eventPointer = new IntPtr(headerPointer.ToInt64() + MIDIHDR_SIZE);
 				var ofs = 0;
 				var ptrOfs = 0;
 				var hasEvents = false;
@@ -506,15 +488,15 @@ namespace M
 					hasEvents = true;
 					if (0xF0 != (@event.Message.Status & 0xF0))
 					{
-						blockSize += baseEventSize;
-						if (_SendBufferSize <= blockSize)
+						blockSize += MIDIEVENT_SIZE;
+						if (MAX_EVENTBLOCK_SIZE <= blockSize)
 							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
-						var se = new MIDIEVENT();
+						var se = default(MIDIEVENT);
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = MidiUtility.PackMessage(@event.Message);
 						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
-						ptrOfs += baseEventSize;
+						ptrOfs += MIDIEVENT_SIZE;
 						ofs = 0;
 					}
 					else if (0xFF == @event.Message.Status)
@@ -522,8 +504,8 @@ namespace M
 						var mm = @event.Message as MidiMessageMeta;
 						if (0x51 == mm.Data1) // tempo
 						{
-							blockSize += baseEventSize;
-							if (_SendBufferSize <= blockSize)
+							blockSize += MIDIEVENT_SIZE;
+							if (MAX_EVENTBLOCK_SIZE <= blockSize)
 								throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
 							var se = new MIDIEVENT();
@@ -531,7 +513,7 @@ namespace M
 							se.dwStreamId = 0;
 							se.dwEvent = (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] | (MEVT_TEMPO << 24);
 							Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
-							ptrOfs += baseEventSize;
+							ptrOfs += MIDIEVENT_SIZE;
 							ofs = 0;
 							// TODO: This signal is sent too early. It should really wait until after the
 							// MEVT_TEMPO message is processed by the driver, but i have no easy way to
@@ -540,17 +522,17 @@ namespace M
 						}
 						else if (0x2f == mm.Data1) // end track 
 						{
-							blockSize += baseEventSize;
-							if (_SendBufferSize <= blockSize)
+							blockSize += MIDIEVENT_SIZE;
+							if (MAX_EVENTBLOCK_SIZE <= blockSize)
 								throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
 							// add a NOP message to it just to pad our output in case we're looping
-							var se = new MIDIEVENT();
+							var se = default(MIDIEVENT);
 							se.dwDeltaTime = @event.Position + ofs;
 							se.dwStreamId = 0;
 							se.dwEvent = (MEVT_NOP << 24);
 							Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
-							ptrOfs += baseEventSize;
+							ptrOfs += MIDIEVENT_SIZE;
 							ofs = 0;
 						}
 						else
@@ -564,16 +546,16 @@ namespace M
 						{
 							dl += 4 - (dl % 4);
 						}
-						blockSize += baseEventSize + dl;
-						if (_SendBufferSize <= blockSize)
+						blockSize += MIDIEVENT_SIZE + dl;
+						if (MAX_EVENTBLOCK_SIZE <= blockSize)
 							throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
-						var se = new MIDIEVENT();
+						var se = default(MIDIEVENT);
 						se.dwDeltaTime = @event.Position + ofs;
 						se.dwStreamId = 0;
 						se.dwEvent = MEVT_F_LONG | (msx.Data.Length + 1);
 						Marshal.StructureToPtr(se, new IntPtr(ptrOfs + eventPointer.ToInt64()), false);
-						ptrOfs += baseEventSize;
+						ptrOfs += MIDIEVENT_SIZE;
 						Marshal.WriteByte(new IntPtr(ptrOfs + eventPointer.ToInt64()), msx.Status);
 						Marshal.Copy(msx.Data, 0, new IntPtr(ptrOfs + eventPointer.ToInt64() + 1), msx.Data.Length);
 
@@ -588,8 +570,8 @@ namespace M
 					header.lpData = eventPointer;
 					header.dwBufferLength = header.dwBytesRecorded = unchecked((uint)blockSize);
 					Marshal.StructureToPtr(header, headerPointer, false);
-					_CheckOutResult(midiOutPrepareHeader(_handle, headerPointer, headerSize));
-					_CheckOutResult(midiStreamOut(_handle, headerPointer, headerSize));
+					_CheckOutResult(midiOutPrepareHeader(_handle, headerPointer, MIDIHDR_SIZE));
+					_CheckOutResult(midiStreamOut(_handle, headerPointer, MIDIHDR_SIZE));
 					headerPointer= IntPtr.Zero;
 				}
 			}
@@ -611,9 +593,9 @@ namespace M
 				throw new InvalidOperationException("The device is closed.");
 			if (null == message)
 				throw new ArgumentNullException("message");
-			if (0xF0 == (message.Status & 0xF0))
+			if (0xFF != message.Status)
 			{
-				if (0xF != message.Channel)
+				if (0 > message.PayloadLength || 2 < message.PayloadLength)
 				{
 					var data = MidiUtility.ToMessageBytes(message);
 					if (null == data)
@@ -633,34 +615,32 @@ namespace M
 					}
 					else
 						_SendRaw(data, 0, data.Length);
+
 				}
-			}
-			else
-			{
-				_CheckOutResult(midiOutShortMsg(_handle, MidiUtility.PackMessage(message)));
+				else
+					_CheckOutResult(midiOutShortMsg(_handle, MidiUtility.PackMessage(message)));
 			}
 		}
 		void _SendRaw(byte[] data, int startIndex, int length)
 		{
-			var hdrSize = Marshal.SizeOf(typeof(MIDIHDR));
-			var hdr = new MIDIHDR();
+			var hdr = default(MIDIHDR);
 			var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
 			try
 			{
 				hdr.lpData = new IntPtr(handle.AddrOfPinnedObject().ToInt64() + startIndex);
 				hdr.dwBufferLength = hdr.dwBytesRecorded = (uint)(length);
 				hdr.dwFlags = 0;
-				_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, hdrSize));
+				_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, MIDIHDR_SIZE));
 				while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)
 				{
 					Thread.Sleep(1);
 				}
-				_CheckOutResult(midiOutLongMsg(_handle, ref hdr, hdrSize));
+				_CheckOutResult(midiOutLongMsg(_handle, ref hdr, MIDIHDR_SIZE));
 				while ((hdr.dwFlags & MHDR_DONE) != MHDR_DONE)
 				{
 					Thread.Sleep(1);
 				}
-				_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, hdrSize));
+				_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, MIDIHDR_SIZE));
 			}
 			finally
 			{
