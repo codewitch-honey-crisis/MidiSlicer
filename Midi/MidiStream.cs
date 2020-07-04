@@ -508,7 +508,7 @@ namespace M
 							if (MAX_EVENTBLOCK_SIZE <= blockSize)
 								throw new ArgumentException("There are too many events in the event buffer - maximum size must be 64k", "events");
 
-							var se = new MIDIEVENT();
+							var se = default(MIDIEVENT);
 							se.dwDeltaTime = @event.Position + ofs;
 							se.dwStreamId = 0;
 							se.dwEvent = (mm.Data[0] << 16) | (mm.Data[1] << 8) | mm.Data[2] | (MEVT_TEMPO << 24);
@@ -566,7 +566,6 @@ namespace M
 				if (hasEvents)
 				{
 					var header = default(MIDIHDR);
-					//Interlocked.Exchange(ref _sendHeader.lpData, eventPointer);
 					header.lpData = eventPointer;
 					header.dwBufferLength = header.dwBytesRecorded = unchecked((uint)blockSize);
 					Marshal.StructureToPtr(header, headerPointer, false);
