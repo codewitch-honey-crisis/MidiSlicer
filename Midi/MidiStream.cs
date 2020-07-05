@@ -169,7 +169,6 @@ namespace M
 		#endregion
 		static readonly int MAX_EVENTBLOCK_SIZE = 65536-MIDIHDR_SIZE;
 
-		int _index;
 		IntPtr _timerHandle;
 		MidiOutProc _outCallback;
 		TimerProc _timerCallback;
@@ -235,10 +234,6 @@ namespace M
 			}
 		}
 		
-		/// <summary>
-		/// Indicates the device index of the MIDI output device
-		/// </summary>
-		public override int Index => _index;
 		/// <summary>
 		/// Indicates the number of time clock sync messages to send when the tempo is changed. 0 indicates continuous synchronization
 		/// </summary>
