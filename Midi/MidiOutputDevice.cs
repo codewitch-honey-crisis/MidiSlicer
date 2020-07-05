@@ -147,7 +147,7 @@ namespace M
 #if MIDILIB
 	public
 #endif
-	sealed class MidiOutputDevice : MidiDevice
+	class MidiOutputDevice : MidiDevice
 	{
 		#region Win32
 		[DllImport("winmm.dll")]
@@ -229,7 +229,17 @@ namespace M
 			_CheckOutResult(midiOutGetDevCaps(index, ref _caps, Marshal.SizeOf(typeof(MIDIOUTCAPS))));
 			_handle = IntPtr.Zero;
 		}
-
+		/// <summary>
+		/// Indicates the handle of the device
+		/// </summary>
+		protected IntPtr Handle {
+			get {
+				return _handle;
+			}
+			set {
+				Interlocked.Exchange(ref _handle, value);
+			}
+		}
 	
 		/// <summary>
 		/// Indicates the name of the MIDI output device
@@ -242,7 +252,7 @@ namespace M
 		/// <summary>
 		/// Indicates whether or not the device supports hardware accelerated streaming
 		/// </summary>
-		public bool SupportsHardwareStreaming {
+		public virtual bool SupportsHardwareStreaming {
 			get {
 				return MIDICAPS_STREAM == (_caps.dwSupport & MIDICAPS_STREAM);
 			}
@@ -307,7 +317,7 @@ namespace M
 		/// <summary>
 		/// Indicates what kind of volume control is supported, if any
 		/// </summary>
-		public MidiOutputDeviceVolumeSupport VolumeSupport {
+		public virtual MidiOutputDeviceVolumeSupport VolumeSupport {
 			get {
 				if (MIDICAPS_VOLUME == (_caps.dwSupport & MIDICAPS_VOLUME))
 				{

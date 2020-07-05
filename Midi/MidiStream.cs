@@ -37,7 +37,7 @@ namespace M
 #if MIDILIB
 	public
 #endif
-	class MidiStream : IDisposable
+	class MidiStream : MidiOutputDevice
 	{
 		#region Win32
 		delegate void MidiOutProc(IntPtr handle, int msg, int instance, IntPtr param1, IntPtr param2);
@@ -58,8 +58,6 @@ namespace M
 		[DllImport("winmm.dll")]
 		static extern int midiStreamStop(IntPtr handle);
 		[DllImport("winmm.dll")]
-		static extern int midiStreamOut(IntPtr handle, ref MIDIHDR lpMidiOutHdr, int uSize);
-		[DllImport("winmm.dll")]
 		static extern int midiStreamOut(IntPtr handle, IntPtr lpMidiOutHdr, int uSize);
 
 		[DllImport("winmm.dll")]
@@ -77,12 +75,6 @@ namespace M
 		static extern int midiOutShortMsg(IntPtr handle, int message);
 		[DllImport("winmm.dll")]
 		static extern int midiOutLongMsg(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
-		[DllImport("winmm.dll")]
-		static extern int midiOutGetVolume(IntPtr handle, out int volume);
-		[DllImport("winmm.dll")]
-		static extern int midiOutSetVolume(IntPtr handle, int volume);
-		[DllImport("winmm.dll")]
-		static extern int midiOutReset(IntPtr handle);
 		[DllImport("winmm.dll")]
 		static extern int midiOutGetErrorText(int errCode,
 		   StringBuilder message, int sizeOfMessage);
@@ -173,11 +165,11 @@ namespace M
 		const int TIME_ONESHOT = 0;
 		static readonly int MIDIHDR_SIZE = Marshal.SizeOf(typeof(MIDIHDR));
 		static readonly int MIDIEVENT_SIZE = Marshal.SizeOf(typeof(MIDIEVENT));
+		
 		#endregion
 		static readonly int MAX_EVENTBLOCK_SIZE = 65536-MIDIHDR_SIZE;
 
-		int _deviceIndex;
-		IntPtr _handle;
+		int _index;
 		IntPtr _timerHandle;
 		MidiOutProc _outCallback;
 		TimerProc _timerCallback;
@@ -190,12 +182,8 @@ namespace M
 
 		List<MidiEvent> _sendQueue;
 		MidiStreamState _state = MidiStreamState.Closed;
-		internal MidiStream(int deviceIndex)
+		internal MidiStream(int index) : base(index)
 		{
-			if (0>deviceIndex)
-				throw new ArgumentOutOfRangeException("deviceIndex");
-			_deviceIndex = deviceIndex;
-			_handle = IntPtr.Zero;
 			_sendQueuePosition = 0;
 			_outCallback = new MidiOutProc(_MidiOutProc);
 			_timerCallback = new TimerProc(_TimerProc);
@@ -246,6 +234,11 @@ namespace M
 
 			}
 		}
+		
+		/// <summary>
+		/// Indicates the device index of the MIDI output device
+		/// </summary>
+		public override int Index => _index;
 		/// <summary>
 		/// Indicates the number of time clock sync messages to send when the tempo is changed. 0 indicates continuous synchronization
 		/// </summary>
@@ -260,29 +253,27 @@ namespace M
 		/// <summary>
 		/// Opens the stream
 		/// </summary>
-		public void Open()
+		public override void Open()
 		{
-			if (IntPtr.Zero!= _handle)
+			if (IntPtr.Zero!= Handle)
 				throw new InvalidOperationException("The device is already open");
-			var di = _deviceIndex;
+			var di = Index;
 			var h = IntPtr.Zero;
 			_CheckOutResult(midiStreamOpen(ref h, ref di, 1, _outCallback, 0, CALLBACK_FUNCTION));
-			Interlocked.Exchange(ref _handle, h);
+			Handle= h;
 			_state = MidiStreamState.Paused;
 		}
 		/// <summary>
 		/// Closes the stream
 		/// </summary>
-		public void Close()
+		public override void Close()
 		{
 			_DisposeTimer();
-			if (IntPtr.Zero != _handle) {
+			if (IntPtr.Zero != Handle) {
 				Stop();
 				Reset();
-				_CheckOutResult(midiStreamClose(_handle));
-				Interlocked.Exchange(ref _handle , IntPtr.Zero);
-				//Marshal.FreeHGlobal(_sendEventBuffer);
-				//_sendEventBuffer = IntPtr.Zero;
+				_CheckOutResult(midiStreamClose(Handle));
+				Handle = IntPtr.Zero;
 				GC.SuppressFinalize(this);
 				_state = MidiStreamState.Closed;
 			}
@@ -352,7 +343,7 @@ namespace M
 		{
 			if (null == _sendQueue)
 				return;
-			if (IntPtr.Zero == _handle)
+			if (IntPtr.Zero == Handle)
 				throw new InvalidOperationException("The stream is closed.");
 		
 			int blockSize = 0;
@@ -445,8 +436,8 @@ namespace M
 				header.dwBufferLength = header.dwBytesRecorded = unchecked((uint)blockSize);
 				header.lpData = eventPointer;
 				Marshal.StructureToPtr(header, headerPointer, false);
-				_CheckOutResult(midiOutPrepareHeader(_handle, headerPointer, MIDIHDR_SIZE));
-				_CheckOutResult(midiStreamOut(_handle, headerPointer, MIDIHDR_SIZE));
+				_CheckOutResult(midiOutPrepareHeader(Handle, headerPointer, MIDIHDR_SIZE));
+				_CheckOutResult(midiStreamOut(Handle, headerPointer, MIDIHDR_SIZE));
 				headerPointer= IntPtr.Zero;
 			}
 			finally
@@ -472,7 +463,7 @@ namespace M
 		{
 			if (null == events)
 				throw new ArgumentNullException("events");
-			if (IntPtr.Zero == _handle)
+			if (IntPtr.Zero == Handle)
 				throw new InvalidOperationException("The stream is closed.");
 			
 			int blockSize = 0;
@@ -569,8 +560,8 @@ namespace M
 					header.lpData = eventPointer;
 					header.dwBufferLength = header.dwBytesRecorded = unchecked((uint)blockSize);
 					Marshal.StructureToPtr(header, headerPointer, false);
-					_CheckOutResult(midiOutPrepareHeader(_handle, headerPointer, MIDIHDR_SIZE));
-					_CheckOutResult(midiStreamOut(_handle, headerPointer, MIDIHDR_SIZE));
+					_CheckOutResult(midiOutPrepareHeader(Handle, headerPointer, MIDIHDR_SIZE));
+					_CheckOutResult(midiStreamOut(Handle, headerPointer, MIDIHDR_SIZE));
 					headerPointer= IntPtr.Zero;
 				}
 			}
@@ -581,45 +572,7 @@ namespace M
 			}
 
 		}
-		/// <summary>
-		/// Sends a message immediately to the device
-		/// </summary>
-		/// <param name="message">The message to send</param>
-		/// <remarks>The message is not queued. Tempo change messages are not honored.</remarks>
-		public void Send(MidiMessage message)
-		{
-			if (IntPtr.Zero == _handle)
-				throw new InvalidOperationException("The device is closed.");
-			if (null == message)
-				throw new ArgumentNullException("message");
-			if (0xFF != message.Status)
-			{
-				if (0 > message.PayloadLength || 2 < message.PayloadLength)
-				{
-					var data = MidiUtility.ToMessageBytes(message);
-					if (null == data)
-						return;
-					if (254 < data.Length)
-					{
-						var len = 254;
-						for (var i = 0; i < data.Length; i += len)
-						{
-							if (data.Length <= i + len)
-							{
-								len = data.Length - i;
-							}
-							_SendRaw(data, i, len);
-
-						}
-					}
-					else
-						_SendRaw(data, 0, data.Length);
-
-				}
-				else
-					_CheckOutResult(midiOutShortMsg(_handle, MidiUtility.PackMessage(message)));
-			}
-		}
+		
 		void _SendRaw(byte[] data, int startIndex, int length)
 		{
 			var hdr = default(MIDIHDR);
@@ -629,17 +582,17 @@ namespace M
 				hdr.lpData = new IntPtr(handle.AddrOfPinnedObject().ToInt64() + startIndex);
 				hdr.dwBufferLength = hdr.dwBytesRecorded = (uint)(length);
 				hdr.dwFlags = 0;
-				_CheckOutResult(midiOutPrepareHeader(_handle, ref hdr, MIDIHDR_SIZE));
+				_CheckOutResult(midiOutPrepareHeader(Handle, ref hdr, MIDIHDR_SIZE));
 				while ((hdr.dwFlags & MHDR_PREPARED) != MHDR_PREPARED)
 				{
 					Thread.Sleep(1);
 				}
-				_CheckOutResult(midiOutLongMsg(_handle, ref hdr, MIDIHDR_SIZE));
+				_CheckOutResult(midiOutLongMsg(Handle, ref hdr, MIDIHDR_SIZE));
 				while ((hdr.dwFlags & MHDR_DONE) != MHDR_DONE)
 				{
 					Thread.Sleep(1);
 				}
-				_CheckOutResult(midiOutUnprepareHeader(_handle, ref hdr, MIDIHDR_SIZE));
+				_CheckOutResult(midiOutUnprepareHeader(Handle, ref hdr, MIDIHDR_SIZE));
 			}
 			finally
 			{
@@ -647,10 +600,7 @@ namespace M
 
 			}
 		}
-		void IDisposable.Dispose()
-		{
-			Close();
-		}
+		
 		/// <summary>
 		/// Destroys this instance
 		/// </summary>
@@ -678,12 +628,12 @@ namespace M
 		}
 		void _TimerProc(IntPtr handle, int msg, int user, IntPtr param1, IntPtr param2)
 		{
-			if (IntPtr.Zero!=_handle && _timerHandle==handle && 0!=_tempoSyncEnabled)
+			if (IntPtr.Zero!=Handle && _timerHandle==handle && 0!=_tempoSyncEnabled)
 			{
 				if (0==_tempoSyncMessageCount || _tempoSyncMessagesSentCount < _tempoSyncMessageCount)
 				{
 					// quickly send a time sync message
-					midiOutShortMsg(_handle, 0xF8);
+					midiOutShortMsg(Handle, 0xF8);
 					Interlocked.Increment(ref _tempoSyncMessagesSentCount);
 				}
 				var tmp = Tempo;
@@ -708,7 +658,7 @@ namespace M
 					if (IntPtr.Zero != param1)
 					{
 						var header = Marshal.PtrToStructure<MIDIHDR>(param1);
-						_CheckOutResult(midiOutUnprepareHeader(_handle, param1, Marshal.SizeOf(typeof(MIDIHDR))));
+						_CheckOutResult(midiOutUnprepareHeader(Handle, param1, Marshal.SizeOf(typeof(MIDIHDR))));
 						Marshal.FreeHGlobal(param1);
 						Interlocked.Exchange(ref _sendQueuePosition, 0);
 						Interlocked.Exchange(ref _sendQueue, null);
@@ -729,7 +679,7 @@ namespace M
 		/// </summary>
 		public void Start()
 		{
-			if (IntPtr.Zero == _handle)
+			if (IntPtr.Zero == Handle)
 				throw new InvalidOperationException("The stream is closed.");
 			switch(_state)
 			{
@@ -742,7 +692,7 @@ namespace M
 					Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 					_RestartTimer(ms);
 					
-					_CheckOutResult(midiStreamRestart(_handle));
+					_CheckOutResult(midiStreamRestart(Handle));
 					_state = MidiStreamState.Started;
 					break;		
 			}
@@ -752,14 +702,14 @@ namespace M
 		/// </summary>
 		public void Stop()
 		{
-			if (IntPtr.Zero == _handle)
+			if (IntPtr.Zero == Handle)
 				throw new InvalidOperationException("The stream is closed.");
 			switch (_state)
 			{
 				case MidiStreamState.Paused:
 				case MidiStreamState.Started:
 					_DisposeTimer();
-					_CheckOutResult(midiStreamStop(_handle));
+					_CheckOutResult(midiStreamStop(Handle));
 					Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 					_state = MidiStreamState.Stopped;
 					
@@ -777,33 +727,24 @@ namespace M
 		/// </summary>
 		public void Pause()
 		{
-			if (IntPtr.Zero == _handle)
+			if (IntPtr.Zero == Handle)
 				throw new InvalidOperationException("The stream is closed.");
 			switch (_state)
 			{
 				case MidiStreamState.Started:
-					_CheckOutResult(midiStreamPause(_handle));
+					_CheckOutResult(midiStreamPause(Handle));
 					_state = MidiStreamState.Paused;
 					Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 					break;
 			}
 		}
-		/// <summary>
-		/// Resets the MIDI output.
-		/// </summary>
-		/// <remarks>Terminates any sysex messages and sends note offs to all channels, as well as turning off the sustain controller for each channel</remarks>
-		public void Reset()
-		{
-			if (IntPtr.Zero == _handle)
-				throw new InvalidOperationException("The stream is closed.");
-			_CheckOutResult(midiOutReset(_handle));
-		}
+		
 		/// <summary>
 		/// Indicates the position in ticks
 		/// </summary>
 		public int PositionTicks {
 			get {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
@@ -811,7 +752,7 @@ namespace M
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_TICKS;
-						_CheckOutResult(midiStreamPosition(_handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
+						_CheckOutResult(midiStreamPosition(Handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
 						if (TIME_TICKS != mm.wType)
 							throw new NotSupportedException("The position format is not supported.");
 						return mm.ticks;
@@ -825,7 +766,7 @@ namespace M
 		/// </summary>
 		public int PositionMilliseconds {
 			get {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
@@ -833,7 +774,7 @@ namespace M
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_MS;
-						_CheckOutResult(midiStreamPosition(_handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
+						_CheckOutResult(midiStreamPosition(Handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
 						if (TIME_MS != mm.wType)
 							throw new NotSupportedException("The position format is not supported.");
 						return mm.ms;
@@ -847,7 +788,7 @@ namespace M
 		/// </summary>
 		public int PositionSongPointer {
 			get {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
@@ -855,7 +796,7 @@ namespace M
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_MIDI;
-						_CheckOutResult(midiStreamPosition(_handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
+						_CheckOutResult(midiStreamPosition(Handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
 						if (TIME_MIDI != mm.wType)
 							throw new NotSupportedException("The position format is not supported.");
 						return mm.midiSongPtrPos;
@@ -869,7 +810,7 @@ namespace M
 		/// </summary>
 		public int PositionBytes {
 			get {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
@@ -877,7 +818,7 @@ namespace M
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_BYTES;
-						_CheckOutResult(midiStreamPosition(_handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
+						_CheckOutResult(midiStreamPosition(Handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
 						if (TIME_BYTES != mm.wType)
 							throw new NotSupportedException("The position format is not supported.");
 						return mm.cb;
@@ -891,7 +832,7 @@ namespace M
 		/// </summary>
 		public MidiSmpteTime PositionSmpte {
 			get {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				switch (_state)
 				{
@@ -899,7 +840,7 @@ namespace M
 					case MidiStreamState.Paused:
 						MMTIME mm = new MMTIME();
 						mm.wType = TIME_SMPTE;
-						_CheckOutResult(midiStreamPosition(_handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
+						_CheckOutResult(midiStreamPosition(Handle, ref mm, Marshal.SizeOf(typeof(MMTIME))));
 						if (TIME_SMPTE != mm.wType)
 							throw new NotSupportedException("The position format is not supported.");
 						return new MidiSmpteTime(new TimeSpan(0, mm.smpteHour, mm.smpteMin, mm.smpteSec, 0), mm.smpteFrame, mm.smpteFps);
@@ -913,21 +854,21 @@ namespace M
 		/// </summary>
 		public int MicroTempo {
 			get {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				var t = new MIDIPROPTEMPO();
 				t.cbStruct = Marshal.SizeOf(typeof(MIDIPROPTEMPO));
-				_CheckOutResult(midiStreamProperty(_handle, ref t, MIDIPROP_GET | MIDIPROP_TEMPO));
+				_CheckOutResult(midiStreamProperty(Handle, ref t, MIDIPROP_GET | MIDIPROP_TEMPO));
 				return unchecked(t.dwTempo);
 			}
 			set {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				Interlocked.Exchange(ref _tempoSyncMessagesSentCount, 0);
 				var t = new MIDIPROPTEMPO();
 				t.cbStruct = Marshal.SizeOf(typeof(MIDIPROPTEMPO));
 				t.dwTempo= value;
-				_CheckOutResult(midiStreamProperty(_handle, ref t, MIDIPROP_SET | MIDIPROP_TEMPO));
+				_CheckOutResult(midiStreamProperty(Handle, ref t, MIDIPROP_SET | MIDIPROP_TEMPO));
 			}
 		}
 		/// <summary>
@@ -946,39 +887,23 @@ namespace M
 		/// </summary>
 		public short TimeBase {
 			get {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				var tb = new MIDIPROPTIMEDIV();
 				tb.cbStruct = Marshal.SizeOf(typeof(MIDIPROPTIMEDIV));
-				_CheckOutResult(midiStreamProperty(_handle, ref tb, MIDIPROP_GET | MIDIPROP_TIMEDIV));
+				_CheckOutResult(midiStreamProperty(Handle, ref tb, MIDIPROP_GET | MIDIPROP_TIMEDIV));
 				return unchecked((short)tb.dwTimeDiv);
 			}
 			set {
-				if (IntPtr.Zero == _handle)
+				if (IntPtr.Zero == Handle)
 					throw new InvalidOperationException("The stream is closed.");
 				var tb = new MIDIPROPTIMEDIV();
 				tb.cbStruct = Marshal.SizeOf(typeof(MIDIPROPTIMEDIV));
 				tb.dwTimeDiv = value;
-				_CheckOutResult(midiStreamProperty(_handle, ref tb, MIDIPROP_SET | MIDIPROP_TIMEDIV));
+				_CheckOutResult(midiStreamProperty(Handle, ref tb, MIDIPROP_SET | MIDIPROP_TIMEDIV));
 			}
 		}
-		/// <summary>
-		/// Indicates the volume of the device
-		/// </summary>
-		public MidiVolume Volume {
-			get {
-				if (IntPtr.Zero == _handle)
-					throw new InvalidOperationException("The device is closed.");
-				int vol;
-				_CheckOutResult(midiOutGetVolume(_handle, out vol));
-				return new MidiVolume(unchecked((byte)(vol & 0xFF)), unchecked((byte)(vol >> 8)));
-			}
-			set {
-				if (IntPtr.Zero == _handle)
-					throw new InvalidOperationException("The device is closed.");
-				_CheckOutResult(midiOutSetVolume(_handle, value.Right << 8 | value.Left));
-			}
-		}
+		
 		static string _GetMidiOutErrorMessage(int errorCode)
 		{
 			var result = new StringBuilder(256);
