@@ -20,6 +20,7 @@
 		/// </summary>
 		/// <param name="type">The MIDI file type - either 0, 1 or 2</param>
 		/// <param name="timeBase">The timebase of the MIDI file in ticks/pulses per quarter note</param>
+		/// <remarks>Normally the default timebase in the API is 24, but that's undesirable for most MIDI files, so this defaults to 480, which is a much more realistic resolution</remarks>
 		public MidiFile(short type=1,short timeBase=480)
 		{
 			Type = type;
