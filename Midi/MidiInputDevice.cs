@@ -256,8 +256,7 @@ namespace M
 						{
 							if (null != _recordingTrack0)
 							{
-								var trk = new MidiSequence();
-								trk.Events.Add(new MidiEvent(_recordingPos, new MidiMessageMetaTempo(value)));
+								_recordingTrack0.AddAbsoluteEvent(_recordingPos, new MidiMessageMetaTempo(value));
 							}
 						}
 					}
@@ -390,8 +389,8 @@ namespace M
 				_CheckInResult(midiInClose(_handle));
 				Marshal.FreeHGlobal(ptr);
 				_state = MidiInputDeviceState.Closed;
-				_timeBase = 24;
-				_microTempo = 500000;
+				Interlocked.Exchange(ref _timeBase,24);
+				Interlocked.Exchange(ref _microTempo , 500000);
 			}
 		}
 		/// <summary>
