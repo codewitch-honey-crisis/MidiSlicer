@@ -150,6 +150,7 @@ namespace M
 	class MidiOutputDevice : MidiDevice
 	{
 		#region Win32
+		delegate void MidiOutProc(IntPtr handle, int msg, int instance, IntPtr param1, IntPtr param2);
 		[DllImport("winmm.dll")]
 		static extern int midiOutGetDevCaps(int deviceIndex,
 			ref MIDIOUTCAPS caps, int uSize);
@@ -166,7 +167,7 @@ namespace M
 		static extern int midiOutUnprepareHeader(IntPtr hMidiOut, ref MIDIHDR lpMidiOutHdr, int uSize);
 		[DllImport("winmm.dll")]
 		static extern int midiOutOpen(ref IntPtr handle, int deviceID,
-			IntPtr proc, int instance, int flags);
+			MidiOutProc proc, int instance, int flags);
 		[DllImport("winmm.dll")]
 		static extern int midiOutClose(IntPtr handle);
 		[DllImport("winmm.dll")]
@@ -217,9 +218,13 @@ namespace M
 		const uint MIDICAPS_LRVOLUME = 2;    // separate left-right volume control
 		const uint MIDICAPS_CACHE = 4;
 		const uint MIDICAPS_STREAM = 8;      // driver supports midiStreamOut directly
-		
+		const int CALLBACK_FUNCTION = 196608;
+		const int MOM_OPEN = 0x3C7;
+		const int MOM_CLOSE = 0x3C8;
+
 
 		#endregion
+		MidiOutProc _outCallback;
 		readonly int _index;
 		readonly MIDIOUTCAPS _caps;
 		IntPtr _handle;
@@ -228,6 +233,31 @@ namespace M
 			_index = index;
 			_CheckOutResult(midiOutGetDevCaps(index, ref _caps, Marshal.SizeOf(typeof(MIDIOUTCAPS))));
 			_handle = IntPtr.Zero;
+			_outCallback = new MidiOutProc(_MidiOutProc);
+
+		}
+		/// <summary>
+		/// Raised when the device is opened
+		/// </summary>
+		public event EventHandler Opened;
+		/// <summary>
+		/// Invokes the opened event
+		/// </summary>
+		protected void OnOpened(EventArgs args)
+		{
+			Opened?.Invoke(this, args);
+		}
+		/// <summary>
+		/// Raised when the device is closed
+		/// </summary>
+		public event EventHandler Closed;
+
+		/// <summary>
+		/// Invokes the closed event
+		/// </summary>
+		protected void OnClosed(EventArgs args)
+		{
+			Closed?.Invoke(this, args);
 		}
 		/// <summary>
 		/// Indicates the handle of the device
@@ -361,7 +391,7 @@ namespace M
 		public override void Open()
 		{
 			Close();
-			_CheckOutResult(midiOutOpen(ref _handle, _index, IntPtr.Zero, 0, 0));
+			_CheckOutResult(midiOutOpen(ref _handle, _index, _outCallback, 0,CALLBACK_FUNCTION));
 			if (IntPtr.Zero == _handle)
 				throw new InvalidOperationException("Unable to open MIDI output device");
 		}
@@ -471,6 +501,20 @@ namespace M
 		{
 			if (0 != errorCode)
 				throw new Exception(_GetMidiOutErrorMessage(errorCode));
+		}
+		void _MidiOutProc(IntPtr handle, int msg, int instance, IntPtr param1, IntPtr param2)
+		{
+			switch (msg)
+			{
+				case MOM_OPEN:
+					OnOpened(EventArgs.Empty);
+					break;
+				case MOM_CLOSE:
+					OnClosed(EventArgs.Empty);
+					break;
+				
+
+			}
 		}
 	}
 }

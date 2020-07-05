@@ -11,8 +11,8 @@ namespace scratch
 	{
 		static void Main()
 		{
-			//SimpleStreamingDemo();
-			ComplexStreamingDemo();
+			SimpleStreamingDemo();
+			//ComplexStreamingDemo();
 			//SimpleRecordingDemo();
 			//TestTiming();
 		}
@@ -43,7 +43,7 @@ namespace scratch
 					var name = track.Name;
 					if (string.IsNullOrEmpty(name))
 						name = "Track " + i;
-					Console.WriteLine(name);
+					Console.WriteLine(name+" \tEvents: "+track.Events.Count);
 				}
 				Console.WriteLine();
 				// merge the tracks for playback
@@ -93,7 +93,7 @@ namespace scratch
 				var name = track.Name;
 				if (string.IsNullOrEmpty(name))
 					name = "Track " + i;
-				Console.WriteLine(name);
+				Console.WriteLine(name + " \tEvents: " + track.Events.Count);
 			}
 			Console.WriteLine();
 			// we use 100 events, which should be safe and allow

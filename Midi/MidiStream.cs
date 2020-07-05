@@ -195,14 +195,7 @@ namespace M
 		/// Raised when a Send() operation has completed. This only applies to sending MidiEvent items
 		/// </summary>
 		public event EventHandler SendComplete;
-		/// <summary>
-		/// Raised when the stream is opened
-		/// </summary>
-		public event EventHandler Opened;
-		/// <summary>
-		/// Raised when the stream is closed
-		/// </summary>
-		public event EventHandler Closed;
+		
 		/// <summary>
 		/// Indicates the state of the MIDI stream
 		/// </summary>
@@ -644,10 +637,10 @@ namespace M
 			switch(msg)
 			{
 				case MOM_OPEN:
-					Opened?.Invoke(this, EventArgs.Empty);
+					OnOpened(EventArgs.Empty);
 					break;
 				case MOM_CLOSE:
-					Closed?.Invoke(this, EventArgs.Empty);
+					OnClosed(EventArgs.Empty);
 					break;
 				case MOM_DONE:
 
