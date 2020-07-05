@@ -176,7 +176,7 @@ namespace M
 			_callback = new MidiInProc(_MidiInProc);
 			_index = deviceIndex;
 			_state = MidiInputDeviceState.Closed;
-			_recordingLastTimestamp= 0L;
+			_recordingLastTimestamp = 0L;
 			_recordingPos = 0;
 			_recordingTrack0 = null;
 			_recordingSequence = null;
@@ -213,7 +213,7 @@ namespace M
 		/// <summary>
 		/// Indicates the state of the device
 		/// </summary>
-		public MidiInputDeviceState State => _state;
+		public MidiInputDeviceState State { get { return _state; } }
 		/// <summary>
 		/// Indicates whether the input device is open
 		/// </summary>

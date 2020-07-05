@@ -199,7 +199,7 @@ namespace M
 		/// <summary>
 		/// Indicates the state of the MIDI stream
 		/// </summary>
-		public MidiStreamState State => _state;
+		public MidiStreamState State { get { return _state; } }
 		/// <summary>
 		/// Indicates whether or not the stream attempts to synchronize the remote device's tempo
 		/// </summary>
