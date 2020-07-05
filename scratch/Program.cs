@@ -1,6 +1,7 @@
 ﻿using M;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -10,8 +11,8 @@ namespace scratch
 	{
 		static void Main()
 		{
-			SimpleStreamingDemo();
-			//ComplexStreamingDemo();
+			//SimpleStreamingDemo();
+			ComplexStreamingDemo();
 			//SimpleRecordingDemo();
 			//TestTiming();
 		}
@@ -24,17 +25,31 @@ namespace scratch
 				// open it
 				stm.Open();
 				// read a MIDI file
-				var mf = MidiFile
+				var midiFile = MidiFile
 				//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 				//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
 				//.ReadFrom(@"..\..\A-Warm-Place.mid");
 				//.ReadFrom(@"..\..\Beethoven-Moonlight-Sonata.mid");
 				//.ReadFrom(@"..\..\Peter-Gunn-1.mid");
 				.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
+				Console.WriteLine(Path.GetFileName(midiFile.FilePath)+" @ "+midiFile.TimeBase+" PPQ");
+				var tsig = midiFile.TimeSignature;
+				Console.WriteLine("Tempo: " + midiFile.Tempo + " BPM @ " + tsig.Numerator + "/" + tsig.Denominator + " time");
+				Console.WriteLine("Tracks:");
+				for(var i = 0;i<midiFile.Tracks.Count;++i)
+				{
+					var track = midiFile.Tracks[i];
+					Console.Write("\t");
+					var name = track.Name;
+					if (string.IsNullOrEmpty(name))
+						name = "Track " + i;
+					Console.WriteLine(name);
+				}
+				Console.WriteLine();
 				// merge the tracks for playback
-				var seq = MidiSequence.Merge(mf.Tracks);
+				var seq = MidiSequence.Merge(midiFile.Tracks);
 				// set the stream timebase
-				stm.TimeBase = mf.TimeBase;
+				stm.TimeBase = midiFile.TimeBase;
 				// start the playback
 				stm.Start();
 				Console.Error.WriteLine("Press any key to exit...");
@@ -60,13 +75,27 @@ namespace scratch
 			// this allows you to handle files with more than 64kb
 			// of in-memory events (not the same as "on disk" size)
 			// this replays the events in a loop
-			var mf = MidiFile
+			var midiFile = MidiFile
 			//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
 			.ReadFrom(@"..\..\A-Warm-Place.mid");
 			//.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid");
 			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 			//.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
 			//.ReadFrom(@"..\..\Peter-Gunn-1.mid");
+			Console.WriteLine(Path.GetFileName(midiFile.FilePath) + " @ " + midiFile.TimeBase + " PPQ");
+			var tsig = midiFile.TimeSignature;
+			Console.WriteLine("Tempo: " + midiFile.Tempo + " BPM @ " + tsig.Numerator + "/" + tsig.Denominator + " time");
+			Console.WriteLine("Tracks:");
+			for (var i = 0; i < midiFile.Tracks.Count; ++i)
+			{
+				var track = midiFile.Tracks[i];
+				Console.Write("\t");
+				var name = track.Name;
+				if (string.IsNullOrEmpty(name))
+					name = "Track " + i;
+				Console.WriteLine(name);
+			}
+			Console.WriteLine();
 			// we use 100 events, which should be safe and allow
 			// for some measure of SYSEX messages in the stream
 			// without bypassing the 64kb limit
@@ -74,7 +103,7 @@ namespace scratch
 			// our current cursor pos
 			int pos = 0;
 			// merge our file for playback
-			var seq = MidiSequence.Merge(mf.Tracks);
+			var seq = MidiSequence.Merge(midiFile.Tracks);
 			// the number of events in the seq
 			int len = seq.Events.Count;
 			// stores the next set of events
@@ -88,7 +117,7 @@ namespace scratch
 				// start it
 				stm.Start();
 				// first set the timebase
-				stm.TimeBase = mf.TimeBase;
+				stm.TimeBase = midiFile.TimeBase;
 				
 				// set up our send complete handler
 				stm.SendComplete += delegate (object sender,EventArgs eargs)

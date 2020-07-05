@@ -26,6 +26,7 @@
 			Type = type;
 			TimeBase = timeBase;
 			Tracks = new List<MidiSequence>();
+			FilePath = null;
 		}
 		/// <summary>
 		/// Plays the file over the specified device
@@ -49,6 +50,10 @@
 				result.Tracks.Add(trk.Stretch(diff, false));
 			return result;
 		}
+		/// <summary>
+		/// Indicates the name of the file this was loaded from or saved to, if available, otherwise null
+		/// </summary>
+		public string FilePath { get; private set; }
 		/// <summary>
 		/// Returns the internal name of the MIDI file
 		/// </summary>
@@ -389,7 +394,7 @@
 		public static MidiFile ReadFrom(Stream stream)
 		{
 			KeyValuePair<string, byte[]> chunk;
-			
+					
 			if (!_TryReadChunk(stream, out chunk) || "MThd" != chunk.Key || 6>chunk.Value.Length)
 				throw new InvalidDataException("The stream is not a MIDI file format.");
 			var type = BitConverter.ToInt16(chunk.Value, 0);
@@ -402,7 +407,10 @@
 				timeBase = MidiUtility.Swap(timeBase);
 			}
 			var result = new MidiFile(type,timeBase);
-			while(_TryReadChunk(stream,out chunk))
+			var fileStream = stream as FileStream;
+			if (null != fileStream)
+				result.FilePath = fileStream.Name;	
+			while (_TryReadChunk(stream,out chunk))
 			{
 				if("MTrk"==chunk.Key)
 				{
@@ -429,7 +437,9 @@
 		/// <param name="stream">The stream to write to</param>
 		public void WriteTo(Stream stream)
 		{
-			
+			var fileStream = stream as FileStream;
+			if (null != fileStream)
+				FilePath = fileStream.Name;
 			try
 			{
 				stream.SetLength(0);
