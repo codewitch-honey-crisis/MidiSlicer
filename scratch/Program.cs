@@ -10,8 +10,8 @@ namespace scratch
 	{
 		static void Main()
 		{
-			//SimpleStreamingDemo();
-			ComplexStreamingDemo();
+			SimpleStreamingDemo();
+			//ComplexStreamingDemo();
 			//SimpleRecordingDemo();
 			//TestTiming();
 		}
@@ -25,12 +25,12 @@ namespace scratch
 				stm.Open();
 				// read a MIDI file
 				var mf = MidiFile
-				.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
+				//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 				//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
 				//.ReadFrom(@"..\..\A-Warm-Place.mid");
 				//.ReadFrom(@"..\..\Beethoven-Moonlight-Sonata.mid");
 				//.ReadFrom(@"..\..\Peter-Gunn-1.mid");
-				//.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
+				.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
 				// merge the tracks for playback
 				var seq = MidiSequence.Merge(mf.Tracks);
 				// set the stream timebase

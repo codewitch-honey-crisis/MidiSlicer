@@ -118,7 +118,7 @@
 		/// <param name="position">The position to retrieve the context from, in ticks</param>
 		/// <param name="timeBase">The time base to use</param>
 		/// <returns>A MIDI context for this position</returns>
-		public MidiContext GetContext(int position=0,short timeBase = 96)
+		public MidiContext GetContext(int position=0,short timeBase = 24)
 		{
 			var result = new MidiContext(timeBase);
 			int pos = 0;
@@ -147,7 +147,7 @@
 		/// <param name="systemTicks">The number of system ticks elapsed</param>
 		/// <param name="timeBase">The time base to use</param>
 		/// <returns>The number of ticks <paramref name="systemTicks"/> corresponds to for this sequence</returns>
-		public int GetPositionAtTime(long systemTicks,short timeBase=96)
+		public int GetPositionAtTime(long systemTicks,short timeBase=24)
 		{
 			var microTempo = 500000; // 120bpm default
 			var result = 0;
@@ -246,7 +246,7 @@
 		/// <param name="time">The span of time that has elapsed</param>
 		/// <param name="timeBase">The time base to use</param>
 		/// <returns>The number of ticks <paramref name="time"/> corresponds to for this sequence</returns>
-		public int GetPositionAtTime(TimeSpan time, short timeBase = 96)
+		public int GetPositionAtTime(TimeSpan time, short timeBase = 24)
 			=> GetPositionAtTime(time.Ticks,timeBase);
 		/// <summary>
 		/// Gets a range of MIDI events as a new sequence
@@ -1293,7 +1293,7 @@
 		/// <param name="timeBase">The timebase to use, in pulses/ticks per quarter note</param>
 		/// <param name="device">The MIDI output device to use</param>
 		/// <param name="loop">Indicates whether to loop playback or not</param>
-		public void Preview(short timeBase = 96, MidiOutputDevice device = null,bool loop=false)
+		public void Preview(short timeBase = 24, MidiOutputDevice device = null,bool loop=false)
 		{
 			var isOpen = false;
 			if (null == device)

@@ -181,7 +181,7 @@ namespace M
 			_recordingTrack0 = null;
 			_recordingSequence = null;
 			_microTempo = 500000; // 120BPM
-			_timeBase = 96;
+			_timeBase = 24;
 			_timingTimestamp = 0L;
 			_tempoSynchMininumTempo = 50d;
 			_tempoSynchEnabled = 0; // false
@@ -390,7 +390,7 @@ namespace M
 				_CheckInResult(midiInClose(_handle));
 				Marshal.FreeHGlobal(ptr);
 				_state = MidiInputDeviceState.Closed;
-				_timeBase = 96;
+				_timeBase = 24;
 				_microTempo = 500000;
 			}
 		}

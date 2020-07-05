@@ -61,7 +61,7 @@
 		/// Constructs a new instance of a MidiContext
 		/// </summary>
 		/// <param name="timeBase">the time base to use</param>
-		public MidiContext(short timeBase = 96)
+		public MidiContext(short timeBase = 24)
 		{
 			Channels=_InitChannels();
 			RunningStatus = 0;
