@@ -293,7 +293,7 @@ namespace M
 			if (null != _sendQueue)
 			{
 				
-				throw new InvalidOperationException("The device is already sending");
+				throw new InvalidOperationException("The stream is already sending");
 			}
 			
 			var list = new List<MidiEvent>(128);
@@ -465,7 +465,8 @@ namespace M
 				throw new ArgumentNullException("events");
 			if (IntPtr.Zero == Handle)
 				throw new InvalidOperationException("The stream is closed.");
-			
+			if (null != _sendQueue)
+				throw new InvalidOperationException("The stream is already sending.");
 			int blockSize = 0;
 			IntPtr headerPointer = Marshal.AllocHGlobal(MAX_EVENTBLOCK_SIZE + MIDIHDR_SIZE);
 			try
