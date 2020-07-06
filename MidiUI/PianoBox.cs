@@ -5,15 +5,6 @@ using System.Windows.Forms;
 
 namespace M
 {
-    public sealed class PianoKeyEventArgs : EventArgs
-    {
-        public int Key { get; }
-        public PianoKeyEventArgs(int key)
-        {
-            Key = key;
-        }
-    }
-    public delegate void PianoKeyEventHandler(object sender, PianoKeyEventArgs args);
     public class PianoBox : Control
     {
         static readonly object _OctavesChangedKey = new object();
@@ -518,26 +509,49 @@ namespace M
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            var x = e.X;
-            var y = e.Y;
-            _HitTest(x, y);
             base.OnMouseDown(e);
+            var ht = _HitTest(e.X, e.Y);
+            if (ht != _keyDown)
+            {
+                _keyDown = ht;
+                var b = _keys[_keyDown];
+                if (!b)
+                {
+                    _keys[_keyDown] = true;
+                    OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
+                    Refresh();
+                }
+            }
+            
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
             if(e.Button==MouseButtons.Left)
             {
-                if (-1 < _keyDown)
+                var ht = _HitTest(e.X, e.Y);
+                if (-1 < _keyDown && ht!=_keyDown)
                 {
-                    _keys[_keyDown] = false;
-                    OnPianoKeyUp(new PianoKeyEventArgs(_keyDown));
+                    var b = _keys[_keyDown];
+                    if (b)
+                    {
+                        _keys[_keyDown] = false;
+                        OnPianoKeyUp(new PianoKeyEventArgs(_keyDown));
+                    }
+                    _keyDown = ht;
+                    b = _keys[_keyDown];
+                    if (!b)
+                    {
+                        _keys[_keyDown] = true;
+                        OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
+                        Refresh();
+                    }
                 }
-                _HitTest(e.X, e.Y);
             }
         }
-        void _HitTest(int x, int y)
+        int _HitTest(int x, int y)
         {
+            var result = -1;
             var whiteKeyCount = 7 * _octaves;
             if (Orientation.Horizontal == Orientation)
             {
@@ -548,32 +562,31 @@ namespace M
                     switch ((x / wkw) % 7)
                     {
                         case 0:
-                            _keyDown = oct * 12;
+                            result = oct * 12;
                             break;
                         case 1:
-                            _keyDown = oct * 12 + 2;
+                            result = oct * 12 + 2;
                             break;
                         case 2:
-                            _keyDown = oct * 12 + 4;
+                            result = oct * 12 + 4;
                             break;
                         case 3:
-                            _keyDown = oct * 12 + 5;
+                            result = oct * 12 + 5;
                             break;
                         case 4:
-                            _keyDown = oct * 12 + 7;
+                            result = oct * 12 + 7;
                             break;
                         case 5:
-                            _keyDown = oct * 12 + 9;
+                            result = oct * 12 + 9;
                             break;
                         case 6:
-                            _keyDown = oct * 12 + 11;
+                            result = oct * 12 + 11;
                             break;
                     }
-                    if (_keyDown >= _octaves * 12)
-                        _keyDown = _octaves * 12 - 1;
-                    _keys[_keyDown] = true;
-                    OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
-                    Refresh();
+                    if (result >= _octaves * 12)
+                        result = _octaves * 12 - 1;
+                    return result;
+                    
                 }
                 else
                 {
@@ -582,56 +595,54 @@ namespace M
                     {
                         case 0:
                             if ((x % (wkw * 7)) > wkw - (bkw / 2) - 1)
-                                _keyDown = oct * 12 + 1;
+                                result = oct * 12 + 1;
                             else
-                                _keyDown = oct * 12;
+                                result = oct * 12;
                             break;
                         case 1:
                             if ((x % (wkw * 7)) < wkw + (bkw / 2))
-                                _keyDown = oct * 12 + 1;
+                                result = oct * 12 + 1;
                             else if ((x % (wkw * 7)) > (wkw * 2) - (bkw / 2) - 1)
-                                _keyDown = oct * 12 + 3;
+                                result = oct * 12 + 3;
                             else
-                                _keyDown = oct * 12 + 2;
+                                result = oct * 12 + 2;
                             break;
                         case 2:
                             if ((x % (wkw * 7)) < (wkw * 2) + (bkw / 2))
-                                _keyDown = oct * 12 + 3;
+                                result = oct * 12 + 3;
                             else
-                                _keyDown = oct * 12 + 4;
+                                result = oct * 12 + 4;
                             break;
                         case 3:
                             if ((x % (wkw * 7)) > (wkw * 4) - (bkw / 2) - 1)
-                                _keyDown = oct * 12 + 6;
+                                result = oct * 12 + 6;
                             else
-                                _keyDown = oct * 12 + 5;
+                                result = oct * 12 + 5;
                             break;
                         case 4:
                             if ((x % (wkw * 7)) < (wkw * 4) + (bkw / 2))
-                                _keyDown = oct * 12 + 6;
+                                result = oct * 12 + 6;
                             else if ((x % (wkw * 7)) > (wkw * 5) - (bkw / 2) - 1)
-                                _keyDown = oct * 12 + 8;
+                                result = oct * 12 + 8;
                             else
-                                _keyDown = oct * 12 + 7;
+                                result = oct * 12 + 7;
                             break;
                         case 5:
                             if ((x % (wkw * 7)) < (wkw * 5) + (bkw / 2))
-                                _keyDown = oct * 12 + 8;
+                                result = oct * 12 + 8;
                             else if ((x % (wkw * 7)) > (wkw * 6) - (bkw / 2) - 1)
-                                _keyDown = oct * 12 + 10;
+                                result = oct * 12 + 10;
                             else
-                                _keyDown = oct * 12 + 9;
+                                result = oct * 12 + 9;
                             break;
                         case 6:
                             if ((x % (wkw * 7)) < (wkw * 6) + (bkw / 2))
-                                _keyDown = oct * 12 + 10;
+                                result = oct * 12 + 10;
                             else
-                                _keyDown = oct * 12 + 11;
+                                result = oct * 12 + 11;
                             break;
                     }
-                    _keys[_keyDown] = true;
-                    OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
-                    Refresh();
+                    return result;
                 }
             }
             else // vertical
@@ -643,31 +654,30 @@ namespace M
                     switch ((y / wkh) % 7)
                     {
                         case 0:
-                            _keyDown = oct * 12 + 11;
+                            result = oct * 12 + 11;
                             break;
                         case 1:
-                            _keyDown = oct * 12 + 9;
+                            result = oct * 12 + 9;
                             break;
                         case 2:
-                            _keyDown = oct * 12 + 7;
+                            result = oct * 12 + 7;
                             break;
                         case 3:
-                            _keyDown = oct * 12 + 5;
+                            result = oct * 12 + 5;
                             break;
                         case 4:
-                            _keyDown = oct * 12 + 4;
+                            result = oct * 12 + 4;
                             break;
                         case 5:
-                            _keyDown = oct * 12 + 2;
+                            result = oct * 12 + 2;
                             break;
                         case 6:
-                            _keyDown = oct * 12 + 0;
+                            result = oct * 12 + 0;
                             break;
                     }
-                    if (0 > _keyDown)
-                        _keyDown = 0;
-                    _keys[_keyDown] = true;
-                    Refresh();
+                    if (0 > result)
+                        result = 0;
+                    return result;
                 }
                 else
                 {
@@ -676,57 +686,56 @@ namespace M
                     {
                         case 0:
                             if ((y % (wkh * 7)) > wkh - (bkh / 2) - 1)
-                                _keyDown = oct * 12 + 10;
+                                result = oct * 12 + 10;
                             else
-                                _keyDown = oct * 12 + 11;
+                                result = oct * 12 + 11;
                             break;
                         case 1:
                             if ((y % (wkh * 7)) < wkh + (bkh / 2))
-                                _keyDown = oct * 12 + 10;
+                                result = oct * 12 + 10;
                             else if ((y % (wkh * 7)) > (wkh * 2) - (bkh / 2) - 1)
-                                _keyDown = oct * 12 + 8;
+                                result = oct * 12 + 8;
                             else
-                                _keyDown = oct * 12 + 9;
+                                result = oct * 12 + 9;
                             break;
                         case 2:
                             if ((y % (wkh * 7)) < (wkh * 2) + (bkh / 2))
-                                _keyDown = oct * 12 + 8;
+                                result = oct * 12 + 8;
                             else if ((y % (wkh * 7)) > (wkh * 3) - (bkh / 2) - 1)
-                                _keyDown = oct * 12 + 6;
+                                result = oct * 12 + 6;
                             else
-                                _keyDown = oct * 12 + 7;
+                                result = oct * 12 + 7;
                             break;
                         case 3:
                             if ((y % (wkh * 7)) < (wkh * 3) + (bkh / 2))
-                                _keyDown = oct * 12 + 6;
+                                result = oct * 12 + 6;
                             else
-                                _keyDown = oct * 12 + 5;
+                                result = oct * 12 + 5;
                             break;
                         case 4:
                             if ((y % (wkh * 7)) > (wkh * 5) - (bkh / 2) - 1)
-                                _keyDown = oct * 12 + 3;
+                                result = oct * 12 + 3;
                             else
-                                _keyDown = oct * 12 + 4;
+                                result = oct * 12 + 4;
                             break;
                         case 5:
                             if ((y % (wkh * 7)) < (wkh * 5) + (bkh / 2))
-                                _keyDown = oct * 12 + 3;
+                                result = oct * 12 + 3;
                             else if ((y % (wkh * 7)) > (wkh * 6) - (bkh / 2) - 1)
-                                _keyDown = oct * 12 + 1;
+                                result = oct * 12 + 1;
                             else
-                                _keyDown = oct * 12 + 2;
+                                result = oct * 12 + 2;
                             break;
                         case 6:
                             if ((y % (wkh * 7)) < (wkh * 6) + (bkh / 2))
-                                _keyDown = oct * 12 + 1;
+                                result = oct * 12 + 1;
                             else
-                                _keyDown = oct * 12;
+                                result = oct * 12;
                             break;
                     }
-                    if (0 > _keyDown)
-                        _keyDown = 0;
-                    _keys[_keyDown] = true;
-                    Refresh();
+                    if (0 > result)
+                        result = 0;
+                    return result;
                 }
             }
         }
@@ -736,10 +745,25 @@ namespace M
             base.OnMouseUp(e);
             if (0 > _keyDown)
                 return;
-            _keys[_keyDown] = false;
+            var b = _keys[_keyDown];
+            if (b)
+            {
+                _keys[_keyDown] = false;
+                OnPianoKeyUp(new PianoKeyEventArgs(_keyDown));
+                Refresh();
+            }
             _keyDown = -1;
-            Refresh();
-            
+
+
         }
     }
+    public sealed class PianoKeyEventArgs : EventArgs
+    {
+        public int Key { get; }
+        public PianoKeyEventArgs(int key)
+        {
+            Key = key;
+        }
+    }
+    public delegate void PianoKeyEventHandler(object sender, PianoKeyEventArgs args);
 }

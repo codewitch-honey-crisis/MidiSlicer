@@ -21,7 +21,7 @@ namespace MidiSequencer
 			MidiInputComboBox.DisplayMember = "Name";
 			MidiOutputComboBox.DisplayMember = "Name";
 			_RefreshDeviceList();
-			Visualizer.Sequence = MidiSequence.Merge(MidiFile.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid").Tracks);
+			Visualizer.Sequence = MidiSequence.Merge(MidiFile.ReadFrom(@"..\..\THE BEASTIE Boys.Sabotage.mid").Tracks);
 		}
 		void _RefreshDeviceList()
 		{
