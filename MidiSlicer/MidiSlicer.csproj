@@ -75,6 +75,10 @@
     <Content Include="THE BEASTIE BOYS.Sabotage.mid" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MidiUI\MidiUI.csproj">
+      <Project>{007acc8e-7c06-41c4-bfcd-cbe05f596a97}</Project>
+      <Name>MidiUI</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Midi\Midi.csproj">
       <Project>{2cee0914-509b-40bf-975c-b523434578db}</Project>
       <Name>Midi</Name>

@@ -76,7 +76,8 @@ namespace MidiSlicer
 				DrumsCheckBox.Enabled = false;
 				SaveAsButton.Enabled = false;
 				TempoUpDown.Enabled = false;
-
+				Visualizer.Sequence = null;
+				Visualizer.Size = VisualizerPanel.Size;
 			}
 			else
 			{
@@ -133,6 +134,8 @@ namespace MidiSlicer
 				TempoUpDown.Value = (decimal)_file.Tempo;
 				_dirty = true;
 				_processedFile = null;
+				Visualizer.Sequence = MidiSequence.Merge(_file.Tracks);
+				Visualizer.Width = Math.Max(_file.Length, VisualizerPanel.Width);
 			}
 		}
 
@@ -227,7 +230,10 @@ namespace MidiSlicer
 								seq = MidiSequence.Merge(mf.Tracks);
 								events = seq.Events;
 							}
+							Visualizer.Sequence = MidiSequence.Merge(_processedFile.Tracks);
+							Visualizer.Width = Math.Max(VisualizerPanel.Width, Visualizer.Sequence.Length);
 						}
+						
 
 						ofs = 0;
 						len = events.Count;
@@ -483,6 +489,8 @@ namespace MidiSlicer
 		{
 			_dirty = true;
 			_reseekDirty = true;
+			
+			
 		}
 
 		private void _SetDirtyHandler(object sender, EventArgs e)
@@ -494,6 +502,18 @@ namespace MidiSlicer
 		{
 			_dirty = true;
 			_reseekDirty = true;
+		}
+
+		private void VisualizerPanel_Resize(object sender, EventArgs e)
+		{
+			Visualizer.Height = VisualizerPanel.Height;
+			if (null != Visualizer.Sequence)
+			{
+				Visualizer.Width = Math.Max(VisualizerPanel.Width, Visualizer.Sequence.Length);
+			}
+			else
+				Visualizer.Width = VisualizerPanel.Width;
+
 		}
 	}
 }

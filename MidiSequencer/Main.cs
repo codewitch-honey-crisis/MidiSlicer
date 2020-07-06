@@ -16,12 +16,12 @@ namespace MidiSequencer
 		MidiOutputDevice _midiOutputDevice=null;
 		public Main()
 		{
-			InitializeComponent();
 			MinimumSize = new Size(200, 130);
+			InitializeComponent();
 			MidiInputComboBox.DisplayMember = "Name";
 			MidiOutputComboBox.DisplayMember = "Name";
 			_RefreshDeviceList();
-			Visualizer.Sequence = MidiSequence.Merge(MidiFile.ReadFrom(@"..\..\THE BEASTIE Boys.Sabotage.mid").Tracks);
+			Visualizer.Sequence = MidiSequence.Merge(MidiFile.ReadFrom(@"..\..\GORILLAZ_-_Feel_Good_Inc.mid").Tracks);
 		}
 		void _RefreshDeviceList()
 		{
