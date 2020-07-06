@@ -4,17 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3278200E-CC65-4980-8FFD-8237D05FDF3B}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>scratch</RootNamespace>
-    <AssemblyName>scratch</AssemblyName>
+    <ProjectGuid>{007ACC8E-7C06-41C4-BFCD-CBE05F596A97}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>M</RootNamespace>
+    <AssemblyName>MidiUI</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +23,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -32,16 +30,23 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="MidiVisualizer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PianoBox.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Midi\Midi.csproj">
@@ -50,16 +55,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="50_Cent_-_In_Da_Club.mid" />
-    <Content Include="A-Warm-Place.mid" />
-    <Content Include="Beethoven-Moonlight-Sonata.mid" />
-    <Content Include="Bohemian-Rhapsody-1.mid" />
-    <Content Include="Feel_good_4beatsBass.mid" />
-    <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
-    <Content Include="Peter-Gunn-1.mid" />
-    <Content Include="sabo_8.mid" />
-    <Content Include="something.mid" />
-    <Content Include="THE BEASTIE BOYS.Sabotage.mid" />
+    <None Include="Key.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="MidiVisualizer.resx">
+      <DependentUpon>MidiVisualizer.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3278200E-CC65-4980-8FFD-8237D05FDF3B}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>scratch</RootNamespace>
-    <AssemblyName>scratch</AssemblyName>
+    <ProjectGuid>{0B476472-743D-47FF-B7D8-E8212E250F8E}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>MidiSequencer</RootNamespace>
+    <AssemblyName>MidiSequencer</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -34,32 +34,56 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Main.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Main.Designer.cs">
+      <DependentUpon>Main.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Main.resx">
+      <DependentUpon>Main.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MidiUI\MidiUI.csproj">
+      <Project>{007acc8e-7c06-41c4-bfcd-cbe05f596a97}</Project>
+      <Name>MidiUI</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Midi\Midi.csproj">
       <Project>{2cee0914-509b-40bf-975c-b523434578db}</Project>
       <Name>Midi</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="50_Cent_-_In_Da_Club.mid" />
-    <Content Include="A-Warm-Place.mid" />
-    <Content Include="Beethoven-Moonlight-Sonata.mid" />
-    <Content Include="Bohemian-Rhapsody-1.mid" />
     <Content Include="Feel_good_4beatsBass.mid" />
     <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
-    <Content Include="Peter-Gunn-1.mid" />
-    <Content Include="sabo_8.mid" />
-    <Content Include="something.mid" />
-    <Content Include="THE BEASTIE BOYS.Sabotage.mid" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

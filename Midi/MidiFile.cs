@@ -170,6 +170,17 @@
 				return seq.GetContext(seq.Length, TimeBase).Time;
 			}
 		}
+		/// <summary>
+		/// Indicates the duration of the MIDI file in system ticks
+		/// </summary>
+		public long DurationSystemTicks {
+			get {
+				if (0 == Tracks.Count)
+					return 0L;
+				var seq = MidiSequence.Merge(Tracks);
+				return seq.GetContext(seq.Length, TimeBase).SystemTicks;
+			}
+		}
 
 		/// <summary>
 		/// Indicates the type of the MIDI file

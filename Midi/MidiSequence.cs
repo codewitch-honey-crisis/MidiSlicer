@@ -367,6 +367,7 @@
 		public IList<MidiNote> ToNoteMap() {
 			var result = new List<MidiNote>();
 			var dic = new Dictionary<(byte NoteId, byte Channel), IList<(int Position, byte Velocity)>>();
+			var pos = 0;
 			for(int ic=Events.Count,i=0;i<ic;++i)
 			{
 				var ev = Events[i];
@@ -381,9 +382,11 @@
 						l = new List<(int Position, byte Velocity)>();
 						dic.Add(key, l);
 					}
-					l.Add((ev.Position,mw.Data2));
-				} else if(0x80==(m.Status&0xF)) 
+					l.Add((pos+ev.Position,mw.Data2));
+
+				} else if(0x80==(m.Status&0xF0)) 
 				{
+					
 					var mw = m as MidiMessageWord;
 					var key = (NoteId: mw.Data1, Channel: mw.Channel);
 					IList<(int Position, byte Velocity)> l;
@@ -392,7 +395,7 @@
 						for(int jc = l.Count,j=0;j<jc;++j)
 						{
 							var mn = l[j];
-							result.Add(new MidiNote(mn.Position, mw.Channel, mw.Data1, mn.Velocity, ev.Position - mn.Position));
+							result.Add(new MidiNote(mn.Position, mw.Channel, mw.Data1, mn.Velocity, pos - mn.Position+ev.Position));
 							l.RemoveAt(j);
 							--jc;
 							--j;
@@ -401,6 +404,7 @@
 						}
 					}
 				}
+				pos += ev.Position;
 			}
 			result.Sort((x, y) => { return x.Position.CompareTo(y.Position); });
 			return result;

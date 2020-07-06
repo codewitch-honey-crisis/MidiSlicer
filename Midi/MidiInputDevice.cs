@@ -137,7 +137,7 @@ namespace M
 		const int MIM_MOREDATA = 972;
 
 		#endregion
-		readonly MidiInProc _callback;
+		readonly MidiInProc _inCallback;
 		readonly int _index;
 		MIDIINCAPS _caps;
 		IntPtr _handle;
@@ -173,7 +173,7 @@ namespace M
 			if (0 > deviceIndex)
 				throw new ArgumentOutOfRangeException("deviceIndex");
 			_handle = IntPtr.Zero;
-			_callback = new MidiInProc(_MidiInProc);
+			_inCallback = new MidiInProc(_MidiInProc);
 			_index = deviceIndex;
 			_state = MidiInputDeviceState.Closed;
 			_recordingLastTimestamp = 0L;
@@ -364,7 +364,7 @@ namespace M
 		public override void Open()
 		{
 			Close();
-			_CheckInResult(midiInOpen(out _handle, _index, _callback, 0, CALLBACK_FUNCTION));
+			_CheckInResult(midiInOpen(out _handle, _index, _inCallback, 0, CALLBACK_FUNCTION));
 			var sz = Marshal.SizeOf(typeof(MIDIHDR));
 			_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = 65536u;
 			_inHeader.lpData = _buffer = Marshal.AllocHGlobal(65536);

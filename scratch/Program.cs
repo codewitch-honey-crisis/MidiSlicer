@@ -28,11 +28,12 @@ namespace scratch
 				var midiFile = MidiFile
 				//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 				//.ReadFrom(@"..\..\Bohemian-Rhapsody-1.mid"); // > 64kb!
-				//.ReadFrom(@"..\..\A-Warm-Place.mid");
+				.ReadFrom(@"..\..\A-Warm-Place.mid");
+				//.ReadFrom(@"..\..\50_cent_-_In_Da_Club.mid");
 				//.ReadFrom(@"..\..\Beethoven-Moonlight-Sonata.mid");
 				//.ReadFrom(@"..\..\Peter-Gunn-1.mid");
-				.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
-				Console.WriteLine(Path.GetFileName(midiFile.FilePath)+" @ "+midiFile.TimeBase+" PPQ");
+				//.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
+				Console.WriteLine(Path.GetFileName(midiFile.FilePath)+" @ "+midiFile.TimeBase+" PQN");
 				var tsig = midiFile.TimeSignature;
 				Console.WriteLine("Tempo: " + midiFile.Tempo + " BPM @ " + tsig.Numerator + "/" + tsig.Denominator + " time");
 				Console.WriteLine("Tracks:");
@@ -82,7 +83,7 @@ namespace scratch
 			//.ReadFrom(@"..\..\Feel_good_4beatsBass.mid");
 			//.ReadFrom(@"..\..\THE BEASTIE BOYS.Sabotage.mid");
 			//.ReadFrom(@"..\..\Peter-Gunn-1.mid");
-			Console.WriteLine(Path.GetFileName(midiFile.FilePath) + " @ " + midiFile.TimeBase + " PPQ");
+			Console.WriteLine(Path.GetFileName(midiFile.FilePath) + " @ " + midiFile.TimeBase + " PQN");
 			var tsig = midiFile.TimeSignature;
 			Console.WriteLine("Tempo: " + midiFile.Tempo + " BPM @ " + tsig.Numerator + "/" + tsig.Denominator + " time");
 			Console.WriteLine("Tracks:");
