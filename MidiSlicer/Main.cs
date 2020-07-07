@@ -135,7 +135,7 @@ namespace MidiSlicer
 				_dirty = true;
 				_processedFile = null;
 				Visualizer.Sequence = MidiSequence.Merge(_file.Tracks);
-				Visualizer.Width = Math.Max(_file.Length/4, VisualizerPanel.Width);
+				Visualizer.Width = Math.Max(VisualizerPanel.Width,Visualizer.Sequence.Length/4);
 			}
 		}
 
