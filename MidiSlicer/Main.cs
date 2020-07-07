@@ -135,7 +135,7 @@ namespace MidiSlicer
 				_dirty = true;
 				_processedFile = null;
 				Visualizer.Sequence = MidiSequence.Merge(_file.Tracks);
-				Visualizer.Width = Math.Max(_file.Length, VisualizerPanel.Width);
+				Visualizer.Width = Math.Max(_file.Length/4, VisualizerPanel.Width);
 			}
 		}
 
@@ -230,8 +230,8 @@ namespace MidiSlicer
 								seq = MidiSequence.Merge(mf.Tracks);
 								events = seq.Events;
 							}
-							Visualizer.Sequence = MidiSequence.Merge(_processedFile.Tracks);
-							Visualizer.Width = Math.Max(VisualizerPanel.Width, Visualizer.Sequence.Length);
+							Visualizer.Sequence = seq;
+							Visualizer.Width = Math.Max(VisualizerPanel.Width, Visualizer.Sequence.Length/4);
 						}
 						
 
@@ -509,7 +509,7 @@ namespace MidiSlicer
 			Visualizer.Height = VisualizerPanel.Height;
 			if (null != Visualizer.Sequence)
 			{
-				Visualizer.Width = Math.Max(VisualizerPanel.Width, Visualizer.Sequence.Length);
+				Visualizer.Width = Math.Max(VisualizerPanel.Width, Visualizer.Sequence.Length/4);
 			}
 			else
 				Visualizer.Width = VisualizerPanel.Width;
