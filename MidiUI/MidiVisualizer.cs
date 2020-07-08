@@ -32,9 +32,13 @@ namespace M
 			_channelColors = new Color[16];
 			_DefaultChannelColors.CopyTo(_channelColors,0);
 		}
+
 		public Color[] ChannelColors {
 			get { return _channelColors; }
 			set { 
+				// the designer lets you change the length of this array so what we do
+				// is we copy the first 16 values. If it's less than 16, we take the 
+				// remainder from the defaul colors.
 				if(value.Length<16)
 					Array.Copy(_DefaultChannelColors, value.Length, _channelColors, value.Length,16-value.Length);
 				Array.Copy(value, 0, _channelColors, 0, value.Length);
@@ -70,28 +74,65 @@ namespace M
 			var maxNote = 0;
 			foreach (var ev in _sequence.Events)
 			{
+				// found note on
 				if(0x90==(ev.Message.Status & 0xF0))
 				{
 					var mw = ev.Message as MidiMessageWord;
+					// update minimum and maximum notes
 					if (minNote > mw.Data1)
 						minNote = mw.Data1;
 					if (maxNote < mw.Data1)
 						maxNote = mw.Data1;
 				}
+				// update the length
 				len += ev.Position;
 			}
 			if (0 == len || minNote > maxNote)
 				return;
+			
+			// with what we just gathered now we have the scaling:
 			var pptx = Width / (double)len;
 			var ppty = Height / ((maxNote - minNote) + 1);
+			var crect = args.ClipRectangle;
+
+			// get a note map for easy drawing
 			var noteMap = _sequence.ToNoteMap();
 			for(var i = 0;i<noteMap.Count;++i)
 			{
 				var note = noteMap[i];
-				using(var brush = new SolidBrush(_channelColors[note.Channel]))
+				var x = unchecked((int)Math.Round(note.Position * pptx)) + 1;
+				var y = Height - (note.NoteId - minNote + 1) * ppty - 1;
+				var w = unchecked((int)Math.Round(note.Length * pptx));
+				var h = ppty;
+				if (crect.IntersectsWith(new Rectangle(x, y, w, h)))
 				{
-					var n = note.NoteId - minNote;
-					g.FillRectangle(brush, unchecked((int)Math.Round(note.Position * pptx))+1, Height-(n+1)* ppty-1, unchecked((int)Math.Round(note.Length * pptx)), ppty);
+					// choose the color based on the note's channel
+					using (var brush = new SolidBrush(_channelColors[note.Channel]))
+					{
+						// draw our rect based on scaling and note pos and len
+						g.FillRectangle(
+							brush,
+							x,
+							y,
+							w,
+							h);
+						// 3d effect, but it slows down rendering a lot.
+						// should be okay since we're only rendering
+						// a small window at once usually
+						if (2 < ppty && 2 < w)
+						{
+							using(var pen = new Pen(Color.FromArgb(127,Color.White)))
+							{
+								g.DrawLine(pen, x, y, w + x, y);
+								g.DrawLine(pen, x, y+1, x, y+h-1);
+							}
+							using (var pen = new Pen(Color.FromArgb(127, Color.Black)))
+							{
+								g.DrawLine(pen, x, y+h-1, w + x, y+h-1);
+								g.DrawLine(pen, x+w, y + 1, x+w, y + h);
+							}
+						}
+					}
 				}
 			}
 			
