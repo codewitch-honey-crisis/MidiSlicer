@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiSlicer", "MidiSlicer\MidiSlicer.csproj", "{1DDD35F2-2ECE-48B9-8483-278209BE3789}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7AC37FF-4524-41CB-BA9B-D42ECC13EDF5}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi", "Midi\Midi.csproj", "{2CEE0914-509B-40BF-975C-B523434578DB}"
 EndProject
