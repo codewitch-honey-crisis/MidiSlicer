@@ -684,6 +684,7 @@
 				}
 			}
 		}
+		public MidiSequence ExtractChannels(MidiChannels)
 		/// <summary>
 		/// Concatenates this sequence with another MIDI sequence
 		/// </summary>

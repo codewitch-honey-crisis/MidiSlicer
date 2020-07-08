@@ -74,7 +74,7 @@ namespace M
 #if MIDILIB
 	public
 #endif
-	enum MidiOutputChannels
+	enum MidiChannels
 	{
 		/// <summary>
 		/// Channel 0
@@ -299,9 +299,9 @@ namespace M
 		/// Indicates the channels which the MIDI device responds to
 		/// </summary>
 		/// <remarks>These are flags</remarks>
-		public MidiOutputChannels Channels {
+		public MidiChannels Channels {
 			get {
-				return (MidiOutputChannels)_caps.wChannelMask;
+				return (MidiChannels)_caps.wChannelMask;
 			}
 		}
 		/// <summary>
