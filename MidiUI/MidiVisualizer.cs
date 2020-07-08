@@ -101,6 +101,8 @@ namespace M
 			{
 				var note = noteMap[i];
 				var x = unchecked((int)Math.Round(note.Position * pptx)) + 1;
+				if (x > crect.X + crect.Width)
+					break; // we're done because there's nothing left within the visible area
 				var y = Height - (note.NoteId - minNote + 1) * ppty - 1;
 				var w = unchecked((int)Math.Round(note.Length * pptx));
 				var h = ppty;
