@@ -69,8 +69,8 @@
 					return "C major";
 				if (0 > scode)
 					return FLATS.Substring((-scode) * 2, 2).TrimStart() + " major";
-				else // if(0<scode)
-					return SHARPS.Substring(scode * 2, 2).TrimStart() + " major";
+				//else if(0<scode)
+				return SHARPS.Substring(scode * 2, 2).TrimStart() + " major";
 			} else
 			{
 				const string FLATS = " D G C FBbEbAb";
