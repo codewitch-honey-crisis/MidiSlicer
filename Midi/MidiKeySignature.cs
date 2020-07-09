@@ -79,9 +79,9 @@
 				if (0 == scode)
 					return "A minor";
 				if (0 > scode)
-					return FLATS.Substring((-scode) * 2, 2).TrimStart() + " major";
+					return FLATS.Substring((-scode) * 2, 2).TrimStart() + " minor";
 				//else if(0<scode)
-				return SHARPS.Substring(scode * 2, 2).TrimStart() + " major";
+				return SHARPS.Substring(scode * 2, 2).TrimStart() + " minor";
 			}
 
 		}
