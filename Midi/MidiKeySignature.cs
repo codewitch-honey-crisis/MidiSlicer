@@ -55,12 +55,20 @@
 		/// <returns>A string representing the key signature</returns>
 		public override string ToString()
 		{
+			const string FLATS = "FBEADGC";
+			const string SHARPS = "GDEABFC";
+
 			sbyte scode;
 			if (0 < FlatsCount)
 				scode = unchecked((sbyte)-FlatsCount);
 			else
 				scode = unchecked((sbyte)SharpsCount);
-			// TODO: return an actual key sig here
+			if (0 == scode)
+				return "C " + (IsMinor ? "minor" : "major");
+			if(0>scode)
+				return FLATS[((-scode)-1)].ToString() + "b " + (IsMinor ? "minor" : "major"); 
+			else if(0<scode)
+				return SHARPS[(scode - 1)].ToString() + "# " + (IsMinor ? "minor" : "major");
 			return scode.ToString() + " " + (IsMinor ? "minor" : "major");
 		}
 	}

@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7AC37FF-4524-41CB-BA9B-D42ECC13EDF5}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		Standard MIDI file format.html = Standard MIDI file format.html
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Midi", "Midi\Midi.csproj", "{2CEE0914-509B-40BF-975C-B523434578DB}"
@@ -25,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiUI", "MidiUI\MidiUI.csproj", "{007ACC8E-7C06-41C4-BFCD-CBE05F596A97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiSequencer", "MidiSequencer\MidiSequencer.csproj", "{0B476472-743D-47FF-B7D8-E8212E250F8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiBlaster", "MidiBlaster\MidiBlaster.csproj", "{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -142,6 +145,18 @@ Global
 		{0B476472-743D-47FF-B7D8-E8212E250F8E}.Release|x64.Build.0 = Release|Any CPU
 		{0B476472-743D-47FF-B7D8-E8212E250F8E}.Release|x86.ActiveCfg = Release|Any CPU
 		{0B476472-743D-47FF-B7D8-E8212E250F8E}.Release|x86.Build.0 = Release|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Debug|x64.Build.0 = Debug|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Debug|x86.Build.0 = Debug|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Release|x64.ActiveCfg = Release|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Release|x64.Build.0 = Release|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Release|x86.ActiveCfg = Release|Any CPU
+		{E93F5FEC-EC3F-42CE-B7C7-433CA75E44BB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

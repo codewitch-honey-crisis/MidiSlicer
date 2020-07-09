@@ -94,7 +94,8 @@ namespace MidiSlicer
 					++i;
 				}
 				var sig = _file.TimeSignature;
-				TracksLabel.Text = string.Format(_tracksLabelFormat, sig.Numerator,sig.Denominator);
+				var key = _file.KeySignature;
+				TracksLabel.Text = string.Format(_tracksLabelFormat, sig.Numerator,sig.Denominator,key);
 				TrackList.Enabled = true;
 				PreviewButton.Enabled = true;
 				UnitsCombo.Enabled = true;

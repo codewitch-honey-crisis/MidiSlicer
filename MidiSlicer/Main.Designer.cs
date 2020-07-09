@@ -92,9 +92,9 @@
 			this.TracksLabel.AutoSize = true;
 			this.TracksLabel.Location = new System.Drawing.Point(1, 30);
 			this.TracksLabel.Name = "TracksLabel";
-			this.TracksLabel.Size = new System.Drawing.Size(163, 13);
+			this.TracksLabel.Size = new System.Drawing.Size(138, 13);
 			this.TracksLabel.TabIndex = 1;
-			this.TracksLabel.Text = "Tracks:    Time signature: {0}/{1}";
+			this.TracksLabel.Text = "Tracks:    {0}/{1} time in {2}";
 			// 
 			// MidiFileBox
 			// 

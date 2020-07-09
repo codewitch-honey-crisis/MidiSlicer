@@ -3,7 +3,6 @@
 
 	using System;
 	using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Runtime.InteropServices;
 
@@ -209,6 +208,116 @@
 				return null;
 			position %= (pos+1);
 			return GetNextEventAtPosition(position);
+		}
+		/// <summary>
+		/// Returns an enumeration of events targeting the specified <paramref name="channels"/>.
+		/// </summary>
+		/// <param name="channels">The channels to return as <see cref="MidiChannels"/> flags</param>
+		/// <returns>All of the events targeting the specified channel, with deltas adjusted</returns>
+		public IEnumerable<MidiEvent> GetEventsByChannel(MidiChannels channels)
+		{
+			var ofs = 0;
+			foreach(var ev in Events)
+			{
+				switch(ev.Message.Status & 0xF0)
+				{
+					case 0x80:
+					case 0x90:
+					case 0xA0:
+					case 0xB0:
+					case 0xC0:
+					case 0xD0:
+					case 0xE0:
+						switch(ev.Message.Channel)
+						{
+							case 0:
+								if (MidiChannels.Channel0 == (channels & MidiChannels.Channel0))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 1:
+								if (MidiChannels.Channel1 == (channels & MidiChannels.Channel1))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 2:
+								if (MidiChannels.Channel2 == (channels & MidiChannels.Channel2))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 3:
+								if (MidiChannels.Channel3 == (channels & MidiChannels.Channel3))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 4:
+								if (MidiChannels.Channel4 == (channels & MidiChannels.Channel4))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 5:
+								if (MidiChannels.Channel5 == (channels & MidiChannels.Channel5))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 6:
+								if (MidiChannels.Channel6 == (channels & MidiChannels.Channel6))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 7:
+								if (MidiChannels.Channel7 == (channels & MidiChannels.Channel7))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 8:
+								if (MidiChannels.Channel8 == (channels & MidiChannels.Channel8))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 9:
+								if (MidiChannels.Channel9 == (channels & MidiChannels.Channel9))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 10:
+								if (MidiChannels.Channel10 == (channels & MidiChannels.Channel10))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 11:
+								if (MidiChannels.Channel11 == (channels & MidiChannels.Channel11))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 12:
+								if (MidiChannels.Channel12 == (channels & MidiChannels.Channel12))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 13:
+								if (MidiChannels.Channel13 == (channels & MidiChannels.Channel13))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 14:
+								if (MidiChannels.Channel14 == (channels & MidiChannels.Channel14))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+							case 15:
+								if (MidiChannels.Channel15 == (channels & MidiChannels.Channel15))
+									yield return new MidiEvent(ev.Position + ofs, ev.Message);
+								ofs = 0;
+								break;
+						}
+						break;
+					default:
+						ofs += ev.Position;
+						break;
+
+				}
+			}
 		}
 		/// <summary>
 		/// Retrieves the next events in the sequence from the position specified by <paramref name="position"/>. The event's delta is modified such that it reflects the difference between the requested position and the time the note should be played.
@@ -684,7 +793,6 @@
 				}
 			}
 		}
-		public MidiSequence ExtractChannels(MidiChannels)
 		/// <summary>
 		/// Concatenates this sequence with another MIDI sequence
 		/// </summary>

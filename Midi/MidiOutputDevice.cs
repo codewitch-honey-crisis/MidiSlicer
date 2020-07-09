@@ -74,7 +74,7 @@ namespace M
 #if MIDILIB
 	public
 #endif
-	enum MidiChannels
+	enum MidiChannels : short
 	{
 		/// <summary>
 		/// Channel 0
@@ -139,7 +139,7 @@ namespace M
 		/// <summary>
 		/// Channel 15
 		/// </summary>
-		Channel15 = 0x8000
+		Channel15 = unchecked((short)0x8000)
 	}
 	/// <summary>
 	/// Represents a MIDI output device
