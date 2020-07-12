@@ -11,12 +11,68 @@ namespace scratch
 	{
 		static void Main()
 		{
-			SimpleStreamingDemo();
+			SimpleBuildingDemo();
+			//SimpleStreamingDemo();
 			//ComplexStreamingDemo();
 			//SimpleRecordingDemo();
 			//TestTiming();
 		}
-
+		static void SimpleBuildingDemo()
+		{
+			var seq = new MidiSequence();
+			// set the tempo
+			seq.Events.Add(new MidiEvent(0, new MidiMessageMetaTempo(100d)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("E5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("G5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("E5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("G5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("E5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("G5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("A4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("E5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("A4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("E5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("A4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("E5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("F4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("A4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("F4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("A4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("F4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("A4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("C5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("G4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("B4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("D5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("G4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("B4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("D5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageNoteOn("G4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("B4", 127, 0)));
+			seq.Events.Add(new MidiEvent(0, new MidiMessageNoteOn("D5", 127, 0)));
+			seq.Events.Add(new MidiEvent(12, new MidiMessageMetaEndOfTrack()));
+			using (var stm = MidiDevice.Streams[0])
+			{
+				stm.SendComplete += delegate (object s, EventArgs e)
+				{
+					stm.Send(seq.Events);
+				};
+				Console.WriteLine("Press a key to exit...");
+				// open it
+				stm.Open();
+				stm.Start();
+				stm.Send(seq.Events);
+				Console.ReadKey();
+			}
+		}
 		static void SimpleStreamingDemo()
 		{
 			// just grab the first output stream
