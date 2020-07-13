@@ -135,7 +135,9 @@ namespace M
 		const int MIM_ERROR = 965;
 		const int MIM_LONGERROR = 966;
 		const int MIM_MOREDATA = 972;
-
+		const int MHDR_NONE = 0;
+		const int MHDR_DONE = 1;
+		const int MHDR_PREPARED = 2;
 		#endregion
 		readonly MidiInProc _inCallback;
 		readonly int _index;
@@ -385,6 +387,10 @@ namespace M
 				Reset();
 				var sz = Marshal.SizeOf(typeof(MIDIHDR));
 				var ptr = _inHeader.lpData;
+				// in case the header is being used:
+				if(0!=_inHeader.dwFlags && MHDR_PREPARED!=(_inHeader.dwFlags & MHDR_PREPARED))
+					while ((_inHeader.dwFlags & MHDR_DONE) != MHDR_DONE)
+						Thread.Sleep(1);
 				_CheckInResult(midiInUnprepareHeader(_handle, ref _inHeader, sz));
 				_CheckInResult(midiInClose(_handle));
 				Marshal.FreeHGlobal(ptr);
@@ -541,11 +547,14 @@ namespace M
 				case MIM_ERROR:
 					Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), MidiUtility.UnpackMessage(lparam)));
 					break;
-				case MIM_LONGDATA:
 				case MIM_LONGERROR:
+
+				case MIM_LONGDATA:
 					// TODO: Semi tested
 					var hdr = (MIDIHDR)Marshal.PtrToStructure(new IntPtr(lparam), typeof(MIDIHDR));
-					if (0 == hdr.dwBytesRecorded)
+					// for some reason we're getting bogus MIDIHDRs from lparam sometimes.
+					// hopefully this catches it:
+					if (0 == hdr.dwBytesRecorded || 65536<hdr.dwBytesRecorded)
 						return; // no message
 					// this code assumes it's a sysex message but I should probably check it.
 					if (IntPtr.Zero != hdr.lpData)
