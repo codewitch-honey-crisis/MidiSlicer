@@ -110,29 +110,38 @@ namespace MidiDisplay
 			MidiOutComboBox.Enabled = false;
 			FileTextBox.Enabled = false;
 			FileBrowseButton.Enabled = false;
+			var mf = MidiFile.ReadFrom(FileTextBox.Text);
 			if(null!=_outputStream)
 			{
-				var stm = _outputStream;
+				// BUG: For some reason recycling the output stream 
+				// screws up playback on successive uses. I have had 
+				// no luck tracking down why so far. The following
+				// causes the MidiStream class to be recreated
+				// instead of recycled
+				var stm = _outputStream = MidiDevice.Streams[_outputStream.Index];
 				// we use 100 events, which should be safe and allow
 				// for some measure of SYSEX messages in the stream
 				// without bypassing the 64kb limit
 				const int MAX_EVENT_COUNT = 100;
-				const int RATE_TICKS = 500;
+				// the lower this is, the more more CPU it takes.
+				// the higher it is, the less accurate the cursor 
+				// position will be:
+				const int RATE_TICKS = 10;
 				// our current cursor pos
 				var pos = 0;
 				// for tracking deltas
 				var ofs = 0;
 				// for tracking the song position
 				var songPos = 0;
+				var songTicks = 0;
 				// merge our file for playback
-				var mf = MidiFile.ReadFrom(FileTextBox.Text);
 				var seq = MidiSequence.Merge(mf.Tracks);
 				var events = seq.Events;
 				// the number of events in the seq
 				var len = events.Count;
 				// stores the next set of events
 				var eventList = new List<MidiEvent>(MAX_EVENT_COUNT);
-				var songLen = seq.Length;
+
 				// open the stream
 				stm.Open();
 				// start it
@@ -163,25 +172,23 @@ namespace MidiDisplay
 								{
 									pos = 0;
 									songPos = 0;
+									songTicks = 0;
 									events = seq.Events;
 									break;
 								}
 								var ev = events[pos];
 								ofs += ev.Position;
+								songTicks += ev.Position;
 								songPos += pos;
 								if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
 									break;
 								// otherwise add the next event
 								eventList.Add(ev);
 							}
-							try
-							{
-								// send the list of events
-								if (MidiStreamState.Closed != stm.State && 0 != eventList.Count)
-									stm.SendDirect(eventList);
-							}
-							catch { }
-							Visualizer.CursorPosition = stm.PositionTicks % songLen;
+							// send the list of events
+							if (MidiStreamState.Closed != stm.State && 0 != eventList.Count)
+								stm.SendDirect(eventList);
+							Visualizer.CursorPosition = songTicks;
 						}));
 					}
 					catch { }
@@ -195,16 +202,19 @@ namespace MidiDisplay
 					{
 						pos = 0;
 						songPos = 0;
+						songTicks = 0;
 						events = seq.Events;
 						break;
 					}
 					var ev = events[pos];
 					ofs += ev.Position;
+					songTicks += ev.Position;
 					if (ev.Position < RATE_TICKS && RATE_TICKS < ofs)
 						break;
 					// otherwise add the next event
 					eventList.Add(ev);
 				}
+				Visualizer.CursorPosition = songTicks;
 				// send the list of events
 				if (0 != eventList.Count)
 					stm.SendDirect(eventList);

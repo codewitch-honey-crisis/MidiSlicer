@@ -183,6 +183,7 @@ namespace M
 		MidiStreamState _state = MidiStreamState.Closed;
 		internal MidiStream(int index) : base(index)
 		{
+			_sendQueue = null;
 			_sendQueuePosition = 0;
 			_outCallback = new MidiOutProc(_MidiOutProc);
 			_timerCallback = new TimerProc(_TimerProc);
@@ -205,7 +206,7 @@ namespace M
 		/// </summary>
 		public bool TempoSynchronizationEnabled {
 			get {
-				return 0 != _tempoSyncMessageCount;
+				return 0 != _tempoSyncEnabled;
 			} 
 			set {
 				if(value)
@@ -247,6 +248,8 @@ namespace M
 				throw new InvalidOperationException("The device is already open");
 			var di = Index;
 			var h = IntPtr.Zero;
+			Interlocked.Exchange(ref _sendQueue, null);
+			Interlocked.Exchange(ref _sendQueuePosition, 0);
 			_CheckOutResult(midiStreamOpen(ref h, ref di, 1, _outCallback, 0, CALLBACK_FUNCTION));
 			Handle= h;
 			_state = MidiStreamState.Paused;
@@ -263,6 +266,8 @@ namespace M
 				_CheckOutResult(midiStreamClose(Handle));
 				Handle = IntPtr.Zero;
 				GC.SuppressFinalize(this);
+				Interlocked.Exchange(ref _sendQueue, null);
+				Interlocked.Exchange(ref _sendQueuePosition, 0);
 				_state = MidiStreamState.Closed;
 			}
 		}

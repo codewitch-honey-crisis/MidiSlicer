@@ -33,9 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Midi">
-      <HintPath>..\MidiKeys\Midi.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -75,18 +72,22 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MidiUI\MidiUI.csproj">
-      <Project>{8b53cd59-5d7e-4624-bbc9-12e88133e52b}</Project>
-      <Name>MidiUI</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="50_Cent_-_In_Da_Club.mid" />
     <Content Include="A-Warm-Place.mid" />
     <Content Include="Beethoven-Moonlight-Sonata.mid" />
     <Content Include="Bohemian-Rhapsody-1.mid" />
     <Content Include="Feel_good_4beatsBass.mid" />
     <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MidiUI\MidiUI.csproj">
+      <Project>{8b53cd59-5d7e-4624-bbc9-12e88133e52b}</Project>
+      <Name>MidiUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Midi\Midi.csproj">
+      <Project>{2cee0914-509b-40bf-975c-b523434578db}</Project>
+      <Name>Midi</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

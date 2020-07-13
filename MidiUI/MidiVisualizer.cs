@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
+using System.Threading;
 
 namespace M
 {
@@ -48,6 +49,12 @@ namespace M
 			_cursorColor = Color.DarkGoldenrod;
 			_showCursor = false;
 			_cursorPosition = 0;
+			this.SetStyle(ControlStyles.DoubleBuffer |
+			 ControlStyles.UserPaint |
+			 ControlStyles.AllPaintingInWmPaint,
+			 true);
+			this.UpdateStyles();
+			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 		}
 		/// <summary>
 		/// Indicates the color to use for drawing each channel
@@ -229,19 +236,7 @@ namespace M
 		{
 			(Events[_ShowCursorChangedKey] as EventHandler)?.Invoke(this, args);
 		}
-		/// <summary>
-		/// Paints the backround of the control
-		/// </summary>
-		/// <param name="args">The event arguments</param>
-		protected override void OnPaintBackground(PaintEventArgs args)
-		{
-			base.OnPaintBackground(args);
-			var g = args.Graphics;
-			using (var brush = new SolidBrush(Color.Black))
-			{
-				g.FillRectangle(brush,args.ClipRectangle);
-			}
-		}
+		
 		/// <summary>
 		/// Paints the control
 		/// </summary>
@@ -250,6 +245,10 @@ namespace M
 		{
 			base.OnPaint(args);
 			var g = args.Graphics;
+			using (var brush = new SolidBrush(Color.Black))
+			{
+				g.FillRectangle(brush, args.ClipRectangle);
+			}
 			if (null == _sequence)
 				return;
 			var len = 0;
