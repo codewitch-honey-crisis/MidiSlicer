@@ -149,7 +149,7 @@
 			this.Piano.BorderColor = System.Drawing.Color.Black;
 			this.Piano.Location = new System.Drawing.Point(0, 0);
 			this.Piano.Name = "Piano";
-			this.Piano.NoteOnColor = System.Drawing.Color.Orange;
+			this.Piano.NoteHighlightColor= System.Drawing.Color.Orange;
 			this.Piano.Octaves = 12;
 			this.Piano.Orientation = System.Windows.Forms.Orientation.Horizontal;
 			this.Piano.Size = new System.Drawing.Size(1600, 120);

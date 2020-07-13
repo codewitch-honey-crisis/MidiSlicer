@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1DDD35F2-2ECE-48B9-8483-278209BE3789}</ProjectGuid>
+    <ProjectGuid>{3061C8D7-5A9D-4E24-8A43-6F69887F4E0D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>MidiSlicer</RootNamespace>
-    <AssemblyName>MidiSlicer</AssemblyName>
+    <RootNamespace>MidiDisplay</RootNamespace>
+    <AssemblyName>MidiDisplay</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -32,15 +32,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Midi">
+      <HintPath>..\MidiKeys\Midi.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs">
@@ -51,43 +49,44 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Main.resx">
+      <DependentUpon>Main.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="A-Warm-Place.mid" />
-    <Content Include="Beethoven-Moonlight-Sonata.mid" />
-    <Content Include="Feel_good_4beatsBass.mid" />
-    <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
-    <Content Include="moonlight_16.mid" />
-    <Content Include="moonlight_sonata.mid" />
-    <Content Include="moonlight_test.mid" />
-    <Content Include="Peter-Gunn-1.mid" />
-    <Content Include="sabo_8.mid" />
-    <Content Include="sabo_8_copy.mid" />
-    <Content Include="sabo_8_wdm.mid" />
-    <Content Include="test.mid" />
-    <Content Include="test2.mid" />
-    <Content Include="test3.mid" />
-    <Content Include="test4.mid" />
-    <Content Include="test5.mid" />
-    <Content Include="THE BEASTIE BOYS.Sabotage.mid" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MidiUI\MidiUI.csproj">
       <Project>{8b53cd59-5d7e-4624-bbc9-12e88133e52b}</Project>
       <Name>MidiUI</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Midi\Midi.csproj">
-      <Project>{2cee0914-509b-40bf-975c-b523434578db}</Project>
-      <Name>Midi</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Main.resx">
-      <DependentUpon>Main.cs</DependentUpon>
-    </EmbeddedResource>
+    <Content Include="50_Cent_-_In_Da_Club.mid" />
+    <Content Include="A-Warm-Place.mid" />
+    <Content Include="Beethoven-Moonlight-Sonata.mid" />
+    <Content Include="Bohemian-Rhapsody-1.mid" />
+    <Content Include="Feel_good_4beatsBass.mid" />
+    <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

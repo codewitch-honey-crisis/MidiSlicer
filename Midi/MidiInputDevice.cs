@@ -548,20 +548,23 @@ namespace M
 					if (0 == hdr.dwBytesRecorded)
 						return; // no message
 					// this code assumes it's a sysex message but I should probably check it.
-					var status = Marshal.ReadByte(hdr.lpData, 0);
-					var payload = new byte[hdr.dwBytesRecorded - 1];
-					Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
-					m = new MidiMessageSysex(payload);
-					var sz = Marshal.SizeOf(typeof(MIDIHDR));
-					_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = 65536u;
-					_inHeader.lpData = _buffer;
-					_CheckInResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
-					_CheckInResult(midiInAddBuffer(_handle, ref _inHeader, sz));
-					_ProcessRecording(m);
-					if (MIM_LONGDATA == msg)
-						Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam),m));
-					else
-						Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam),m));
+					if (IntPtr.Zero != hdr.lpData)
+					{
+						var status = Marshal.ReadByte(hdr.lpData, 0);
+						var payload = new byte[hdr.dwBytesRecorded - 1];
+						Marshal.Copy(new IntPtr((int)hdr.lpData + 1), payload, 0, payload.Length);
+						m = new MidiMessageSysex(payload);
+						var sz = Marshal.SizeOf(typeof(MIDIHDR));
+						_inHeader.dwBufferLength = _inHeader.dwBytesRecorded = 65536u;
+						_inHeader.lpData = _buffer;
+						_CheckInResult(midiInPrepareHeader(_handle, ref _inHeader, sz));
+						_CheckInResult(midiInAddBuffer(_handle, ref _inHeader, sz));
+						_ProcessRecording(m);
+						if (MIM_LONGDATA == msg)
+							Input?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), m));
+						else
+							Error?.Invoke(this, new MidiInputEventArgs(new TimeSpan(0, 0, 0, 0, wparam), m));
+					}
 					break;
 				case MIM_MOREDATA:
 					break;

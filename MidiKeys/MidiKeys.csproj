@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1DDD35F2-2ECE-48B9-8483-278209BE3789}</ProjectGuid>
+    <ProjectGuid>{95D54CE6-F455-46A0-A7F6-5FA8460C92B8}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>MidiSlicer</RootNamespace>
-    <AssemblyName>MidiSlicer</AssemblyName>
+    <RootNamespace>MidiKeys</RootNamespace>
+    <AssemblyName>MidiKeys</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -32,10 +32,11 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Midi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1585ef7a513c4a32, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Midi\bin\Debug\Midi.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -51,43 +52,36 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Main.resx">
+      <DependentUpon>Main.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="A-Warm-Place.mid" />
-    <Content Include="Beethoven-Moonlight-Sonata.mid" />
-    <Content Include="Feel_good_4beatsBass.mid" />
-    <Content Include="GORILLAZ_-_Feel_Good_Inc.mid" />
-    <Content Include="moonlight_16.mid" />
-    <Content Include="moonlight_sonata.mid" />
-    <Content Include="moonlight_test.mid" />
-    <Content Include="Peter-Gunn-1.mid" />
-    <Content Include="sabo_8.mid" />
-    <Content Include="sabo_8_copy.mid" />
-    <Content Include="sabo_8_wdm.mid" />
-    <Content Include="test.mid" />
-    <Content Include="test2.mid" />
-    <Content Include="test3.mid" />
-    <Content Include="test4.mid" />
-    <Content Include="test5.mid" />
-    <Content Include="THE BEASTIE BOYS.Sabotage.mid" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MidiUI\MidiUI.csproj">
       <Project>{8b53cd59-5d7e-4624-bbc9-12e88133e52b}</Project>
       <Name>MidiUI</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Midi\Midi.csproj">
-      <Project>{2cee0914-509b-40bf-975c-b523434578db}</Project>
-      <Name>Midi</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Main.resx">
-      <DependentUpon>Main.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

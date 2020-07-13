@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MidiUI")]
+[assembly: AssemblyTitle("MidiDisplay")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MidiUI")]
+[assembly: AssemblyProduct("MidiDisplay")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("8b53cd59-5d7e-4624-bbc9-12e88133e52b")]
+[assembly: Guid("3061c8d7-5a9d-4e24-8a43-6f69887f4e0d")]
 
 // Version information for an assembly consists of the following four values:
 //

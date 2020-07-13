@@ -73,7 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MidiUI\MidiUI.csproj">
-      <Project>{007acc8e-7c06-41c4-bfcd-cbe05f596a97}</Project>
+      <Project>{8b53cd59-5d7e-4624-bbc9-12e88133e52b}</Project>
       <Name>MidiUI</Name>
     </ProjectReference>
     <ProjectReference Include="..\Midi\Midi.csproj">

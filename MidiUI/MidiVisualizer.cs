@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Drawing;
+using System.ComponentModel;
+
 namespace M
 {
+	/// <summary>
+	/// Represents a MIDI visualizer
+	/// </summary>
 	public class MidiVisualizer : Control
 	{
 		static readonly Color[] _DefaultChannelColors = new Color[] {
@@ -24,15 +29,31 @@ namespace M
 			Color.DarkOrange
 		};
 		static readonly object _ChannelColorsChangedKey=new object();
+		static readonly object _SequenceChangedKey = new object();
+		static readonly object _CursorColorChangedKey = new object();
+		static readonly object _ShowCursorChangedKey = new object();
+		static readonly object _CursorPositionChangedKey = new object();
 		MidiSequence _sequence;
-		Color[] _channelColors;		
-		
+		Color[] _channelColors;
+		Color _cursorColor;
+		bool _showCursor;
+		int _cursorPosition;
+		/// <summary>
+		/// Creates a new instance
+		/// </summary>
 		public MidiVisualizer()
 		{
 			_channelColors = new Color[16];
 			_DefaultChannelColors.CopyTo(_channelColors,0);
+			_cursorColor = Color.DarkGoldenrod;
+			_showCursor = false;
+			_cursorPosition = 0;
 		}
-
+		/// <summary>
+		/// Indicates the color to use for drawing each channel
+		/// </summary>
+		[Description("Indicates the color to use for drawing each channel")]
+		[Category("Appearance")]
 		public Color[] ChannelColors {
 			get { return _channelColors; }
 			set { 
@@ -46,23 +67,185 @@ namespace M
 				OnChannelColorsChanged(EventArgs.Empty);
 			}
 		}
+		/// <summary>
+		/// Raised when the value of ChannelColors changes
+		/// </summary>
+		[Description("Raised when the value of ChannelColors changes")]
+		[Category("Behavior")]
 		public event EventHandler ChannelColorsChanged {
 			add { Events.AddHandler(_ChannelColorsChangedKey, value); }
 			remove { Events.RemoveHandler(_ChannelColorsChangedKey, value); }
 		}
+		/// <summary>
+		/// Called when the value of ChannelColors changes
+		/// </summary>
+		/// <param name="args">The event args</param>
 		protected virtual void OnChannelColorsChanged(EventArgs args)
 		{
 			(Events[_ChannelColorsChangedKey] as EventHandler)?.Invoke(this, args);
 		}
+		/// <summary>
+		/// Indicates the MIDI sequence to render
+		/// </summary>
+		[Description("Indicates the MIDI sequence to render")]
+		[Category("Behavior")]
+		public MidiSequence Sequence {
+			get {
+				return _sequence;
+			}
+			set {
+				if (value != _sequence)
+				{
+					_sequence = value;
+					Refresh();
+					OnSequenceChanged(EventArgs.Empty);
+				}
+			}
+		}
+		/// <summary>
+		/// Raised when the value of Sequence changes
+		/// </summary>
+		[Description("Raised when the value of Sequence changes")]
+		[Category("Behavior")]
+		public event EventHandler SequenceChanged {
+			add { Events.AddHandler(_SequenceChangedKey, value); }
+			remove { Events.RemoveHandler(_SequenceChangedKey, value); }
+		}
+		/// <summary>
+		/// Called when the value of Sequence changes
+		/// </summary>
+		/// <param name="args"></param>
+		protected virtual void OnSequenceChanged(EventArgs args)
+		{
+			(Events[_SequenceChangedKey] as EventHandler)?.Invoke(this, args);
+		}
+		/// <summary>
+		/// Indicates the color of the cursor
+		/// </summary>
+		[Description("Indicates the color of the cursor")]
+		[Category("Appearance")]
+		public Color CursorColor {
+			get {
+				return _cursorColor;
+			}
+			set {
+				if(value!=_cursorColor)
+				{
+					_cursorColor = value;
+					if(_showCursor)
+						Refresh();
+					OnCursorColorChanged(EventArgs.Empty);
+				}
+			}
+		}
+		/// <summary>
+		/// Raised when the value of CursorColor changes
+		/// </summary>
+		[Description("Raised when the value of CursorColor changes")]
+		[Category("Behavior")]
+		public event EventHandler CursorColorChanged {
+			add { Events.AddHandler(_CursorColorChangedKey, value); }
+			remove { Events.RemoveHandler(_CursorColorChangedKey, value); }
+		}
+		/// <summary>
+		/// Called when the value of CursorColor changes
+		/// </summary>
+		/// <param name="args">The event args</param>
+		protected virtual void OnCursorColorChanged(EventArgs args)
+		{
+			(Events[_CursorColorChangedKey] as EventHandler)?.Invoke(this, args);
+		}
+		/// <summary>
+		/// Indicates the position of the cursor in MIDI ticks
+		/// </summary>
+		[Description("Indicates the position of the cursor in MIDI ticks")]
+		[Category("Behavior")]
+		[DefaultValue(0)]
+		public int CursorPosition {
+			get {
+				return _cursorPosition;
+			}
+			set {
+				if (value != _cursorPosition)
+				{
+					_cursorPosition = value;
+					if (_showCursor)
+						Refresh();
+					OnCursorPositionChanged(EventArgs.Empty);
+				}
+			}
+		}
+		/// <summary>
+		/// Raised when the value of CursorPosition changes
+		/// </summary>
+		[Description("Raised when the value of CursorPosition changes")]
+		[Category("Behavior")]
+		public event EventHandler CursorPositionChanged {
+			add { Events.AddHandler(_CursorPositionChangedKey, value); }
+			remove { Events.RemoveHandler(_CursorPositionChangedKey, value); }
+		}
+		/// <summary>
+		/// Called when the value of CursorPosition changes
+		/// </summary>
+		/// <param name="args">The event args</param>
+		protected virtual void OnCursorPositionChanged(EventArgs args)
+		{
+			(Events[_CursorPositionChangedKey] as EventHandler)?.Invoke(this, args);
+		}
+		/// <summary>
+		/// Indicates whether or not to show the cursor
+		/// </summary>
+		[Description("Indicates whether or not to show the cursor")]
+		[Category("Appearance")]
+		[DefaultValue(false)]
+		public bool ShowCursor {
+			get {
+				return _showCursor;
+			}
+			set {
+				if (value != _showCursor)
+				{
+					_showCursor = value;
+					if (_showCursor)
+						Refresh();
+					OnShowCursorChanged(EventArgs.Empty);
+				}
+			}
+		}
+		/// <summary>
+		/// Raised when the value of ShowCursor changes
+		/// </summary>
+		[Description("Raised when the value of ShowCursor changes")]
+		[Category("Behavior")]
+		public event EventHandler ShowCursorChanged {
+			add { Events.AddHandler(_ShowCursorChangedKey, value); }
+			remove { Events.RemoveHandler(_ShowCursorChangedKey, value); }
+		}
+		/// <summary>
+		/// Called when the value of ShowCursor changes
+		/// </summary>
+		/// <param name="args">The event args</param>
+		protected virtual void OnShowCursorChanged(EventArgs args)
+		{
+			(Events[_ShowCursorChangedKey] as EventHandler)?.Invoke(this, args);
+		}
+		/// <summary>
+		/// Paints the backround of the control
+		/// </summary>
+		/// <param name="args">The event arguments</param>
 		protected override void OnPaintBackground(PaintEventArgs args)
 		{
 			base.OnPaintBackground(args);
 			var g = args.Graphics;
 			using (var brush = new SolidBrush(Color.Black))
 			{
-				g.FillRectangle(brush,0,0,Width,Height);
+				g.FillRectangle(brush,args.ClipRectangle);
 			}
 		}
+		/// <summary>
+		/// Paints the control
+		/// </summary>
+		/// <param name="args">The event arguments</param>
 		protected override void OnPaint(PaintEventArgs args)
 		{
 			base.OnPaint(args);
@@ -136,22 +319,21 @@ namespace M
 						}
 					}
 				}
+				var xt = unchecked((int)Math.Round(_cursorPosition * pptx));
+				var currect = new Rectangle(xt, 0, unchecked((int)Math.Max(pptx, 1)), Height);
+				if (_showCursor && crect.IntersectsWith(currect) && -1<_cursorPosition&& _cursorPosition<len)
+					using(var curBrush = new SolidBrush(_cursorColor))
+						g.FillRectangle(curBrush, currect);
 			}
-			
 		}
-		protected override void OnResize(EventArgs e)
+		/// <summary>
+		/// Called when the control is resized
+		/// </summary>
+		/// <param name="args">The event arguments</param>
+		protected override void OnResize(EventArgs args)
 		{
-			base.OnResize(e);
+			base.OnResize(args);
 			Refresh();
-		}
-		public MidiSequence Sequence { 
-			get {
-				return _sequence;
-			}
-			set {
-				_sequence = value;
-				Refresh();
-			}
 		}
 		private void InitializeComponent()
 		{
