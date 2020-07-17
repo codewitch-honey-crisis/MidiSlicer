@@ -34,7 +34,6 @@ namespace M
         static readonly object _WhiteKeyColorChangedKey = new object();
         static readonly object _BlackKeyColorChangedKey = new object();
         static readonly object _BorderColorChangedKey = new object();
-        static readonly object _IsInteractiveChangedKey = new object();
         static readonly object _HotKeysChangedKey = new object();
         static readonly object _PianoKeyDownKey = new object();
         static readonly object _PianoKeyUpKey = new object();
@@ -55,7 +54,6 @@ namespace M
         int _octaves = 1;
         bool[] _keys = new bool[12];
         int _keyDown = -1;
-        bool _isInteractive = true;
         Orientation _orientation = Orientation.Horizontal;
         Color _noteHighlightColor = Color.Orange;
         Color _whiteKeyColor = Color.White;
@@ -67,6 +65,8 @@ namespace M
         /// </summary>
         public PianoBox()
         {
+            SetStyle(ControlStyles.Selectable, true);
+            TabStop = true;
             DoubleBuffered = true;
             MapHotKeyDefaultsToOctave(PianoBoxHotKeyDefaults.TopRows, 4);
             MapHotKeyDefaultsToOctave(PianoBoxHotKeyDefaults.BottomRows, 5);
@@ -277,44 +277,7 @@ namespace M
         {
             (Events[_BorderColorChangedKey] as EventHandler)?.Invoke(this, args);
         }
-        /// <summary>
-        /// Indicates whether or not the control responds to actions from the user
-        /// </summary>
-        [Description("Indicates whether or not the control responds to actions from the user")]
-        [Category("Behavior")]
-        [DefaultValue(true)]
-        public bool IsInteractive {
-            get {
-                return _isInteractive;
-            }
-            set {
-                if(_isInteractive!=value)
-                {
-                    _isInteractive = value;
-                    if (!_isInteractive)
-                        _keyDown = -1;
-                    OnIsInteractiveChanged(EventArgs.Empty);
-                }
-            }
-        }
-        /// <summary>
-        /// Raised when the value of IsInteractive changes
-        /// </summary>
-        [Description("Raised when the value of IsInteractive changes")]
-        [Category("Behavior")]
-        public event EventHandler IsInteractiveChanged {
-            add { Events.AddHandler(_IsInteractiveChangedKey, value); }
-            remove { Events.RemoveHandler(_IsInteractiveChangedKey, value); }
-        }
-        /// <summary>
-        /// Called when the value of IsInteractive changes
-        /// </summary>
-        /// <param name="args">The <see cref="EventArgs"/> to use</param>
-        protected virtual void OnIsInteractiveChanged(EventArgs args)
-        {
-            (Events[_IsInteractiveChangedKey] as EventHandler)?.Invoke(this, args);
-        }
-
+        
         /// <summary>
         /// Indicates the hotkey controls for the keyboard
         /// </summary>
@@ -614,8 +577,9 @@ namespace M
         /// <param name="e">The event args</param>
         protected override void OnKeyDown(KeyEventArgs e)
         {
+            Focus();
             base.OnKeyDown(e);
-            if (null == _hotKeys || !_isInteractive)
+            if (null == _hotKeys)
                 return;
             var i = Array.IndexOf(_hotKeys,e.KeyCode);
             if(-1<i)
@@ -628,7 +592,7 @@ namespace M
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
-            if (null == _hotKeys || !_isInteractive)
+            if (null == _hotKeys)
                 return;
             var i = Array.IndexOf(_hotKeys, e.KeyCode);
             if (-1 < i)
@@ -640,23 +604,23 @@ namespace M
         /// <param name="e">The <see cref="MouseEventArgs"/> to use</param>
         protected override void OnMouseDown(MouseEventArgs e)
         {
+            Focus();
             base.OnMouseDown(e);
             FindForm().ActiveControl = this; 
-            if (_isInteractive)
+            
+            var ht = _HitTest(e.X, e.Y);
+            if (ht != _keyDown)
             {
-                var ht = _HitTest(e.X, e.Y);
-                if (ht != _keyDown)
+                _keyDown = ht;
+                var b = _keys[_keyDown];
+                if (!b)
                 {
-                    _keyDown = ht;
-                    var b = _keys[_keyDown];
-                    if (!b)
-                    {
-                        _keys[_keyDown] = true;
-                        OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
-                        Refresh();
-                    }
+                    _keys[_keyDown] = true;
+                    OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
+                    Refresh();
                 }
             }
+            
         }
         /// <summary>
         /// Called when the mouse is moved
@@ -665,30 +629,28 @@ namespace M
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            if (_isInteractive)
+            if (MouseButtons.Left == e.Button)
             {
-                if (MouseButtons.Left == e.Button)
+                var ht = _HitTest(e.X, e.Y);
+                if (-1 < _keyDown && ht != _keyDown)
                 {
-                    var ht = _HitTest(e.X, e.Y);
-                    if (-1 < _keyDown && ht != _keyDown)
+                    var b = _keys[_keyDown];
+                    if (b)
                     {
-                        var b = _keys[_keyDown];
-                        if (b)
-                        {
-                            _keys[_keyDown] = false;
-                            OnPianoKeyUp(new PianoKeyEventArgs(_keyDown));
-                        }
-                        _keyDown = ht;
-                        b = _keys[_keyDown];
-                        if (!b)
-                        {
-                            _keys[_keyDown] = true;
-                            OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
-                        }
-                        Refresh();
+                        _keys[_keyDown] = false;
+                        OnPianoKeyUp(new PianoKeyEventArgs(_keyDown));
                     }
+                    _keyDown = ht;
+                    b = _keys[_keyDown];
+                    if (!b)
+                    {
+                        _keys[_keyDown] = true;
+                        OnPianoKeyDown(new PianoKeyEventArgs(_keyDown));
+                    }
+                    Refresh();
                 }
             }
+            
         }
         /// <summary>
         /// Called when a mouse button is released
@@ -697,18 +659,16 @@ namespace M
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
-            if (_isInteractive)
+            if (0 > _keyDown)
+                return;
+            var b = _keys[_keyDown];
+            if (b)
             {
-                if (0 > _keyDown)
-                    return;
-                var b = _keys[_keyDown];
-                if (b)
-                {
-                    _keys[_keyDown] = false;
-                    OnPianoKeyUp(new PianoKeyEventArgs(_keyDown));
-                    Refresh();
-                }
+                _keys[_keyDown] = false;
+                OnPianoKeyUp(new PianoKeyEventArgs(_keyDown));
+                Refresh();
             }
+            
             _keyDown = -1;
         }
         // returns the key for a position

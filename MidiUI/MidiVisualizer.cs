@@ -44,17 +44,20 @@ namespace M
 		/// </summary>
 		public MidiVisualizer()
 		{
-			_channelColors = new Color[16];
-			_DefaultChannelColors.CopyTo(_channelColors,0);
-			_cursorColor = Color.DarkGoldenrod;
-			_showCursor = false;
-			_cursorPosition = 0;
 			this.SetStyle(ControlStyles.DoubleBuffer |
 			 ControlStyles.UserPaint |
 			 ControlStyles.AllPaintingInWmPaint,
 			 true);
 			this.UpdateStyles();
+			_channelColors = new Color[16];
+			_DefaultChannelColors.CopyTo(_channelColors,0);
+			_cursorColor = Color.DarkGoldenrod;
+			_showCursor = false;
+			_cursorPosition = 0;
+			BackColor = Color.Black;
+			
 			Thread.CurrentThread.Priority = ThreadPriority.Highest;
+			
 		}
 		/// <summary>
 		/// Indicates the color to use for drawing each channel
@@ -70,7 +73,7 @@ namespace M
 				if(value.Length<16)
 					Array.Copy(_DefaultChannelColors, value.Length, _channelColors, value.Length,16-value.Length);
 				Array.Copy(value, 0, _channelColors, 0, value.Length);
-				Refresh();
+				Invalidate();
 				OnChannelColorsChanged(EventArgs.Empty);
 			}
 		}
@@ -104,7 +107,7 @@ namespace M
 				if (value != _sequence)
 				{
 					_sequence = value;
-					Refresh();
+					Invalidate();
 					OnSequenceChanged(EventArgs.Empty);
 				}
 			}
@@ -140,7 +143,7 @@ namespace M
 				{
 					_cursorColor = value;
 					if(_showCursor)
-						Refresh();
+						Invalidate();
 					OnCursorColorChanged(EventArgs.Empty);
 				}
 			}
@@ -177,7 +180,7 @@ namespace M
 				{
 					_cursorPosition = value;
 					if (_showCursor)
-						Refresh();
+						Invalidate();
 					OnCursorPositionChanged(EventArgs.Empty);
 				}
 			}
@@ -214,7 +217,7 @@ namespace M
 				{
 					_showCursor = value;
 					if (_showCursor)
-						Refresh();
+						Invalidate();
 					OnShowCursorChanged(EventArgs.Empty);
 				}
 			}
@@ -245,7 +248,7 @@ namespace M
 		{
 			base.OnPaint(args);
 			var g = args.Graphics;
-			using (var brush = new SolidBrush(Color.Black))
+			using (var brush = new SolidBrush(BackColor))
 			{
 				g.FillRectangle(brush, args.ClipRectangle);
 			}
@@ -332,13 +335,8 @@ namespace M
 		protected override void OnResize(EventArgs args)
 		{
 			base.OnResize(args);
-			Refresh();
+			Invalidate();
 		}
-		private void InitializeComponent()
-		{
-			this.SuspendLayout();
-			this.ResumeLayout(false);
-
-		}
+		
 	}
 }

@@ -41,6 +41,8 @@
 			this.FileBrowseButton = new System.Windows.Forms.Button();
 			this.FileTimer = new System.Windows.Forms.Timer(this.components);
 			this.PlayButton = new System.Windows.Forms.Button();
+			this.VolumeLabel = new System.Windows.Forms.Label();
+			this.VolumeKnob = new M.Knob();
 			this.MidiGroupBox.SuspendLayout();
 			this.VisualizerPanel.SuspendLayout();
 			this.SuspendLayout();
@@ -103,6 +105,7 @@
 			// 
 			this.Visualizer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
+			this.Visualizer.BackColor = System.Drawing.Color.Black;
 			this.Visualizer.ChannelColors = new System.Drawing.Color[] {
         System.Drawing.Color.LightGreen,
         System.Drawing.Color.LightGoldenrodYellow,
@@ -181,11 +184,42 @@
 			this.PlayButton.UseVisualStyleBackColor = true;
 			this.PlayButton.Click += new System.EventHandler(this.PlayButton_Click);
 			// 
+			// VolumeLabel
+			// 
+			this.VolumeLabel.AutoSize = true;
+			this.VolumeLabel.Location = new System.Drawing.Point(492, 37);
+			this.VolumeLabel.Name = "VolumeLabel";
+			this.VolumeLabel.Size = new System.Drawing.Size(42, 13);
+			this.VolumeLabel.TabIndex = 11;
+			this.VolumeLabel.Text = "Volume";
+			// 
+			// VolumeKnob
+			// 
+			this.VolumeKnob.BorderColor = System.Drawing.SystemColors.ControlDarkDark;
+			this.VolumeKnob.BorderWidth = 2;
+			this.VolumeKnob.HasTicks = true;
+			this.VolumeKnob.KnobColor = System.Drawing.SystemColors.Control;
+			this.VolumeKnob.LargeChange = 32;
+			this.VolumeKnob.Location = new System.Drawing.Point(535, 29);
+			this.VolumeKnob.Maximum = 255;
+			this.VolumeKnob.Minimum = 0;
+			this.VolumeKnob.Name = "VolumeKnob";
+			this.VolumeKnob.PointerColor = System.Drawing.SystemColors.ControlText;
+			this.VolumeKnob.PointerWidth = 2;
+			this.VolumeKnob.Size = new System.Drawing.Size(29, 28);
+			this.VolumeKnob.TabIndex = 10;
+			this.VolumeKnob.TickColor = System.Drawing.Color.Black;
+			this.VolumeKnob.TickWidth = 2;
+			this.VolumeKnob.Value = 255;
+			this.VolumeKnob.ValueChanged += new System.EventHandler(this.VolumeKnob_ValueChanged);
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 190);
+			this.Controls.Add(this.VolumeLabel);
+			this.Controls.Add(this.VolumeKnob);
 			this.Controls.Add(this.PlayButton);
 			this.Controls.Add(this.FileBrowseButton);
 			this.Controls.Add(this.FileLabel);
@@ -216,6 +250,8 @@
 		private System.Windows.Forms.Button FileBrowseButton;
 		private System.Windows.Forms.Timer FileTimer;
 		private System.Windows.Forms.Button PlayButton;
+		private M.Knob VolumeKnob;
+		private System.Windows.Forms.Label VolumeLabel;
 	}
 }
 

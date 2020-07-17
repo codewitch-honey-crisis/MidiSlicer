@@ -44,6 +44,9 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Knob.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="MidiVisualizer.cs">
       <SubType>Component</SubType>
     </Compile>

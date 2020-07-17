@@ -13,6 +13,7 @@ namespace MidiDisplay
 			InitializeComponent();
 			_RefreshDeviceList();
 			_UpdateMidiFile();
+			
 		}
 		void _RefreshDeviceList()
 		{
@@ -144,6 +145,9 @@ namespace MidiDisplay
 
 				// open the stream
 				stm.Open();
+				if(MidiOutputDeviceVolumeSupport.None!=stm.VolumeSupport)
+					stm.Volume = new MidiVolume((byte)VolumeKnob.Value, (byte)VolumeKnob.Value);
+
 				// start it
 				stm.Start();
 
@@ -219,6 +223,12 @@ namespace MidiDisplay
 				if (0 != eventList.Count)
 					stm.SendDirect(eventList);
 			}
+		}
+
+		private void VolumeKnob_ValueChanged(object sender, EventArgs e)
+		{
+			if (null != _outputStream && _outputStream.IsOpen && MidiOutputDeviceVolumeSupport.None!=_outputStream.VolumeSupport)
+				_outputStream.Volume = new MidiVolume((byte)VolumeKnob.Value,(byte)VolumeKnob.Value);
 		}
 	}
 }
