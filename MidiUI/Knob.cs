@@ -683,7 +683,7 @@ namespace M
 				ofs = -mi;
 			var crr = ClientRectangle;
 			// adjust the client rect so it doesn't overhang
-			--crr.Width; --crr.Height;
+			crr.Inflate(-1, -1);
 			var orr = crr;
 			if(TicksVisible)
 			{
@@ -767,7 +767,7 @@ namespace M
 			if (MouseButtons.Left == (args.Button & MouseButtons.Left)) {
 				var crr = ClientRectangle;
 				// adjust the client rect so it doesn't overhang
-				--crr.Width; --crr.Height;
+				crr.Inflate(-1, -1);
 				if (TicksVisible)
 					crr.Inflate(-_tickHeight-2, -_tickHeight-2);
 				var size = (float)Math.Min(crr.Width - 4, crr.Height - 4);
@@ -986,7 +986,20 @@ namespace M
 		{
 			Invalidate();
 			base.OnResize(args);
-
+		}
+		/// <summary>
+		/// Called when the control's size changes
+		/// </summary>
+		/// <param name="args">The event args</param>
+		protected override void OnSizeChanged(EventArgs args)
+		{
+			SuspendLayout();
+			if (Height > Width)
+				Height = Width;
+			else if (Height < Width)
+				Width = Height;
+			ResumeLayout(true);
+			base.OnSizeChanged(args);
 		}
 		/// <summary>
 		/// Called when the control receives focus
@@ -1006,6 +1019,7 @@ namespace M
 			Invalidate();
 			base.OnLeave(args);
 		}
+		
 		static RectangleF _GetCircleRect(float x, float y, float r)
 		{
 			return new RectangleF(x - r, y - r, r * 2, r * 2);

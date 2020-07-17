@@ -34,7 +34,6 @@
 			this.MidiOutComboBox = new System.Windows.Forms.ComboBox();
 			this.MidiOutLabel = new System.Windows.Forms.Label();
 			this.VisualizerPanel = new System.Windows.Forms.Panel();
-			this.Visualizer = new M.MidiVisualizer();
 			this.MidiOpenFileDialog = new System.Windows.Forms.OpenFileDialog();
 			this.FileTextBox = new System.Windows.Forms.TextBox();
 			this.FileLabel = new System.Windows.Forms.Label();
@@ -43,6 +42,7 @@
 			this.PlayButton = new System.Windows.Forms.Button();
 			this.VolumeLabel = new System.Windows.Forms.Label();
 			this.VolumeKnob = new M.Knob();
+			this.Visualizer = new M.MidiVisualizer();
 			this.MidiGroupBox.SuspendLayout();
 			this.VisualizerPanel.SuspendLayout();
 			this.SuspendLayout();
@@ -100,36 +100,6 @@
 			this.VisualizerPanel.Name = "VisualizerPanel";
 			this.VisualizerPanel.Size = new System.Drawing.Size(789, 100);
 			this.VisualizerPanel.TabIndex = 4;
-			// 
-			// Visualizer
-			// 
-			this.Visualizer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-			this.Visualizer.BackColor = System.Drawing.Color.Black;
-			this.Visualizer.ChannelColors = new System.Drawing.Color[] {
-        System.Drawing.Color.LightGreen,
-        System.Drawing.Color.LightGoldenrodYellow,
-        System.Drawing.Color.LightBlue,
-        System.Drawing.Color.LightCyan,
-        System.Drawing.Color.LightPink,
-        System.Drawing.Color.LightGray,
-        System.Drawing.Color.Magenta,
-        System.Drawing.Color.Orange,
-        System.Drawing.Color.DarkGreen,
-        System.Drawing.Color.Brown,
-        System.Drawing.Color.DarkBlue,
-        System.Drawing.Color.DarkCyan,
-        System.Drawing.Color.HotPink,
-        System.Drawing.Color.DarkGray,
-        System.Drawing.Color.DarkMagenta,
-        System.Drawing.Color.DarkOrange};
-			this.Visualizer.CursorColor = System.Drawing.Color.DarkGoldenrod;
-			this.Visualizer.Location = new System.Drawing.Point(0, 0);
-			this.Visualizer.Name = "Visualizer";
-			this.Visualizer.Sequence = null;
-			this.Visualizer.Size = new System.Drawing.Size(75, 100);
-			this.Visualizer.TabIndex = 0;
-			this.Visualizer.Text = "Visualizer";
 			// 
 			// MidiOpenFileDialog
 			// 
@@ -200,18 +170,49 @@
 			this.VolumeKnob.HasTicks = true;
 			this.VolumeKnob.KnobColor = System.Drawing.SystemColors.Control;
 			this.VolumeKnob.LargeChange = 32;
-			this.VolumeKnob.Location = new System.Drawing.Point(535, 29);
+			this.VolumeKnob.Location = new System.Drawing.Point(530, 29);
 			this.VolumeKnob.Maximum = 255;
 			this.VolumeKnob.Minimum = 0;
 			this.VolumeKnob.Name = "VolumeKnob";
 			this.VolumeKnob.PointerColor = System.Drawing.SystemColors.ControlText;
 			this.VolumeKnob.PointerWidth = 2;
-			this.VolumeKnob.Size = new System.Drawing.Size(29, 28);
+			this.VolumeKnob.Size = new System.Drawing.Size(31, 31);
 			this.VolumeKnob.TabIndex = 10;
 			this.VolumeKnob.TickColor = System.Drawing.Color.Black;
+			this.VolumeKnob.TickHeight = 1;
 			this.VolumeKnob.TickWidth = 2;
 			this.VolumeKnob.Value = 255;
 			this.VolumeKnob.ValueChanged += new System.EventHandler(this.VolumeKnob_ValueChanged);
+			// 
+			// Visualizer
+			// 
+			this.Visualizer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+			this.Visualizer.BackColor = System.Drawing.Color.Black;
+			this.Visualizer.ChannelColors = new System.Drawing.Color[] {
+        System.Drawing.Color.LightGreen,
+        System.Drawing.Color.LightGoldenrodYellow,
+        System.Drawing.Color.LightBlue,
+        System.Drawing.Color.LightCyan,
+        System.Drawing.Color.LightPink,
+        System.Drawing.Color.LightGray,
+        System.Drawing.Color.Magenta,
+        System.Drawing.Color.Orange,
+        System.Drawing.Color.DarkGreen,
+        System.Drawing.Color.Brown,
+        System.Drawing.Color.DarkBlue,
+        System.Drawing.Color.DarkCyan,
+        System.Drawing.Color.HotPink,
+        System.Drawing.Color.DarkGray,
+        System.Drawing.Color.DarkMagenta,
+        System.Drawing.Color.DarkOrange};
+			this.Visualizer.CursorColor = System.Drawing.Color.DarkGoldenrod;
+			this.Visualizer.Location = new System.Drawing.Point(0, 0);
+			this.Visualizer.Name = "Visualizer";
+			this.Visualizer.Sequence = null;
+			this.Visualizer.Size = new System.Drawing.Size(75, 100);
+			this.Visualizer.TabIndex = 0;
+			this.Visualizer.Text = "Visualizer";
 			// 
 			// Main
 			// 
