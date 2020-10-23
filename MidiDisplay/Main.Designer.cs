@@ -179,7 +179,6 @@
 			this.VolumeKnob.Size = new System.Drawing.Size(31, 31);
 			this.VolumeKnob.TabIndex = 10;
 			this.VolumeKnob.TickColor = System.Drawing.Color.Black;
-			this.VolumeKnob.TickHeight = 1;
 			this.VolumeKnob.TickWidth = 2;
 			this.VolumeKnob.Value = 255;
 			this.VolumeKnob.ValueChanged += new System.EventHandler(this.VolumeKnob_ValueChanged);
@@ -219,7 +218,6 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 190);
-			this.Controls.Add(this.VolumeLabel);
 			this.Controls.Add(this.VolumeKnob);
 			this.Controls.Add(this.PlayButton);
 			this.Controls.Add(this.FileBrowseButton);
@@ -227,6 +225,7 @@
 			this.Controls.Add(this.FileTextBox);
 			this.Controls.Add(this.VisualizerPanel);
 			this.Controls.Add(this.MidiGroupBox);
+			this.Controls.Add(this.VolumeLabel);
 			this.Name = "Main";
 			this.Text = "MIDI Display";
 			this.MidiGroupBox.ResumeLayout(false);

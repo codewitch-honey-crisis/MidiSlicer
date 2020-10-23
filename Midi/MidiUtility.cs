@@ -224,7 +224,7 @@ namespace M
 							return new MidiMessageRealTimeContinue();
 						case 0xC:
 							return new MidiMessageRealTimeStop();
-						case 0xD:
+						case 0xE:
 							return new MidiMessageRealTimeActiveSensing();
 						case 0xF:
 							return new MidiMessageRealTimeReset();
