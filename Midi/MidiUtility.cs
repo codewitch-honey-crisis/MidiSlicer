@@ -305,6 +305,7 @@ namespace M
 							data[0] = message.Status;
 							return data;
 						case 7:
+						case 0xD:
 							throw new InvalidProgramException("Illegal MIDI message");
 					}
 
