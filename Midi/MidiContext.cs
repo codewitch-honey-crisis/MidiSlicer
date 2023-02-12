@@ -134,8 +134,8 @@
 					Channels[cn].Controls[mw.Data1] = mw.Data2;
 					break;
 				case 0xE0:
-					mw = message as MidiMessageWord;
-					Channels[cn].PitchWheel = mw.Data;
+					var mcp = message as MidiMessageChannelPitch;
+					Channels[cn].PitchWheel = mcp.Pitch;
 					break;
 				case 0xF0:
 					switch(RunningStatus & 0xF)
