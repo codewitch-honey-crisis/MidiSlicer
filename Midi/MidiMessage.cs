@@ -1365,7 +1365,7 @@
 		/// <summary>
 		/// Creates a new MIDI channel pitch message
 		/// </summary>
-		/// <param name="pitch">The MIDI pressure (0-16383)</param>
+		/// <param name="pitch">The MIDI pitch (0-16383)</param>
 		/// <param name="channel">The MIDI channel (0-15)</param>
 		public MidiMessageChannelPitch(short pitch, byte channel) : base(unchecked((byte)(0xE0 | channel)), BitConverter.IsLittleEndian?MidiUtility.Swap(pitch):pitch)
 		{
@@ -1380,9 +1380,7 @@
 		/// </summary>
 		public short Pitch {
 			get {
-				if (BitConverter.IsLittleEndian)
-					return MidiUtility.Swap(Data);
-				return Data;
+				return unchecked((short)(Data1 + Data2 * 128));
 			}
 		}
 		/// <summary>
